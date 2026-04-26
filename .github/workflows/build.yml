@@ -60,7 +60,7 @@ jobs:
 
   release:
     if: >-
-      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'push') ||
       (github.event_name == 'workflow_dispatch' && startsWith(github.event.inputs.release_tag, 'v'))
     needs: build
     runs-on: windows-2022
@@ -70,28 +70,40 @@ jobs:
         id: release_tag
         shell: pwsh
         run: |
-          if ("${{ github.event_name }}" -eq "push") {
-            $tag = "${{ github.ref_name }}"
+          $eventName = "${{ github.event_name }}"
+          $refName = "${{ github.ref_name }}"
+          $sha = "${{ github.sha }}"
+
+          if ($eventName -eq "push" -and "${{ github.ref }}" -like "refs/tags/*") {
+            $tag = $refName
+            $releaseRef = "refs/tags/$tag"
+          }
+          elseif ($eventName -eq "push") {
+            $shortSha = $sha.Substring(0, 8)
+            $tag = "build-$shortSha"
+            $releaseRef = $sha
           }
           else {
             $tag = "${{ github.event.inputs.release_tag }}"
+            $releaseRef = "refs/tags/$tag"
           }
 
           if (-not $tag) {
             throw "No release tag provided."
           }
 
-          if ($tag -notmatch '^v.+') {
+          if ($eventName -eq "workflow_dispatch" -and $tag -notmatch '^v.+') {
             throw "Release tag must start with 'v'. Received: $tag"
           }
 
           "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "release_ref=$releaseRef" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: refs/tags/${{ steps.release_tag.outputs.tag }}
+          ref: ${{ steps.release_tag.outputs.release_ref }}
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
