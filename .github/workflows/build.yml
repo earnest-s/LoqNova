@@ -69,11 +69,11 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
-      - name: Restore WPF project
-        run: dotnet restore ${{ env.PROJECT_PATH }}
+      - name: Restore WPF project (win-x64 runtime)
+        run: dotnet restore ${{ env.PROJECT_PATH }} -r win-x64
 
-      - name: Build WPF project (Release)
-        run: dotnet build ${{ env.PROJECT_PATH }} -c Release --no-restore
+      - name: Build WPF project (Release, win-x64)
+        run: dotnet build ${{ env.PROJECT_PATH }} -c Release -r win-x64 --no-restore
 
       - name: Publish self-contained single EXE (win-x64)
         run: >-
