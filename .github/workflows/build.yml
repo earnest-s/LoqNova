@@ -12,6 +12,11 @@ on:
       - master
       - main
   workflow_dispatch:
+    inputs:
+      release_tag:
+        description: "Tag to release (example: v3.0.1)"
+        required: false
+        type: string
 
 permissions:
   contents: write
@@ -54,15 +59,39 @@ jobs:
           if-no-files-found: warn
 
   release:
-    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+    if: >-
+      (github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')) ||
+      (github.event_name == 'workflow_dispatch' && startsWith(github.event.inputs.release_tag, 'v'))
     needs: build
     runs-on: windows-2022
 
     steps:
+      - name: Resolve release tag
+        id: release_tag
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "push") {
+            $tag = "${{ github.ref_name }}"
+          }
+          else {
+            $tag = "${{ github.event.inputs.release_tag }}"
+          }
+
+          if (-not $tag) {
+            throw "No release tag provided."
+          }
+
+          if ($tag -notmatch '^v.+') {
+            throw "Release tag must start with 'v'. Received: $tag"
+          }
+
+          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          ref: refs/tags/${{ steps.release_tag.outputs.tag }}
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -92,7 +121,7 @@ jobs:
         id: package
         shell: pwsh
         run: |
-          $tag = "${{ github.ref_name }}"
+          $tag = "${{ steps.release_tag.outputs.tag }}"
           $publishDir = "${{ env.PUBLISH_DIR }}"
 
           if (-not (Test-Path $publishDir)) {
@@ -118,14 +147,14 @@ jobs:
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LoqNova-${{ github.ref_name }}-win-x64
+          name: LoqNova-${{ steps.release_tag.outputs.tag }}-win-x64
           path: ${{ steps.package.outputs.release_asset }}
 
       - name: Create or update GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ github.ref_name }}
-          name: ${{ github.ref_name }}
+          tag_name: ${{ steps.release_tag.outputs.tag }}
+          name: ${{ steps.release_tag.outputs.tag }}
           files: ${{ steps.package.outputs.release_asset }}
           fail_on_unmatched_files: true
           draft: false
