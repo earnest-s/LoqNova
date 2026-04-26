@@ -31,6 +31,9 @@ env:
 
 jobs:
   build:
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      version_tag: ${{ steps.version.outputs.version_tag }}
     runs-on: windows-2022
 
     steps:
@@ -44,18 +47,37 @@ jobs:
         with:
           dotnet-version: 8.0.x
 
+      - name: Extract project version
+        id: version
+        shell: pwsh
+        run: |
+          [xml]$project = Get-Content "${{ env.PROJECT_PATH }}"
+          $version = ($project.Project.PropertyGroup | Where-Object { $_.Version } | Select-Object -First 1).Version
+
+          if (-not $version) {
+            throw "Could not read <Version> from ${{ env.PROJECT_PATH }}"
+          }
+
+          $version = $version.Trim()
+          if ($version -notmatch '^\d+\.\d+\.\d+([.-].+)?$') {
+            throw "Unexpected project version format: $version"
+          }
+
+          "version=$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "version_tag=v$version" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+
       - name: Restore
         run: dotnet restore
 
       - name: Build
-        run: .\make.bat
+        run: .\make.bat ${{ steps.version.outputs.version }}
 
       - name: Upload build artifact
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: installer-${{ github.sha }}
-          path: build_installer\LoqNovaSetup.exe
+          name: LoqNova-v${{ steps.version.outputs.version }}-setup
+          path: build_installer\LoqNova-v${{ steps.version.outputs.version }}-setup.exe
           if-no-files-found: warn
 
   release:
@@ -66,44 +88,43 @@ jobs:
     runs-on: windows-2022
 
     steps:
-      - name: Resolve release tag
-        id: release_tag
+      - name: Resolve release metadata
+        id: release_meta
         shell: pwsh
         run: |
           $eventName = "${{ github.event_name }}"
           $refName = "${{ github.ref_name }}"
-          $sha = "${{ github.sha }}"
+          $projectVersion = "${{ needs.build.outputs.version }}"
+          $versionTag = "${{ needs.build.outputs.version_tag }}"
+          $manualTag = "${{ github.event.inputs.release_tag }}"
+
+          if (-not $projectVersion) {
+            throw "Project version was not propagated from build job."
+          }
+
+          $releaseTag = $versionTag
 
           if ($eventName -eq "push" -and "${{ github.ref }}" -like "refs/tags/*") {
-            $tag = $refName
-            $releaseRef = "refs/tags/$tag"
-          }
-          elseif ($eventName -eq "push") {
-            $shortSha = $sha.Substring(0, 8)
-            $tag = "build-$shortSha"
-            $releaseRef = $sha
-          }
-          else {
-            $tag = "${{ github.event.inputs.release_tag }}"
-            $releaseRef = "refs/tags/$tag"
+            if ($refName -ne $versionTag) {
+              throw "Tag/version mismatch. Pushed tag '$refName' but project version is '$versionTag'."
+            }
+            $releaseTag = $refName
           }
 
-          if (-not $tag) {
-            throw "No release tag provided."
+          if ($eventName -eq "workflow_dispatch" -and $manualTag) {
+            if ($manualTag -ne $versionTag) {
+              throw "Manual tag/version mismatch. Input tag '$manualTag' but project version is '$versionTag'."
+            }
+            $releaseTag = $manualTag
           }
 
-          if ($eventName -eq "workflow_dispatch" -and $tag -notmatch '^v.+') {
-            throw "Release tag must start with 'v'. Received: $tag"
-          }
-
-          "tag=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
-          "release_ref=$releaseRef" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "version=$projectVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
+          "tag=$releaseTag" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Checkout
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ steps.release_tag.outputs.release_ref }}
 
       - name: Setup .NET 8
         uses: actions/setup-dotnet@v4
@@ -124,6 +145,8 @@ jobs:
           --self-contained true
           --no-build
           -o ${{ env.PUBLISH_DIR }}
+          /p:Version=${{ steps.release_meta.outputs.version }}
+          /p:FileVersion=${{ steps.release_meta.outputs.version }}
           /p:PublishSingleFile=true
           /p:PublishReadyToRun=false
           /p:DebugType=None
@@ -133,7 +156,7 @@ jobs:
         id: package
         shell: pwsh
         run: |
-          $tag = "${{ steps.release_tag.outputs.tag }}"
+          $version = "${{ steps.release_meta.outputs.version }}"
           $publishDir = "${{ env.PUBLISH_DIR }}"
 
           if (-not (Test-Path $publishDir)) {
@@ -152,21 +175,22 @@ jobs:
             throw "Main EXE not found in $publishDir"
           }
 
-          $releaseExe = Join-Path $publishDir ("LoqNova-{0}-win-x64.exe" -f $tag)
+          $releaseExe = Join-Path $publishDir ("LoqNova-v{0}.exe" -f $version)
           Copy-Item -Path $mainExe -Destination $releaseExe -Force
           "release_asset=$releaseExe" | Out-File -FilePath $env:GITHUB_OUTPUT -Encoding utf8 -Append
 
       - name: Upload release artifact
         uses: actions/upload-artifact@v4
         with:
-          name: LoqNova-${{ steps.release_tag.outputs.tag }}-win-x64
+          name: LoqNova-v${{ steps.release_meta.outputs.version }}
           path: ${{ steps.package.outputs.release_asset }}
 
       - name: Create or update GitHub release
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.release_tag.outputs.tag }}
-          name: ${{ steps.release_tag.outputs.tag }}
+          tag_name: ${{ steps.release_meta.outputs.tag }}
+          name: ${{ steps.release_meta.outputs.tag }}
+          target_commitish: ${{ github.sha }}
           files: ${{ steps.package.outputs.release_asset }}
           fail_on_unmatched_files: true
           draft: false

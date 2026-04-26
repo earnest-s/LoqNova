@@ -7,7 +7,11 @@
 #define MyAppExeName "LOQ Nova.exe"
 
 #ifndef MyAppVersion
-  #define MyAppVersion "0.0.1"
+  #error "MyAppVersion must be provided by build pipeline."
+#endif
+
+#ifndef MyOutputBaseFilename
+  #define MyOutputBaseFilename "LoqNova-v" + MyAppVersion + "-setup"
 #endif
 
 [Setup]
@@ -23,7 +27,7 @@ DefaultDirName={userpf}\{#MyAppNameCompact}
 DisableProgramGroupPage=yes
 LicenseFile=LICENSE
 PrivilegesRequired=admin
-OutputBaseFilename=LOQNovaSetup
+OutputBaseFilename={#MyOutputBaseFilename}
 Compression=lzma2/ultra64  
 SolidCompression=yes
 WizardStyle=modern
