@@ -126,11 +126,16 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
         catch (OperationCanceledException)
         {
             // Expected on cancellation
+            // [DIAGNOSTIC-ONLY]
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] Effect loop CANCELLED. [type={effect.Type}]");
         }
         catch (Exception ex)
         {
             if (Log.Instance.IsTraceEnabled)
                 Log.Instance.Trace($"Effect {effect.Type} threw an exception", ex);
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] Effect loop THREW. [type={effect.Type}, exType={ex.GetType().FullName}]");
         }
     }
 
