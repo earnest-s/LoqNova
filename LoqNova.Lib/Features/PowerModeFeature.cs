@@ -129,22 +129,45 @@ public class PowerModeFeature(
     {
         // Guard: allow only one strobe at a time — prevents triple execution
         // when SetStateAsync and ApplyPerformanceModeAsync overlap.
+        // [DIAGNOSTIC-ONLY] guard telemetry (no behavior change)
+        var sw = System.Diagnostics.Stopwatch.StartNew();
         if (Interlocked.CompareExchange(ref _strobeGuard, 1, 0) != 0)
+        {
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] FireStrobe BLOCKED by _strobeGuard (previous strobe still active). [mode={mode}]");
             return;
+        }
+
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] FireStrobe guard acquired. [mode={mode}]");
 
         try
         {
             if (await rgbKeyboardBacklightController.IsSupportedAsync().ConfigureAwait(false))
+            {
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] FireStrobe dispatching PlayTransitionAsync. [mode={mode}, supported=true]");
                 await rgbKeyboardBacklightController.PlayTransitionAsync(mode).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] FireStrobe PlayTransitionAsync returned. [mode={mode}, elapsedMs={sw.ElapsedMilliseconds}]");
+            }
+            else if (Log.Instance.IsTraceEnabled)
+            {
+                Log.Instance.Trace($"[DIAG] FireStrobe skipped: RGB controller not supported. [mode={mode}]");
+            }
         }
         catch (Exception ex)
         {
             if (Log.Instance.IsTraceEnabled)
                 Log.Instance.Trace($"Failed to trigger RGB strobe for power mode {mode}", ex);
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] FireStrobe EXCEPTION swallowed. [type={ex.GetType().FullName}, msg={ex.Message}, elapsedMs={sw.ElapsedMilliseconds}]");
         }
         finally
         {
             Interlocked.Exchange(ref _strobeGuard, 0);
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] FireStrobe guard released. [mode={mode}, totalElapsedMs={sw.ElapsedMilliseconds}]");
         }
     }
 
