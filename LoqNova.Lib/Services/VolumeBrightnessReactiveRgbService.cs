@@ -263,7 +263,7 @@ public class VolumeBrightnessReactiveRgbService(
             dispatcher.IsOverrideActive = true;
             _restorePending = true;
 
-            var sw = System.Diagnostics.Stopwatch.StartNew();
+            var sw = global::System.Diagnostics.Stopwatch.StartNew();
 
             while (!cancellationToken.IsCancellationRequested)
             {
