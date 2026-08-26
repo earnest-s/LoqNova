@@ -23,7 +23,7 @@ public static partial class WMI
 
     public static class WmiMonitorBrightnessReader
     {
-        public static Task<IEnumerable<double>> ReadAsync() => ReadAsync("root\\WMI",
+        public static Task<IEnumerable<double>> ReadAsync() => WMI.ReadAsync("root\\WMI",
             $"SELECT * FROM WmiMonitorBrightness",
             pdc => Convert.ToDouble(pdc["CurrentBrightness"].Value));
     }
