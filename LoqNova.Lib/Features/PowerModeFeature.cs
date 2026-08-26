@@ -1,4 +1,4 @@
-ï»¿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -51,7 +51,7 @@ public class PowerModeFeature(
             && await Power.IsPowerAdapterConnectedAsync().ConfigureAwait(false) is PowerAdapterStatus.Disconnected)
             throw new PowerModeUnavailableWithoutACException(state);
 
-        // Fire OSD + RGB strobe IMMEDIATELY â€” before hardware write.
+        // Fire OSD + RGB strobe IMMEDIATELY — before hardware write.
         // This gives instant visual feedback while WMI blocks.
         PublishNotification(state);
         _ = FireStrobeAsync(state);
@@ -106,10 +106,10 @@ public class PowerModeFeature(
     /// </summary>
     public async Task ApplyPerformanceModeAsync(PowerModeState mode)
     {
-        // 1. OSD notification â€” instant
+        // 1. OSD notification — instant
         PublishNotification(mode);
 
-        // 2. RGB strobe â€” fire-and-forget, runs concurrently with deps
+        // 2. RGB strobe — fire-and-forget, runs concurrently with deps
         _ = FireStrobeAsync(mode);
 
         // 3. Apply dependencies (GodMode preset, Windows power mode/plan)
@@ -127,10 +127,10 @@ public class PowerModeFeature(
 
     private async Task FireStrobeAsync(PowerModeState mode)
     {
-        // Guard: allow only one strobe at a time â€” prevents triple execution
+        // Guard: allow only one strobe at a time — prevents triple execution
         // when SetStateAsync and ApplyPerformanceModeAsync overlap.
         // [DIAGNOSTIC-ONLY] guard telemetry (no behavior change)
-        var sw = System.Diagnostics.Stopwatch.StartNew();
+        var sw = global::System.Diagnostics.Stopwatch.StartNew();
         if (Interlocked.CompareExchange(ref _strobeGuard, 1, 0) != 0)
         {
             if (Log.Instance.IsTraceEnabled)

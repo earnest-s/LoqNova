@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using LoqNova.Lib.Controllers.CustomRGBEffects;
+using LoqNova.Lib.Utils;
 
 namespace LoqNova.Lib.Controllers;
 

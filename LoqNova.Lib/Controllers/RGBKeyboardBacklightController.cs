@@ -1,4 +1,4 @@
-﻿// #define MOCK_RGB
+// #define MOCK_RGB
 
 using System;
 using System.Collections.Generic;
@@ -369,7 +369,7 @@ namespace LoqNova.Lib.Controllers
         public async Task PlayTransitionAsync(PowerModeState mode)
         {
             // [DIAGNOSTIC-ONLY] entry telemetry (no behavior change)
-            var diagSw = System.Diagnostics.Stopwatch.StartNew();
+            var diagSw = global::System.Diagnostics.Stopwatch.StartNew();
             if (Log.Instance.IsTraceEnabled)
                 Log.Instance.Trace($"[DIAG] PlayTransitionAsync ENTER. [mode={mode}, supported={dispatcher.IsSupported}, overrideActive={dispatcher.IsOverrideActive}, prevTask={_transitionTask?.Status.ToString() ?? "null"}]");
 
