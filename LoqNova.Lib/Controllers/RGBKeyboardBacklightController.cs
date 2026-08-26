@@ -34,6 +34,19 @@ namespace LoqNova.Lib.Controllers
             return Task.FromResult(dispatcher.IsSupported);
         }
 
+        /// <summary>
+        /// Re-sends the currently selected preset to the keyboard (firmware command and
+        /// custom effect handling) WITHOUT persisting settings. Used by the reactive
+        /// volume/brightness overlay to restore the previous RGB state.
+        /// </summary>
+        public async Task RefreshCurrentPresetAsync()
+        {
+            using (await IoLock.LockAsync().ConfigureAwait(false))
+            {
+                await SetCurrentPresetAsync().ConfigureAwait(false);
+            }
+        }
+
         public async Task SetLightControlOwnerAsync(bool enable, bool restorePreset = false)
         {
             using (await IoLock.LockAsync().ConfigureAwait(false))
