@@ -196,6 +196,11 @@ public class VolumeBrightnessReactiveRgbService(
         if (!_started)
             return;
 
+        // [VBR] input proof: values must match actual Windows master volume /
+        // display brightness at the moment of change.
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[VBR] EVENT {(isBrightness ? "brightness" : "volume")} received = {pct:F1}%");
+
         lock (_gate)
         {
             _eventValue = Math.Clamp(pct, 0, 100);
@@ -290,10 +295,22 @@ public class VolumeBrightnessReactiveRgbService(
                 if (Log.Instance.IsTraceEnabled)
                     Log.Instance.Trace($"[VBR] BEFORE HARDWARE WRITE");
 
-                await dispatcher.ForceRenderAsync(zones, cancellationToken).ConfigureAwait(false);
-
-                if (Log.Instance.IsTraceEnabled)
-                    Log.Instance.Trace($"[VBR] HARDWARE WRITE COMPLETED");
+                try
+                {
+                    await dispatcher.ForceRenderAsync(zones, cancellationToken).ConfigureAwait(false);
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[VBR] HARDWARE WRITE COMPLETED");
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch (Exception ex)
+                {
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[VBR] HARDWARE WRITE FAILED: {ex.Message}", ex);
+                    throw;
+                }
 
                 // Latest-wins loop: keep rendering until the value has been quiet
                 // for HoldMs (rapid changes simply update the same event).
