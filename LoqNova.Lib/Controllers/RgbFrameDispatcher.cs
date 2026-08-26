@@ -137,7 +137,20 @@ public class RgbFrameDispatcher
         using (await HidLock.LockAsync(ct).ConfigureAwait(false))
         {
             var handle = DeviceHandle ?? throw new InvalidOperationException("RGB Keyboard unsupported");
-            await WriteZoneColors(handle, zones).ConfigureAwait(false);
+            // [DIAGNOSTIC-ONLY] write duration + failure telemetry (no behavior change)
+            var diagSw = System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                await WriteZoneColors(handle, zones).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled && diagSw.ElapsedMilliseconds > 50)
+                    Log.Instance.Trace($"[DIAG] HID ForceRender SLOW write. [ms={diagSw.ElapsedMilliseconds}]");
+            }
+            catch (Exception ex)
+            {
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] HID ForceRender WRITE FAILED. [type={ex.GetType().FullName}, msg={ex.Message}, ms={diagSw.ElapsedMilliseconds}]", ex);
+                throw;
+            }
         }
 #endif
 
