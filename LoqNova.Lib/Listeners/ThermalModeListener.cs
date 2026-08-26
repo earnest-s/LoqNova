@@ -59,6 +59,16 @@ public class ThermalModeListener(
 
         await windowsPowerModeController.SetPowerModeAsync(powerModeState).ConfigureAwait(false);
         await windowsPowerPlanController.SetPowerPlanAsync(powerModeState).ConfigureAwait(false);
+
+        // Firmware-initiated performance mode transition (e.g. AC adapter driven).
+        // Announce the resulting mode so the existing performance-mode strobe plays
+        // in that mode's color. AnnounceModeChangeAsync deduplicates against an
+        // actually-executed strobe for the same mode (e.g. Fn+Q echo), and the
+        // SuppressNext() guard above already filters programmatic internal changes.
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Thermal event → resulting PowerModeState. [state={powerModeState}]");
+
+        await powerModeFeature.Value.AnnounceModeChangeAsync(powerModeState).ConfigureAwait(false);
     }
 
     public void SuppressNext()
