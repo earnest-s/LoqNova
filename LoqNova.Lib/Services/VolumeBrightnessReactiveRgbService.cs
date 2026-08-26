@@ -50,6 +50,7 @@ public class VolumeBrightnessReactiveRgbService(
     private readonly object _gate = new();
 
     private bool _started;
+    private volatile bool _stopped;
 
     private double _volumePct = -1;   // negative = unknown
     private double? _brightnessPct;   // null = unsupported/unknown
