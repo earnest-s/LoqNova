@@ -253,8 +253,6 @@ public class VolumeBrightnessReactiveRgbService(
             if (!dispatcher.IsSupported || settings.Store.State.SelectedPreset == RGBKeyboardBacklightPreset.Off)
                 return;
 
-            var baseColor = isBrightness ? BrightnessBaseColor : VolumeBaseColor;
-
             if (Log.Instance.IsTraceEnabled)
             {
                 var src = isBrightness ? "brightness" : "volume";
