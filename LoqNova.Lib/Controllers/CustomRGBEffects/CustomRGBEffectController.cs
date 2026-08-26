@@ -46,8 +46,13 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
     /// </summary>
     public async Task ResumeFromOverrideAsync()
     {
+        // [DIAGNOSTIC-ONLY]
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Effect ResumeFromOverride ENTER. [running={IsEffectRunning}]");
         dispatcher.IsOverrideActive = false;
         await dispatcher.ForceRenderAsync(_currentColors).ConfigureAwait(false);
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Effect ResumeFromOverride DONE.");
     }
 
     /// <summary>
