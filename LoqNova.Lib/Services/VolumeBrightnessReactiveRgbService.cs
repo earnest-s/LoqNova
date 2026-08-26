@@ -154,8 +154,8 @@ public class VolumeBrightnessReactiveRgbService(
             _mmDeviceEnumerator.RegisterEndpointNotificationCallback(_deviceNotifier);
 
             _device = _mmDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
-            _volumeCallback = new AudioEndpointVolumeCallback(this);
-            _device.AudioEndpointVolume.OnVolumeNotification += _volumeCallback.OnVolumeNotification;
+            _volumeHandler = data => OnVolumeChangedPercent(data.MasterVolume * 100.0);
+            _device.AudioEndpointVolume.OnVolumeNotification += _volumeHandler;
         }
         catch (Exception ex)
         {
@@ -168,8 +168,8 @@ public class VolumeBrightnessReactiveRgbService(
     {
         try
         {
-            if (_device is not null && _volumeCallback is not null)
-                _device.AudioEndpointVolume.OnVolumeNotification -= _volumeCallback.OnVolumeNotification;
+            if (_device is not null && _volumeHandler is not null)
+                _device.AudioEndpointVolume.OnVolumeNotification -= _volumeHandler;
             if (_mmDeviceEnumerator is not null && _deviceNotifier is not null)
                 _mmDeviceEnumerator.UnregisterEndpointNotificationCallback(_deviceNotifier);
             _device?.Dispose();
@@ -178,7 +178,7 @@ public class VolumeBrightnessReactiveRgbService(
         finally
         {
             _device = null;
-            _volumeCallback = null;
+            _volumeHandler = null;
             _deviceNotifier = null;
             _mmDeviceEnumerator = null;
         }
