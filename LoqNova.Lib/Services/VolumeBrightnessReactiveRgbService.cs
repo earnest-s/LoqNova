@@ -322,14 +322,9 @@ public class VolumeBrightnessReactiveRgbService(
             }
 
             cancellationToken.ThrowIfCancellationRequested();
-
-            // End on black so the hand-off back to the preset is clean.
-            if (!rgbKeyboardBacklightController.IsTransitionActive)
-            {
-                await dispatcher.ForceRenderAsync(ZoneColors.Black, cancellationToken).ConfigureAwait(false);
-                if (Log.Instance.IsTraceEnabled)
-                    Log.Instance.Trace($"[VBR] BLACK END-FRAME SENT");
-            }
+            // NOTE: no intermediate black/clear frame here — the performance strobe
+            // hands off directly from its final frame to the restored RGB state,
+            // and any extra intermediate write shows up as a visible flicker.
         }
         catch (OperationCanceledException)
         {
