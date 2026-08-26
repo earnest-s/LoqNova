@@ -100,6 +100,7 @@ public class VolumeBrightnessReactiveRgbService(
             return;
 
         _started = false;
+        _stopped = true;
 
         if (_brightnessHandler is not null)
             displayBrightnessListener.Changed -= _brightnessHandler;
