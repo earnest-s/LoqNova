@@ -209,14 +209,25 @@ public class VolumeBrightnessReactiveRgbService(
         KickSmoothing();
     }
 
+    private void SetBrightnessPercent(double pct)
+    {
+        _brightnessPct = Math.Clamp(pct, 0, 100);
+        RecomputeTargets();
+        KickSmoothing();
+    }
+
+    private void OnVolumeChangedPercent(double pct)
+    {
+        _volumePct = Math.Clamp(pct, 0, 100);
+        RecomputeTargets();
+        KickSmoothing();
+    }
+
     private static async Task<double?> ReadBrightnessPercentAsync()
     {
         try
         {
-            var values = await WMI.ReadAsync("root\\WMI",
-                $"SELECT * FROM WmiMonitorBrightness",
-                pdc => Convert.ToDouble(pdc["CurrentBrightness"].Value)).ConfigureAwait(false);
-
+            var values = await WMI.WmiMonitorBrightnessReader.ReadAsync().ConfigureAwait(false);
             return values.FirstOrDefault();
         }
         catch
