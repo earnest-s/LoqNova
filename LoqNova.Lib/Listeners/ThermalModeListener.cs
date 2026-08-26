@@ -8,7 +8,8 @@ namespace LoqNova.Lib.Listeners;
 
 public class ThermalModeListener(
     WindowsPowerModeController windowsPowerModeController,
-    WindowsPowerPlanController windowsPowerPlanController)
+    WindowsPowerPlanController windowsPowerPlanController,
+    Lazy<PowerModeFeature> powerModeFeature)
     : AbstractWMIListener<ThermalModeListener.ChangedEventArgs, ThermalModeState, int>(WMI.LenovoGameZoneThermalModeEvent.Listen)
 {
     public class ChangedEventArgs(ThermalModeState state) : EventArgs
