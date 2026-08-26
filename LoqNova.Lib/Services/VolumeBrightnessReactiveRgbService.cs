@@ -278,7 +278,22 @@ public class VolumeBrightnessReactiveRgbService(
 
                 var valueNow = _eventValue;
                 var zones = BuildVisualization(valueNow);
-                await dispatcher.RenderAsync(zones, cancellationToken).ConfigureAwait(false);
+
+                // [VBR] temporary diagnostics — prove calculation → hardware chain.
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[VBR] FRAME x={valueNow:F1}% Z1=({zones.Zone1.R},{zones.Zone1.G},{zones.Zone1.B}) Z2=({zones.Zone2.R},{zones.Zone2.G},{zones.Zone2.B}) Z3=({zones.Zone3.R},{zones.Zone3.G},{zones.Zone3.B}) Z4=({zones.Zone4.R},{zones.Zone4.G},{zones.Zone4.B})");
+
+                // NOTE: must be ForceRenderAsync — RenderAsync intentionally drops
+                // frames while IsOverrideActive is true (that guard exists so the
+                // strobe can pause custom effects). Our event OWNS the override
+                // window, exactly like the working performance-mode strobe.
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[VBR] BEFORE HARDWARE WRITE");
+
+                await dispatcher.ForceRenderAsync(zones, cancellationToken).ConfigureAwait(false);
+
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[VBR] HARDWARE WRITE COMPLETED");
 
                 // Latest-wins loop: keep rendering until the value has been quiet
                 // for HoldMs (rapid changes simply update the same event).
@@ -293,7 +308,11 @@ public class VolumeBrightnessReactiveRgbService(
 
             // End on black so the hand-off back to the preset is clean.
             if (!rgbKeyboardBacklightController.IsTransitionActive)
-                await dispatcher.RenderAsync(ZoneColors.Black, cancellationToken).ConfigureAwait(false);
+            {
+                await dispatcher.ForceRenderAsync(ZoneColors.Black, cancellationToken).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[VBR] BLACK END-FRAME SENT");
+            }
         }
         catch (OperationCanceledException)
         {
