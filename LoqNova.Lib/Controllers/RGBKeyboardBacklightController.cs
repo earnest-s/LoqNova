@@ -459,6 +459,10 @@ namespace LoqNova.Lib.Controllers
         /// </summary>
         private async Task ResumeAfterTransitionAsync()
         {
+            // [DIAGNOSTIC-ONLY]
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync ENTER. [effectRunning={customEffectController.IsEffectRunning}]");
+
             await ThrowIfVantageEnabled().ConfigureAwait(false);
 
             var state = settings.Store.State;
@@ -470,6 +474,8 @@ namespace LoqNova.Lib.Controllers
                 await customEffectController.StopEffectAsync().ConfigureAwait(false);
                 await dispatcher.SendFirmwareCommandAsync(CreateOffState()).ConfigureAwait(false);
                 dispatcher.RenderPreviewOnly(ZoneColors.Black);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=OFF.");
                 return;
             }
 
@@ -481,11 +487,15 @@ namespace LoqNova.Lib.Controllers
                 if (customEffectController.IsEffectRunning)
                 {
                     await customEffectController.ResumeFromOverrideAsync().ConfigureAwait(false);
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=CUSTOM-RESUME-FROM-OVERRIDE.");
                 }
                 else
                 {
                     dispatcher.IsOverrideActive = false;
                     await HandleCustomEffectAsync(presetDescription).ConfigureAwait(false);
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=CUSTOM-RESTART.");
                 }
             }
             else
@@ -496,6 +506,8 @@ namespace LoqNova.Lib.Controllers
                     presetDescription.Zone1, presetDescription.Zone2,
                     presetDescription.Zone3, presetDescription.Zone4));
                 await HandleCustomEffectAsync(presetDescription).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=FIRMWARE-PRESET [{presetDescription.Effect}].");
             }
         }
 
