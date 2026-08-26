@@ -337,19 +337,48 @@ public class VolumeBrightnessReactiveRgbService(
         }
         finally
         {
-            // Release temporary ownership and restore/resume previous RGB state
-            // through the existing controller lifecycle. If we yielded to a
-            // performance transition, skip restoration (the strobe owns recovery).
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[RGB-RESUME] temporary event ending");
+
+            // Release temporary ownership and restore/resume previous RGB state.
+            // Mirrors the performance-mode strobe handoff exactly:
+            //  1. lift the override gate FIRST,
+            //  2. then restore through the existing controller lifecycle —
+            //     running custom effects resume via ResumeFromOverrideAsync
+            //     (last frame pushed, animation continues mid-flight),
+            //     firmware presets via a single RefreshCurrentPreset command.
+            // If we yielded to a performance transition, skip restoration —
+            // the strobe's own recovery path owns it.
             dispatcher.IsOverrideActive = false;
 
-            if (_restorePending && !rgbKeyboardBacklightController.IsTransitionActive && !_stopped)
+            var yieldToTransition = rgbKeyboardBacklightController.IsTransitionActive;
+
+            if (_restorePending && !yieldToTransition && !_stopped)
             {
                 try
                 {
-                    await rgbKeyboardBacklightController.RefreshCurrentPresetAsync().ConfigureAwait(false);
+                    var state = settings.Store.State;
+                    var preset = state.SelectedPreset;
+                    var presetDescription = state.Presets.GetValueOrDefault(
+                        preset, RGBKeyboardBacklightBacklightPresetDescription.Default);
 
                     if (Log.Instance.IsTraceEnabled)
-                        Log.Instance.Trace($"[DIAG] Reactive event END — previous RGB restored.");
+                        Log.Instance.Trace($"[RGB-RESUME] restoration path = {(presetDescription.Effect.IsCustomEffect() ? "ResumeFromOverride/HandleCustomEffect" : "RefreshCurrentPreset (firmware)")} [preset={preset}]");
+
+                    if (preset != RGBKeyboardBacklightPreset.Off &&
+                        presetDescription.Effect.IsCustomEffect() &&
+                        customEffectController.IsEffectRunning)
+                    {
+                        // Seamless: effect keeps running, last computed frame is re-pushed.
+                        await customEffectController.ResumeFromOverrideAsync().ConfigureAwait(false);
+                    }
+                    else if (preset != RGBKeyboardBacklightPreset.Off)
+                    {
+                        await rgbKeyboardBacklightController.RefreshCurrentPresetAsync().ConfigureAwait(false);
+                    }
+
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[RGB-RESUME] done — previous RGB restored.");
                 }
                 catch (Exception ex)
                 {
