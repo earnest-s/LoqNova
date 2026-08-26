@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LoqNova.Lib.Controllers;
+using LoqNova.Lib.Controllers.CustomRGBEffects;
 using LoqNova.Lib.Extensions;
 using LoqNova.Lib.Listeners;
 using LoqNova.Lib.Settings;
