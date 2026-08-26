@@ -216,13 +216,6 @@ public class VolumeBrightnessReactiveRgbService(
         KickSmoothing();
     }
 
-    private void OnVolumeChangedPercent(double pct)
-    {
-        _volumePct = Math.Clamp(pct, 0, 100);
-        RecomputeTargets();
-        KickSmoothing();
-    }
-
     private static async Task<double?> ReadBrightnessPercentAsync()
     {
         try
