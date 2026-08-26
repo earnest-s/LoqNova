@@ -30,6 +30,13 @@ public class PowerModeFeature(
 {
     private int _strobeGuard;
 
+    // Execution-proof strobe dedupe: records what FireStrobeAsync ACTUALLY strobed,
+    // so echo announcements (e.g. a thermal event following an Fn+Q smart-fan event)
+    // cannot produce a second strobe for the same physical mode transition.
+    private static readonly TimeSpan StrobeDedupeWindow = TimeSpan.FromMilliseconds(2500);
+    private PowerModeState? _lastStrobeMode;
+    private DateTime _lastStrobeUtc;
+
     public bool AllowAllPowerModesOnBattery { get; set; }
 
     public override async Task<PowerModeState[]> GetAllStatesAsync()
