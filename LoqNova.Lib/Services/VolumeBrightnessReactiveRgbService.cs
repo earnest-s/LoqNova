@@ -34,7 +34,6 @@ namespace LoqNova.Lib.Services;
 public class VolumeBrightnessReactiveRgbService(
     RGBKeyboardSettings settings,
     RgbFrameDispatcher dispatcher,
-    CustomRGBEffectController customEffectController,
     DisplayBrightnessListener displayBrightnessListener,
     VantageDisabler vantageDisabler,
     RGBKeyboardBacklightController rgbKeyboardBacklightController)
