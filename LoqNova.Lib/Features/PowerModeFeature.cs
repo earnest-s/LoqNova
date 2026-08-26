@@ -51,7 +51,7 @@ public class PowerModeFeature(
             && await Power.IsPowerAdapterConnectedAsync().ConfigureAwait(false) is PowerAdapterStatus.Disconnected)
             throw new PowerModeUnavailableWithoutACException(state);
 
-        // Fire OSD + RGB strobe IMMEDIATELY — before hardware write.
+        // Fire OSD + RGB strobe IMMEDIATELY ï¿½ before hardware write.
         // This gives instant visual feedback while WMI blocks.
         PublishNotification(state);
         _ = FireStrobeAsync(state);
@@ -106,15 +106,23 @@ public class PowerModeFeature(
     /// </summary>
     public async Task ApplyPerformanceModeAsync(PowerModeState mode)
     {
-        // 1. OSD notification — instant
+        // 1. OSD notification â€” instant
         PublishNotification(mode);
 
-        // 2. RGB strobe — fire-and-forget, runs concurrently with deps
+        // 2. RGB strobe â€” fire-and-forget, runs concurrently with deps
         _ = FireStrobeAsync(mode);
 
         // 3. Apply dependencies (GodMode preset, Windows power mode/plan)
         await ApplyDependenciesAsync(mode).ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// Triggers the existing performance-mode keyboard strobe (identical path and
+    /// <see cref="_strobeGuard"/> as Fn+Q) without publishing an OSD notification or
+    /// touching the actual performance mode. Used by external triggers such as
+    /// AC adapter transitions where the firmware has already applied the resulting mode.
+    /// </summary>
+    public Task TriggerStrobeAsync(PowerModeState mode) => FireStrobeAsync(mode);
 
     private async Task ApplyDependenciesAsync(PowerModeState mode)
     {
@@ -127,7 +135,7 @@ public class PowerModeFeature(
 
     private async Task FireStrobeAsync(PowerModeState mode)
     {
-        // Guard: allow only one strobe at a time — prevents triple execution
+        // Guard: allow only one strobe at a time ï¿½ prevents triple execution
         // when SetStateAsync and ApplyPerformanceModeAsync overlap.
         // [DIAGNOSTIC-ONLY] guard telemetry (no behavior change)
         var sw = global::System.Diagnostics.Stopwatch.StartNew();
