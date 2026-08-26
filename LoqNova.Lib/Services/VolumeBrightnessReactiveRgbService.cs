@@ -80,7 +80,7 @@ public class VolumeBrightnessReactiveRgbService(
         _stopped = false;
 
         // Screen brightness: reuse the existing WMI event listener (push-based).
-        _brightnessHandler = (_, e) => SetBrightness(e.Brightness.Value);
+        _brightnessHandler = (_, e) => SetBrightnessPercent(e.Brightness.Value);
         displayBrightnessListener.Changed += _brightnessHandler;
         _brightnessPct = await ReadBrightnessPercentAsync().ConfigureAwait(false);
 
