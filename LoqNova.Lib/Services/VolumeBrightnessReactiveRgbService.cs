@@ -342,23 +342,22 @@ public class VolumeBrightnessReactiveRgbService(
     }
 
     /// <summary>
-    /// Dedicated 4-zone progressive visualization:
-    /// Zone i fills linearly across its own 25 % stage of the source value.
-    /// Colors are the event's dedicated base color scaled per zone — completely
-    /// independent from the user's configured preset/effect colors.
+    /// Dedicated 4-zone LEVEL METER frame:
+    ///   Zone1 = Green,  Zone2 = Yellow,  Zone3 = Orange,  Zone4 = Red.
+    /// Input x ∈ [0,100] split into four 25 % stages; zone i fills linearly
+    /// (clamp((x - 25i)/25)) and its fixed color is scaled per channel by that
+    /// intensity. Fully independent from preset/effect colors.
     /// </summary>
-    private static ZoneColors BuildVisualization(RGBColor baseColor, double pct)
+    private static ZoneColors BuildVisualization(double pct)
     {
-        Span<float> v = stackalloc float[4];
-        for (var i = 0; i < 4; i++)
-            v[i] = (float)Math.Clamp((pct - i * 25.0) / 25.0, 0.0, 1.0);
+        float Stage(int i) => (float)Math.Clamp((pct - i * 25.0) / 25.0, 0.0, 1.0);
 
         return new ZoneColors
         {
-            Zone1 = ScaleColor(baseColor, v[0]),
-            Zone2 = ScaleColor(baseColor, v[1]),
-            Zone3 = ScaleColor(baseColor, v[2]),
-            Zone4 = ScaleColor(baseColor, v[3])
+            Zone1 = ScaleColor(MeterZone1, Stage(0)),
+            Zone2 = ScaleColor(MeterZone2, Stage(1)),
+            Zone3 = ScaleColor(MeterZone3, Stage(2)),
+            Zone4 = ScaleColor(MeterZone4, Stage(3))
         };
     }
 
