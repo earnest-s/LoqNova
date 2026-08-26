@@ -371,7 +371,7 @@ namespace LoqNova.Lib.Controllers
             // [DIAGNOSTIC-ONLY] entry telemetry (no behavior change)
             var diagSw = System.Diagnostics.Stopwatch.StartNew();
             if (Log.Instance.IsTraceEnabled)
-                Log.Instance.Trace($"[DIAG] PlayTransitionAsync ENTER. [mode={mode}, supported={dispatcher.IsSupported}, overrideActive={dispatcher.IsOverrideActive}, prevTask={_transitionTask?.Status.ToString() ?? \"null\"}]");
+                Log.Instance.Trace($"[DIAG] PlayTransitionAsync ENTER. [mode={mode}, supported={dispatcher.IsSupported}, overrideActive={dispatcher.IsOverrideActive}, prevTask={_transitionTask?.Status.ToString() ?? "null"}]");
 
             var modeColor = RgbFrameDispatcher.GetPerformanceModeColor(mode);
 
