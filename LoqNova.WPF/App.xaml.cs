@@ -273,6 +273,15 @@ public partial class App
         }
         catch { /* Ignored. */ }
 
+        try
+        {
+            if (IoCContainer.TryResolve<VolumeBrightnessReactiveRgbService>() is { } reactiveRgb)
+            {
+                await reactiveRgb.StopAsync();
+            }
+        }
+        catch { /* Ignored. */ }
+
         Shutdown();
     }
 
