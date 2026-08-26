@@ -448,17 +448,6 @@ public class VolumeBrightnessReactiveRgbService(
 
     // ─────────────────────── NAudio adapters ────────────────────
 
-    private sealed class AudioEndpointVolumeCallback(VolumeBrightnessReactiveRgbService owner)
-        : IAudioEndpointVolumeCallback
-    {
-        public void OnNotify(IntPtr pData, Guid EventContext) { }
-
-        public void OnVolumeNotification(AudioVolumeNotificationData data)
-        {
-            owner.OnVolumeChangedPercent(data.MasterVolume * 100.0);
-        }
-    }
-
     private sealed class DeviceChangeNotifier(Action onDefaultChanged) : IMMNotificationClient
     {
         public void OnDeviceStateChanged(string deviceId, DeviceState newState) { }
@@ -471,6 +460,6 @@ public class VolumeBrightnessReactiveRgbService(
                 onDefaultChanged();
         }
 
-        public void OnPropertyValueChanged(string deviceId, PropertyKey propertyKey) { }
+        public void OnPropertyValueChanged(string deviceId, NAudio.CoreAudioApi.Interfaces.PropertyKey propertyKey) { }
     }
 }
