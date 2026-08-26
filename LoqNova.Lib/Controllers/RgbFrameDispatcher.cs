@@ -117,8 +117,7 @@ public class RgbFrameDispatcher
         using (await HidLock.LockAsync(ct).ConfigureAwait(false))
         {
             var handle = DeviceHandle ?? throw new InvalidOperationException("RGB Keyboard unsupported");
-            var m = _reactiveIntensity;
-            await WriteZoneColors(handle, m is null ? zones : ApplyReactive(zones, m)).ConfigureAwait(false);
+            await WriteZoneColors(handle, zones).ConfigureAwait(false);
         }
 #endif
 
