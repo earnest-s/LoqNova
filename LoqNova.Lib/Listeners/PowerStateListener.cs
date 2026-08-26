@@ -32,29 +32,19 @@ public class PowerStateListener : IListener<PowerStateListener.ChangedEventArgs>
     private readonly BatteryFeature _batteryFeature;
     private readonly DGPUNotify _dgpuNotify;
     private readonly RGBKeyboardBacklightController _rgbController;
-    private readonly PowerModeListener _powerModeListener;
 
     private bool _started;
     private HPOWERNOTIFY _handle;
     private PowerAdapterStatus? _lastPowerAdapterState;
 
-    // --- AC transition → resulting performance mode strobe ---
-    private static readonly TimeSpan AcModeChangeSettleDelay = TimeSpan.FromMilliseconds(2500);
-    private PowerModeState? _lastKnownMode;
-    private EventHandler<PowerModeListener.ChangedEventArgs>? _modeChangedHandler;
-    private int _acStrobeCheckActive;
-    private volatile bool _acStrobeCheckPending;
-    private volatile bool _modeChangeEventSeenDuringWindow;
-
     public event EventHandler<ChangedEventArgs>? Changed;
 
-    public unsafe PowerStateListener(PowerModeFeature powerModeFeature, BatteryFeature batteryFeature, DGPUNotify dgpuNotify, RGBKeyboardBacklightController rgbController, PowerModeListener powerModeListener)
+    public unsafe PowerStateListener(PowerModeFeature powerModeFeature, BatteryFeature batteryFeature, DGPUNotify dgpuNotify, RGBKeyboardBacklightController rgbController)
     {
         _powerModeFeature = powerModeFeature;
         _batteryFeature = batteryFeature;
         _dgpuNotify = dgpuNotify;
         _rgbController = rgbController;
-        _powerModeListener = powerModeListener;
 
         _callback = Callback;
         _recipientHandle = new StructSafeHandle<DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS>(new DEVICE_NOTIFY_SUBSCRIBE_PARAMETERS
@@ -74,40 +64,12 @@ public class PowerStateListener : IListener<PowerStateListener.ChangedEventArgs>
         SystemEvents.PowerModeChanged += SystemEvents_PowerModeChanged;
         RegisterSuspendResumeNotification();
 
-        // Track the last-known performance mode so AC transitions can be compared
-        // against the pre-transition state. Any existing mode-change announcement
-        // (Fn+Q event, dropdown, automation) keeps this up to date.
-        _modeChangedHandler = (_, e) =>
-        {
-            _lastKnownMode = e.State;
-            _modeChangeEventSeenDuringWindow = true;
-        };
-        _powerModeListener.Changed += _modeChangedHandler;
-
-        _ = Task.Run(async () =>
-        {
-            try
-            {
-                if (await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false))
-                    _lastKnownMode = await _powerModeFeature.GetStateAsync().ConfigureAwait(false);
-            }
-            catch (Exception ex)
-            {
-                if (Log.Instance.IsTraceEnabled)
-                    Log.Instance.Trace($"Failed to read initial power mode for AC strobe tracking.", ex);
-            }
-        });
-
         _started = true;
     }
 
     public Task StopAsync()
     {
         SystemEvents.PowerModeChanged -= SystemEvents_PowerModeChanged;
-
-        if (_modeChangedHandler is not null)
-            _powerModeListener.Changed -= _modeChangedHandler;
-
         UnRegisterSuspendResumeNotification();
 
         _started = false;
