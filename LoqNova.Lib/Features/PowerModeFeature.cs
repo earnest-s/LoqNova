@@ -149,15 +149,6 @@ public class PowerModeFeature(
 
     private async Task FireStrobeAsync(PowerModeState mode)
     {
-        if (mode is PowerModeState.GodMode)
-            await godModeController.ApplyStateAsync().ConfigureAwait(false);
-
-        await windowsPowerModeController.SetPowerModeAsync(mode).ConfigureAwait(false);
-        await windowsPowerPlanController.SetPowerPlanAsync(mode).ConfigureAwait(false);
-    }
-
-    private async Task FireStrobeAsync(PowerModeState mode)
-    {
         // Guard: allow only one strobe at a time � prevents triple execution
         // when SetStateAsync and ApplyPerformanceModeAsync overlap.
         // [DIAGNOSTIC-ONLY] guard telemetry (no behavior change)
