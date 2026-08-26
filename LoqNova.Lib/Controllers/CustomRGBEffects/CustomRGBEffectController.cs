@@ -77,7 +77,10 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
         _effectTask = RunEffectInternalAsync(effect, _effectCts.Token);
 
         if (Log.Instance.IsTraceEnabled)
+        {
             Log.Instance.Trace($"Started custom effect: {effect.Type}");
+            Log.Instance.Trace($"[DIAG] Effect STARTED. [type={effect.Type}]");
+        }
     }
 
     /// <summary>
@@ -85,6 +88,10 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
     /// </summary>
     public async Task StopEffectAsync()
     {
+        // [DIAGNOSTIC-ONLY]
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Effect StopEffectAsync ENTER. [running={IsEffectRunning}]");
+
         if (_effectCts is not null)
         {
             await _effectCts.CancelAsync().ConfigureAwait(false);
