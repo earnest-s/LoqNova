@@ -38,7 +38,7 @@ namespace LoqNova.Lib.Controllers
         /// Whether the performance-mode transition (strobe) is currently running and
         /// owns the keyboard. External temporary events must yield to it.
         /// </summary>
-        public bool IsTransitionActive => Volatile.Read(ref _transitionLifecycleState) == TransitionLifecycleRunning;
+        public bool IsTransitionActive => _transitionTask is { IsCompleted: false };
 
         /// <summary>
         /// Re-sends the currently selected preset to the keyboard (firmware command and
