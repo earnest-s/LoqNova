@@ -1,10 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using LoqNova.Lib.Controllers;
-using LoqNova.Lib.Controllers.CustomRGBEffects;
 using LoqNova.Lib.Extensions;
 using LoqNova.Lib.Listeners;
 using LoqNova.Lib.Settings;
@@ -16,21 +14,21 @@ using NAudio.CoreAudioApi;
 namespace LoqNova.Lib.Services;
 
 /// <summary>
-/// Background 4-zone "reactive meter" layer driven by Windows master volume and
-/// screen brightness. NOT an effect: never registered in CustomRGBEffectFactory,
-/// never shown in effect lists. It modulates intensity only, using the user's
-/// configured zone colors, through the SINGLE existing RGB output pipeline
-/// (<see cref="RgbFrameDispatcher"/>):
+/// Independent temporary RGB event for Windows master VOLUME and screen BRIGHTNESS,
+/// modelled on the performance-mode transition strobe:
 ///
-///  - custom software effects: per-frame modulation vector applied inside
-///    RgbFrameDispatcher.RenderAsync (effects keep animating untouched);
-///  - firmware effects (Static/Breath/Wave/Smooth): temporary on-change overlay
-///    of the configured zone colors scaled by the reactive intensities, restored
-///    back to the user's preset shortly after values stop changing.
+///     input change → take temporary ownership (IsOverrideActive)
+///                  → dedicated 4-zone visualization frames
+///                  → release ownership
+///                  → restore/resume the previous preset/effect via the
+///                    existing RGB controller lifecycle.
 ///
-/// Priority is inherited from the existing architecture: the performance-mode
-/// strobe sets IsOverrideActive and owns the keyboard; this service skips all
-/// writes while an override is active.
+/// It is NOT an effect (not in CustomRGBEffectFactory / effects list), does not
+/// modulate the current effect's frames, and never persists settings.
+/// The LATEST input always wins: repeated changes restart/update the same event.
+/// Volume and brightness share this single controller — one writer, ever.
+/// Priority: if the performance-mode strobe is running (or starts mid-event),
+/// this event aborts immediately and yields; the strobe's own recovery restores RGB.
 /// </summary>
 public class VolumeBrightnessReactiveRgbService(
     RGBKeyboardSettings settings,
@@ -40,26 +38,29 @@ public class VolumeBrightnessReactiveRgbService(
     VantageDisabler vantageDisabler,
     RGBKeyboardBacklightController rgbKeyboardBacklightController)
 {
-    private const int TickMs = 33;               // ~30 fps smoothing ceiling
-    private const float AttackPerTick = 0.18f;   // ~180 ms full rise
-    private const float DecayPerTick = 0.10f;    // slightly softer fall
-    private const int FirmwareHoldMs = 900;      // restore delay after last change (firmware-effect branch)
+    private const int FrameMs = 33;              // visualization refresh (~30 fps)
+    private const int HoldMs = 900;              // visible hold after the LAST change
+    private static readonly TimeSpan MaxEventDuration = TimeSpan.FromSeconds(4); // hard safety cap
+
+    // Dedicated palette — visually distinct from performance-mode colors
+    // (quiet=blue, balance=white, performance=red, godmode=purple).
+    private static readonly RGBColor VolumeBaseColor = new(0, 200, 255);     // cyan
+    private static readonly RGBColor BrightnessBaseColor = new(255, 210, 74); // warm amber
 
     private readonly object _gate = new();
 
     private bool _started;
-    private bool _stopped;
 
     private double _volumePct = -1;   // negative = unknown
-    private double? _brightnessPct;   // null = not supported / unknown
+    private double? _brightnessPct;   // null = unsupported/unknown
 
-    private readonly float[] _target = new float[4];
-    private readonly float[] _current = new float[4];
-
-    private Timer? _smoothingTimer;
-    private Timer? _holdTimer;
-    private volatile bool _overlayActive;
-    private int _tickBusy;
+    // Current temporary event state (single event, latest wins).
+    private CancellationTokenSource? _eventCts;
+    private Task? _eventTask;
+    private double _eventValue;
+    private bool _eventIsBrightness;
+    private DateTime _lastChangeUtc;
+    private volatile bool _restorePending;
 
     private MMDeviceEnumerator? _mmDeviceEnumerator;
     private MMDevice? _device;
@@ -77,10 +78,8 @@ public class VolumeBrightnessReactiveRgbService(
         if (_started)
             return;
 
-        _stopped = false;
-
         // Screen brightness: reuse the existing WMI event listener (push-based).
-        _brightnessHandler = (_, e) => SetBrightnessPercent(e.Brightness.Value);
+        _brightnessHandler = (_, e) => OnInput(isBrightness: true, e.Brightness.Value);
         displayBrightnessListener.Changed += _brightnessHandler;
         _brightnessPct = await ReadBrightnessPercentAsync().ConfigureAwait(false);
 
@@ -88,15 +87,10 @@ public class VolumeBrightnessReactiveRgbService(
         BindAudioDevice();
         _volumePct = ReadVolumePercent();
 
-        RecomputeTargets();
-
         _started = true;
 
         if (Log.Instance.IsTraceEnabled)
-            Log.Instance.Trace($"[DIAG] Reactive RGB service started. [volume={_volumePct:F0}%, brightness={(_brightnessPct?.ToString("F0") ?? "n/a")}%]");
-
-        KickSmoothing();
-        ScheduleFirmwareRestore();
+            Log.Instance.Trace($"[DIAG] Reactive RGB event service started. [volume={_volumePct:F0}%, brightness={(_brightnessPct?.ToString("F0") ?? "n/a")}%]");
     }
 
     public async Task StopAsync()
@@ -104,7 +98,6 @@ public class VolumeBrightnessReactiveRgbService(
         if (!_started)
             return;
 
-        _stopped = true;
         _started = false;
 
         if (_brightnessHandler is not null)
@@ -113,35 +106,10 @@ public class VolumeBrightnessReactiveRgbService(
 
         UnbindAudioDevice();
 
-        lock (_gate)
-        {
-            _smoothingTimer?.Dispose();
-            _smoothingTimer = null;
-            _holdTimer?.Dispose();
-            _holdTimer = null;
-            _overlayActive = false;
-        }
-
-        dispatcher.SetReactiveIntensity(1f, 1f, 1f, 1f);
-
-        // Best-effort restore of the user's RGB state on shutdown.
-        try
-        {
-            if (!dispatcher.IsOverrideActive &&
-                await vantageDisabler.GetStatusAsync().ConfigureAwait(false) != SoftwareStatus.Enabled &&
-                settings.Store.State.SelectedPreset != RGBKeyboardBacklightPreset.Off)
-            {
-                await rgbKeyboardBacklightController.RefreshCurrentPresetAsync().ConfigureAwait(false);
-            }
-        }
-        catch (Exception ex)
-        {
-            if (Log.Instance.IsTraceEnabled)
-                Log.Instance.Trace($"[DIAG] Reactive RGB shutdown restore skipped.", ex);
-        }
+        await CancelEventAsync().ConfigureAwait(false);
 
         if (Log.Instance.IsTraceEnabled)
-            Log.Instance.Trace($"[DIAG] Reactive RGB service stopped.");
+            Log.Instance.Trace($"[DIAG] Reactive RGB event service stopped.");
     }
 
     // ────────────────────────── inputs ──────────────────────────
@@ -155,7 +123,7 @@ public class VolumeBrightnessReactiveRgbService(
             _mmDeviceEnumerator.RegisterEndpointNotificationCallback(_deviceNotifier);
 
             _device = _mmDeviceEnumerator.GetDefaultAudioEndpoint(DataFlow.Render, Role.Console);
-            _volumeHandler = data => OnVolumeChangedPercent(data.MasterVolume * 100.0);
+            _volumeHandler = data => OnInput(isBrightness: false, data.MasterVolume * 100.0);
             _device.AudioEndpointVolume.OnVolumeNotification += _volumeHandler;
         }
         catch (Exception ex)
@@ -202,20 +170,6 @@ public class VolumeBrightnessReactiveRgbService(
         return -1;
     }
 
-    private void OnVolumeChangedPercent(double pct)
-    {
-        _volumePct = Math.Clamp(pct, 0, 100);
-        RecomputeTargets();
-        KickSmoothing();
-    }
-
-    private void SetBrightnessPercent(double pct)
-    {
-        _brightnessPct = Math.Clamp(pct, 0, 100);
-        RecomputeTargets();
-        KickSmoothing();
-    }
-
     private static async Task<double?> ReadBrightnessPercentAsync()
     {
         try
@@ -229,221 +183,181 @@ public class VolumeBrightnessReactiveRgbService(
         }
     }
 
-    // ─────────────────────── computation ────────────────────────
-
-    private void RecomputeTargets()
+    /// <summary>
+    /// Single entry point for both sources. Starts a new temporary event or updates
+    /// the running one with the latest value (latest always wins, nothing queues).
+    /// </summary>
+    private void OnInput(bool isBrightness, double pct)
     {
-        lock (_gate)
-        {
-            var vol = Math.Clamp(_volumePct, 0, 100);
-            var bri = _brightnessPct.HasValue ? Math.Clamp(_brightnessPct.Value, 0, 100) : -1.0;
-
-            for (var i = 0; i < 4; i++)
-            {
-                var fromVolume = Math.Clamp((vol - i * 25) / 25.0, 0, 1);
-                var fromBrightness = bri < 0 ? 0 : Math.Clamp((bri - i * 25) / 25.0, 0, 1);
-                _target[i] = (float)Math.Max(fromVolume, fromBrightness);
-            }
-        }
-    }
-
-    // ──────────────────────── rendering ─────────────────────────
-
-    private void KickSmoothing()
-    {
-        lock (_gate)
-        {
-            if (_smoothingTimer is null)
-                _smoothingTimer = new Timer(_ => _ = SmoothingTick(), null, 0, TickMs);
-            else
-                _smoothingTimer.Change(0, TickMs);
-        }
-    }
-
-    private async Task SmoothingTick()
-    {
-        if (Interlocked.Exchange(ref _tickBusy, 1) != 0)
+        if (!_started)
             return;
 
+        lock (_gate)
+        {
+            _eventValue = Math.Clamp(pct, 0, 100);
+            _eventIsBrightness = isBrightness;
+            _lastChangeUtc = DateTime.UtcNow;
+
+            if (_eventTask is null || _eventTask.IsCompleted)
+            {
+                _eventCts?.Dispose();
+                _eventCts = new CancellationTokenSource();
+                var token = _eventCts.Token;
+                var isBright = _eventIsBrightness;
+                _eventTask = Task.Run(() => RunTemporaryEventAsync(isBright, token), token);
+            }
+        }
+    }
+
+    private async Task CancelEventAsync()
+    {
+        Task? task;
+        lock (_gate)
+        {
+            _eventCts?.Cancel();
+            task = _eventTask;
+            _eventTask = null;
+        }
+
+        if (task is not null)
+        {
+            try { await task.ConfigureAwait(false); }
+            catch (OperationCanceledException) { }
+        }
+    }
+
+    // ─────────────────── temporary event runner ─────────────────
+
+    private async Task RunTemporaryEventAsync(bool isBrightness, CancellationToken cancellationToken)
+    {
         try
         {
-            float maxDelta;
-            lock (_gate)
+            // Never start on top of the performance-mode strobe.
+            if (dispatcher.IsOverrideActive || rgbKeyboardBacklightController.IsTransitionActive)
+                return;
+
+            try
             {
-                maxDelta = 0f;
-                for (var i = 0; i < 4; i++)
-                {
-                    var t = _target[i];
-                    var c = _current[i];
-                    var n = c < t ? Math.Min(t, c + AttackPerTick) : Math.Max(t, c - DecayPerTick);
-                    maxDelta = Math.Max(maxDelta, Math.Abs(t - n));
-                    _current[i] = n;
-                }
+                if (await vantageDisabler.GetStatusAsync().ConfigureAwait(false) == SoftwareStatus.Enabled)
+                    return;
+            }
+            catch
+            {
+                return;
             }
 
-            await RenderCurrentAsync().ConfigureAwait(false);
+            if (!dispatcher.IsSupported || settings.Store.State.SelectedPreset == RGBKeyboardBacklightPreset.Off)
+                return;
 
-            if (maxDelta <= 0.001f)
+            var baseColor = isBrightness ? BrightnessBaseColor : VolumeBaseColor;
+
+            if (Log.Instance.IsTraceEnabled)
             {
-                // Converged — stop ticking until the next input event.
-                lock (_gate)
-                {
-                    _smoothingTimer?.Dispose();
-                    _smoothingTimer = null;
-                }
+                var src = isBrightness ? "brightness" : "volume";
+                Log.Instance.Trace($"[DIAG] Reactive event START. [source={src}, value={_eventValue:F0}%]");
             }
+
+            // Take temporary ownership exactly like the strobe does.
+            dispatcher.IsOverrideActive = true;
+            _restorePending = true;
+
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                // Performance-mode strobe took over — yield immediately; its own
+                // recovery will restore the user's RGB state.
+                if (rgbKeyboardBacklightController.IsTransitionActive)
+                {
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] Reactive event YIELD to performance transition.");
+                    return;
+                }
+
+                var valueNow = _eventValue;
+                var zones = BuildVisualization(baseColor, valueNow);
+                await dispatcher.RenderAsync(zones, cancellationToken).ConfigureAwait(false);
+
+                // Latest-wins loop: keep rendering until the value has been quiet
+                // for HoldMs (rapid changes simply update the same event).
+                var sinceLast = DateTime.UtcNow - _lastChangeUtc;
+                if (sinceLast.TotalMilliseconds >= HoldMs || sw.Elapsed > MaxEventDuration)
+                    break;
+
+                await Task.Delay(FrameMs, cancellationToken).ConfigureAwait(false);
+            }
+
+            cancellationToken.ThrowIfCancellationRequested();
+
+            // End on black so the hand-off back to the preset is clean.
+            if (!rgbKeyboardBacklightController.IsTransitionActive)
+                await dispatcher.RenderAsync(ZoneColors.Black, cancellationToken).ConfigureAwait(false);
+        }
+        catch (OperationCanceledException)
+        {
+            // Superseded by a newer value or service stop — newer path owns output.
         }
         catch (Exception ex)
         {
             if (Log.Instance.IsTraceEnabled)
-                Log.Instance.Trace($"[DIAG] Reactive RGB tick failed.", ex);
+                Log.Instance.Trace($"[DIAG] Reactive event failed.", ex);
         }
         finally
         {
-            Interlocked.Exchange(ref _tickBusy, 0);
-        }
-    }
+            // Release temporary ownership and restore/resume previous RGB state
+            // through the existing controller lifecycle. If we yielded to a
+            // performance transition, skip restoration (the strobe owns recovery).
+            dispatcher.IsOverrideActive = false;
 
-    private async Task RenderCurrentAsync()
-    {
-        if (_stopped)
-            return;
-
-        // Performance-mode strobe (or any override) owns the keyboard right now.
-        if (dispatcher.IsOverrideActive)
-        {
-            RescheduleFirmwareRestore();
-            return;
-        }
-
-        try
-        {
-            if (await vantageDisabler.GetStatusAsync().ConfigureAwait(false) == SoftwareStatus.Enabled)
-                return;
-        }
-        catch
-        {
-            return;
-        }
-
-        var state = settings.Store.State;
-        var preset = state.SelectedPreset;
-
-        // User turned the keyboard off — respect that, stay idle.
-        if (preset == RGBKeyboardBacklightPreset.Off)
-        {
-            CancelOverlay();
-            dispatcher.SetReactiveIntensity(1f, 1f, 1f, 1f);
-            return;
-        }
-
-        var presetDescription = state.Presets.GetValueOrDefault(
-            preset, RGBKeyboardBacklightBacklightPresetDescription.Default);
-
-        if (presetDescription.Effect.IsCustomEffect())
-        {
-            // Custom software effect: keep its animation alive and modulate every
-            // generated frame through the dispatcher hook. One immediate refresh
-            // pushes the new intensities through the same single pipeline.
-            _overlayActive = false;
-            CancelFirmwareRestore();
-            dispatcher.SetReactiveIntensity(_current[0], _current[1], _current[2], _current[3]);
-
-            if (customEffectController.IsEffectRunning)
-                await customEffectController.SetColorsAsync(customEffectController.CurrentColors).ConfigureAwait(false);
-        }
-        else
-        {
-            // Firmware-driven effect: temporarily show the configured zone colors
-            // scaled by the reactive intensities, then restore the preset after a
-            // short hold. No competing writer — everything goes through the
-            // dispatcher's normal render path.
-            dispatcher.SetReactiveIntensity(1f, 1f, 1f, 1f);
-
-            var zones = new ZoneColors
+            if (_restorePending && !rgbKeyboardBacklightController.IsTransitionActive && !_stopped)
             {
-                Zone1 = ScaleColor(presetDescription.Zone1, _current[0]),
-                Zone2 = ScaleColor(presetDescription.Zone2, _current[1]),
-                Zone3 = ScaleColor(presetDescription.Zone3, _current[2]),
-                Zone4 = ScaleColor(presetDescription.Zone4, _current[3])
-            };
+                try
+                {
+                    await rgbKeyboardBacklightController.RefreshCurrentPresetAsync().ConfigureAwait(false);
 
-            _overlayActive = true;
-            await dispatcher.RenderAsync(zones).ConfigureAwait(false);
-            ScheduleFirmwareRestore();
-        }
-    }
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] Reactive event END — previous RGB restored.");
+                }
+                catch (Exception ex)
+                {
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] Reactive event restore failed.", ex);
+                }
+            }
 
-    private void ScheduleFirmwareRestore()
-    {
-        lock (_gate)
-        {
-            if (_overlayActive)
+            _restorePending = false;
+
+            lock (_gate)
             {
-                _holdTimer ??= new Timer(_ => _ = RestoreAfterHoldAsync(), null, Timeout.Infinite, Timeout.Infinite);
-                _holdTimer.Change(FirmwareHoldMs, Timeout.Infinite);
+                if (_eventCts is not null && _eventTask is not null && _eventTask.IsCompleted)
+                {
+                    _eventCts.Dispose();
+                    _eventCts = null;
+                    _eventTask = null;
+                }
             }
         }
     }
 
-    private void RescheduleFirmwareRestore() => ScheduleFirmwareRestore();
-
-    private void CancelFirmwareRestore()
+    /// <summary>
+    /// Dedicated 4-zone progressive visualization:
+    /// Zone i fills linearly across its own 25 % stage of the source value.
+    /// Colors are the event's dedicated base color scaled per zone — completely
+    /// independent from the user's configured preset/effect colors.
+    /// </summary>
+    private static ZoneColors BuildVisualization(RGBColor baseColor, double pct)
     {
-        lock (_gate)
+        Span<float> v = stackalloc float[4];
+        for (var i = 0; i < 4; i++)
+            v[i] = (float)Math.Clamp((pct - i * 25.0) / 25.0, 0.0, 1.0);
+
+        return new ZoneColors
         {
-            _holdTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-        }
-    }
-
-    private void CancelOverlay()
-    {
-        lock (_gate)
-        {
-            _overlayActive = false;
-            _holdTimer?.Change(Timeout.Infinite, Timeout.Infinite);
-        }
-    }
-
-    private async Task RestoreAfterHoldAsync()
-    {
-        if (_stopped)
-            return;
-
-        // Strobe/override took ownership — let its own recovery restore state.
-        if (dispatcher.IsOverrideActive)
-        {
-            _overlayActive = false;
-            return;
-        }
-
-        try
-        {
-            if (await vantageDisabler.GetStatusAsync().ConfigureAwait(false) == SoftwareStatus.Enabled)
-                return;
-
-            var state = settings.Store.State;
-            var preset = state.SelectedPreset;
-            if (preset == RGBKeyboardBacklightPreset.Off)
-                return;
-
-            var presetDescription = state.Presets.GetValueOrDefault(
-                preset, RGBKeyboardBacklightBacklightPresetDescription.Default);
-
-            if (presetDescription.Effect.IsCustomEffect())
-                return; // custom branch manages itself
-
-            _overlayActive = false;
-            await rgbKeyboardBacklightController.RefreshCurrentPresetAsync().ConfigureAwait(false);
-
-            if (Log.Instance.IsTraceEnabled)
-                Log.Instance.Trace($"[DIAG] Reactive RGB overlay restored preset. [preset={preset}]");
-        }
-        catch (Exception ex)
-        {
-            if (Log.Instance.IsTraceEnabled)
-                Log.Instance.Trace($"[DIAG] Reactive RGB restore failed.", ex);
-        }
+            Zone1 = ScaleColor(baseColor, v[0]),
+            Zone2 = ScaleColor(baseColor, v[1]),
+            Zone3 = ScaleColor(baseColor, v[2]),
+            Zone4 = ScaleColor(baseColor, v[3])
+        };
     }
 
     private static RGBColor ScaleColor(RGBColor c, float f) => new(
