@@ -5,12 +5,11 @@ using System.Threading.Tasks;
 using LoqNova.Lib.Controllers;
 using LoqNova.Lib.Controllers.CustomRGBEffects;
 using LoqNova.Lib.Extensions;
+using LoqNova.Lib.Listeners;
 using LoqNova.Lib.Settings;
-using LoqNova.Lib.SoftwareDisabler;
 using LoqNova.Lib.System.Management;
 using LoqNova.Lib.Utils;
 using NAudio.CoreAudioApi;
-using SoftwareStatus = LoqNova.Lib.SoftwareDisabler.SoftwareStatus;
 
 namespace LoqNova.Lib.Services;
 
@@ -448,7 +447,7 @@ public class VolumeBrightnessReactiveRgbService(
 
     // ─────────────────────── NAudio adapters ────────────────────
 
-    private sealed class DeviceChangeNotifier(Action onDefaultChanged) : IMMNotificationClient
+    private sealed class DeviceChangeNotifier(Action onDefaultChanged) : NAudio.CoreAudioApi.Interfaces.IMMNotificationClient
     {
         public void OnDeviceStateChanged(string deviceId, DeviceState newState) { }
         public void OnDeviceAdded(string deviceId) { }
