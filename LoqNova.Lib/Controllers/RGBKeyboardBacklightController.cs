@@ -35,9 +35,15 @@ namespace LoqNova.Lib.Controllers
         }
 
         /// <summary>
+        /// Whether the performance-mode transition (strobe) is currently running and
+        /// owns the keyboard. External temporary events must yield to it.
+        /// </summary>
+        public bool IsTransitionActive => Volatile.Read(ref _transitionLifecycleState) == TransitionLifecycleRunning;
+
+        /// <summary>
         /// Re-sends the currently selected preset to the keyboard (firmware command and
-        /// custom effect handling) WITHOUT persisting settings. Used by the reactive
-        /// volume/brightness overlay to restore the previous RGB state.
+        /// custom effect handling) WITHOUT persisting settings. Used by temporary RGB
+        /// events to restore/resume the previous state.
         /// </summary>
         public async Task RefreshCurrentPresetAsync()
         {
