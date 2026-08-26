@@ -62,7 +62,7 @@ public class VolumeBrightnessReactiveRgbService(
 
     private MMDeviceEnumerator? _mmDeviceEnumerator;
     private MMDevice? _device;
-    private AudioEndpointVolumeCallback? _volumeCallback;
+    private Action<AudioVolumeNotificationData>? _volumeHandler;
     private DeviceChangeNotifier? _deviceNotifier;
     private EventHandler<DisplayBrightnessListener.ChangedEventArgs>? _brightnessHandler;
 
