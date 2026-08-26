@@ -7,6 +7,7 @@ using LoqNova.Lib.Controllers.CustomRGBEffects;
 using LoqNova.Lib.Extensions;
 using LoqNova.Lib.Listeners;
 using LoqNova.Lib.Settings;
+using LoqNova.Lib.SoftwareDisabler;
 using LoqNova.Lib.System.Management;
 using LoqNova.Lib.Utils;
 using NAudio.CoreAudioApi;
