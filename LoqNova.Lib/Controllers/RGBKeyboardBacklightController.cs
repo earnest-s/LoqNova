@@ -368,6 +368,11 @@ namespace LoqNova.Lib.Controllers
         /// </summary>
         public async Task PlayTransitionAsync(PowerModeState mode)
         {
+            // [DIAGNOSTIC-ONLY] entry telemetry (no behavior change)
+            var diagSw = System.Diagnostics.Stopwatch.StartNew();
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] PlayTransitionAsync ENTER. [mode={mode}, supported={dispatcher.IsSupported}, overrideActive={dispatcher.IsOverrideActive}, prevTask={_transitionTask?.Status.ToString() ?? \"null\"}]");
+
             var modeColor = RgbFrameDispatcher.GetPerformanceModeColor(mode);
 
             // Cancel any in-flight transition
@@ -380,6 +385,8 @@ namespace LoqNova.Lib.Controllers
                     catch (OperationCanceledException) { }
                 }
                 _transitionCts.Dispose();
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] PlayTransitionAsync previous transition cancelled+drained. [drainMs={diagSw.ElapsedMilliseconds}]");
             }
 
             // Pause running custom effect (it stays alive in memory)
@@ -389,11 +396,18 @@ namespace LoqNova.Lib.Controllers
             _transitionTask = RunTransitionAsync(modeColor, _transitionCts.Token);
 
             if (Log.Instance.IsTraceEnabled)
+            {
+                Log.Instance.Trace($"[DIAG] PlayTransitionAsync TASK STARTED. [mode={mode}, color=#{modeColor.R:X2}{modeColor.G:X2}{modeColor.B:X2}, setupMs={diagSw.ElapsedMilliseconds}]");
                 Log.Instance.Trace($"Transition triggered for power mode: {mode}");
+            }
         }
 
         private async Task RunTransitionAsync(RGBColor modeColor, CancellationToken cancellationToken)
         {
+            // [DIAGNOSTIC-ONLY]
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] RunTransitionAsync START.");
+
             // Full brightness for strobe, restore after
             var savedBrightness = dispatcher.CurrentBrightness;
             dispatcher.CurrentBrightness = 2;
@@ -405,8 +419,17 @@ namespace LoqNova.Lib.Controllers
 
                 // Safety black frame
                 await dispatcher.ForceRenderAsync(ZoneColors.Black).ConfigureAwait(false);
+
+                // [DIAGNOSTIC-ONLY]
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] RunTransitionAsync PlayAsync COMPLETED NORMALLY (+black frame).");
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                // [DIAGNOSTIC-ONLY]
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] RunTransitionAsync CANCELLED via OperationCanceledException. [tokenCancelled={cancellationToken.IsCancellationRequested}]");
+            }
             finally
             {
                 dispatcher.CurrentBrightness = savedBrightness;
@@ -419,10 +442,15 @@ namespace LoqNova.Lib.Controllers
                 {
                     if (Log.Instance.IsTraceEnabled)
                         Log.Instance.Trace($"Failed to resume after transition", ex);
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync THREW. [type={ex.GetType().FullName}, msg={ex.Message}]");
                 }
 
                 if (Log.Instance.IsTraceEnabled)
+                {
                     Log.Instance.Trace($"Transition ended, effect resumed");
+                    Log.Instance.Trace($"[DIAG] RunTransitionAsync FINALLY done. [brightnessRestored={savedBrightness}]");
+                }
             }
         }
 
