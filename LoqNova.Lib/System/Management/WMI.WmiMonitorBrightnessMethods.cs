@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Threading.Tasks;
 
 // ReSharper disable InconsistentNaming
 // ReSharper disable StringLiteralTypo
@@ -17,5 +18,12 @@ public static partial class WMI
                 { "Brightness", brightness },
                 { "Timeout", timeout }
             });
+    }
+
+    public static class WmiMonitorBrightnessReader
+    {
+        public static Task<IEnumerable<double>> ReadAsync() => ReadAsync("root\\WMI",
+            $"SELECT * FROM WmiMonitorBrightness",
+            pdc => Convert.ToDouble(pdc["CurrentBrightness"].Value));
     }
 }
