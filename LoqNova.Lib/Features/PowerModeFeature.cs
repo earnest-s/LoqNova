@@ -124,14 +124,30 @@ public class PowerModeFeature(
     }
 
     /// <summary>
-    /// Triggers the existing performance-mode keyboard strobe (identical path and
-    /// <see cref="_strobeGuard"/> as Fn+Q) without publishing an OSD notification or
-    /// touching the actual performance mode. Used by external triggers such as
-    /// AC adapter transitions where the firmware has already applied the resulting mode.
+    /// Announces a performance mode that was changed EXTERNALLY by the firmware
+    /// (e.g. an AC-adapter-driven transition reported via the thermal-mode event).
+    /// Triggers the existing performance-mode keyboard strobe in the resulting
+    /// mode's color — unless that exact mode was already strobed within the
+    /// dedupe window, which proves an earlier announcement (typically Fn+Q's
+    /// smart-fan event path) already executed the strobe for this transition.
     /// </summary>
-    public Task TriggerStrobeAsync(PowerModeState mode) => FireStrobeAsync(mode);
+    public Task AnnounceModeChangeAsync(PowerModeState mode)
+    {
+        var lastUtc = _lastStrobeUtc;
+        if (_lastStrobeMode == mode && (DateTime.UtcNow - lastUtc) < StrobeDedupeWindow)
+        {
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] AnnounceModeChange SKIPPED — identical mode already strobed. [mode={mode}, msAgo={(int)(DateTime.UtcNow - lastUtc).TotalMilliseconds}]");
+            return Task.CompletedTask;
+        }
 
-    private async Task ApplyDependenciesAsync(PowerModeState mode)
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] AnnounceModeChange → FireStrobeAsync. [mode={mode}]");
+
+        return FireStrobeAsync(mode);
+    }
+
+    private async Task FireStrobeAsync(PowerModeState mode)
     {
         if (mode is PowerModeState.GodMode)
             await godModeController.ApplyStateAsync().ConfigureAwait(false);
