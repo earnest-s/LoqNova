@@ -42,10 +42,12 @@ public class VolumeBrightnessReactiveRgbService(
     private const int HoldMs = 900;              // visible hold after the LAST change
     private static readonly TimeSpan MaxEventDuration = TimeSpan.FromSeconds(4); // hard safety cap
 
-    // Dedicated palette — visually distinct from performance-mode colors
-    // (quiet=blue, balance=white, performance=red, godmode=purple).
-    private static readonly RGBColor VolumeBaseColor = new(0, 200, 255);     // cyan
-    private static readonly RGBColor BrightnessBaseColor = new(255, 210, 74); // warm amber
+    // Dedicated LEVEL-METER palette — fixed for this temporary event, independent
+    // from any preset/effect/performance-mode colors: low → high = green → red.
+    private static readonly RGBColor MeterZone1 = new(0, 255, 0);       // Green
+    private static readonly RGBColor MeterZone2 = new(255, 255, 0);     // Yellow
+    private static readonly RGBColor MeterZone3 = new(255, 128, 0);     // Orange
+    private static readonly RGBColor MeterZone4 = new(255, 0, 0);       // Red
 
     private readonly object _gate = new();
 
