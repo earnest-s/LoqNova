@@ -1,4 +1,4 @@
-﻿// #define MOCK_RGB
+// #define MOCK_RGB
 
 using System;
 using System.Collections.Generic;
@@ -32,6 +32,25 @@ namespace LoqNova.Lib.Controllers
         public Task<bool> IsSupportedAsync()
         {
             return Task.FromResult(dispatcher.IsSupported);
+        }
+
+        /// <summary>
+        /// Whether the performance-mode transition (strobe) is currently running and
+        /// owns the keyboard. External temporary events must yield to it.
+        /// </summary>
+        public bool IsTransitionActive => _transitionTask is { IsCompleted: false };
+
+        /// <summary>
+        /// Re-sends the currently selected preset to the keyboard (firmware command and
+        /// custom effect handling) WITHOUT persisting settings. Used by temporary RGB
+        /// events to restore/resume the previous state.
+        /// </summary>
+        public async Task RefreshCurrentPresetAsync()
+        {
+            using (await IoLock.LockAsync().ConfigureAwait(false))
+            {
+                await SetCurrentPresetAsync().ConfigureAwait(false);
+            }
         }
 
         public async Task SetLightControlOwnerAsync(bool enable, bool restorePreset = false)
@@ -368,6 +387,11 @@ namespace LoqNova.Lib.Controllers
         /// </summary>
         public async Task PlayTransitionAsync(PowerModeState mode)
         {
+            // [DIAGNOSTIC-ONLY] entry telemetry (no behavior change)
+            var diagSw = global::System.Diagnostics.Stopwatch.StartNew();
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] PlayTransitionAsync ENTER. [mode={mode}, supported={dispatcher.IsSupported}, overrideActive={dispatcher.IsOverrideActive}, prevTask={_transitionTask?.Status.ToString() ?? "null"}]");
+
             var modeColor = RgbFrameDispatcher.GetPerformanceModeColor(mode);
 
             // Cancel any in-flight transition
@@ -380,6 +404,8 @@ namespace LoqNova.Lib.Controllers
                     catch (OperationCanceledException) { }
                 }
                 _transitionCts.Dispose();
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] PlayTransitionAsync previous transition cancelled+drained. [drainMs={diagSw.ElapsedMilliseconds}]");
             }
 
             // Pause running custom effect (it stays alive in memory)
@@ -389,11 +415,18 @@ namespace LoqNova.Lib.Controllers
             _transitionTask = RunTransitionAsync(modeColor, _transitionCts.Token);
 
             if (Log.Instance.IsTraceEnabled)
+            {
+                Log.Instance.Trace($"[DIAG] PlayTransitionAsync TASK STARTED. [mode={mode}, color=#{modeColor.R:X2}{modeColor.G:X2}{modeColor.B:X2}, setupMs={diagSw.ElapsedMilliseconds}]");
                 Log.Instance.Trace($"Transition triggered for power mode: {mode}");
+            }
         }
 
         private async Task RunTransitionAsync(RGBColor modeColor, CancellationToken cancellationToken)
         {
+            // [DIAGNOSTIC-ONLY]
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] RunTransitionAsync START.");
+
             // Full brightness for strobe, restore after
             var savedBrightness = dispatcher.CurrentBrightness;
             dispatcher.CurrentBrightness = 2;
@@ -405,8 +438,17 @@ namespace LoqNova.Lib.Controllers
 
                 // Safety black frame
                 await dispatcher.ForceRenderAsync(ZoneColors.Black).ConfigureAwait(false);
+
+                // [DIAGNOSTIC-ONLY]
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] RunTransitionAsync PlayAsync COMPLETED NORMALLY (+black frame).");
             }
-            catch (OperationCanceledException) { }
+            catch (OperationCanceledException)
+            {
+                // [DIAGNOSTIC-ONLY]
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] RunTransitionAsync CANCELLED via OperationCanceledException. [tokenCancelled={cancellationToken.IsCancellationRequested}]");
+            }
             finally
             {
                 dispatcher.CurrentBrightness = savedBrightness;
@@ -419,10 +461,15 @@ namespace LoqNova.Lib.Controllers
                 {
                     if (Log.Instance.IsTraceEnabled)
                         Log.Instance.Trace($"Failed to resume after transition", ex);
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync THREW. [type={ex.GetType().FullName}, msg={ex.Message}]");
                 }
 
                 if (Log.Instance.IsTraceEnabled)
+                {
                     Log.Instance.Trace($"Transition ended, effect resumed");
+                    Log.Instance.Trace($"[DIAG] RunTransitionAsync FINALLY done. [brightnessRestored={savedBrightness}]");
+                }
             }
         }
 
@@ -431,6 +478,10 @@ namespace LoqNova.Lib.Controllers
         /// </summary>
         private async Task ResumeAfterTransitionAsync()
         {
+            // [DIAGNOSTIC-ONLY]
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync ENTER. [effectRunning={customEffectController.IsEffectRunning}]");
+
             await ThrowIfVantageEnabled().ConfigureAwait(false);
 
             var state = settings.Store.State;
@@ -442,6 +493,8 @@ namespace LoqNova.Lib.Controllers
                 await customEffectController.StopEffectAsync().ConfigureAwait(false);
                 await dispatcher.SendFirmwareCommandAsync(CreateOffState()).ConfigureAwait(false);
                 dispatcher.RenderPreviewOnly(ZoneColors.Black);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=OFF.");
                 return;
             }
 
@@ -453,11 +506,15 @@ namespace LoqNova.Lib.Controllers
                 if (customEffectController.IsEffectRunning)
                 {
                     await customEffectController.ResumeFromOverrideAsync().ConfigureAwait(false);
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=CUSTOM-RESUME-FROM-OVERRIDE.");
                 }
                 else
                 {
                     dispatcher.IsOverrideActive = false;
                     await HandleCustomEffectAsync(presetDescription).ConfigureAwait(false);
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=CUSTOM-RESTART.");
                 }
             }
             else
@@ -468,6 +525,8 @@ namespace LoqNova.Lib.Controllers
                     presetDescription.Zone1, presetDescription.Zone2,
                     presetDescription.Zone3, presetDescription.Zone4));
                 await HandleCustomEffectAsync(presetDescription).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] ResumeAfterTransitionAsync branch=FIRMWARE-PRESET [{presetDescription.Effect}].");
             }
         }
 

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -30,6 +30,13 @@ public class PowerModeFeature(
 {
     private int _strobeGuard;
 
+    // Execution-proof strobe dedupe: records what FireStrobeAsync ACTUALLY strobed,
+    // so echo announcements (e.g. a thermal event following an Fn+Q smart-fan event)
+    // cannot produce a second strobe for the same physical mode transition.
+    private static readonly TimeSpan StrobeDedupeWindow = TimeSpan.FromMilliseconds(2500);
+    private PowerModeState? _lastStrobeMode;
+    private DateTime _lastStrobeUtc;
+
     public bool AllowAllPowerModesOnBattery { get; set; }
 
     public override async Task<PowerModeState[]> GetAllStatesAsync()
@@ -51,7 +58,7 @@ public class PowerModeFeature(
             && await Power.IsPowerAdapterConnectedAsync().ConfigureAwait(false) is PowerAdapterStatus.Disconnected)
             throw new PowerModeUnavailableWithoutACException(state);
 
-        // Fire OSD + RGB strobe IMMEDIATELY — before hardware write.
+        // Fire OSD + RGB strobe IMMEDIATELY � before hardware write.
         // This gives instant visual feedback while WMI blocks.
         PublishNotification(state);
         _ = FireStrobeAsync(state);
@@ -116,6 +123,30 @@ public class PowerModeFeature(
         await ApplyDependenciesAsync(mode).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Announces a performance mode that was changed EXTERNALLY by the firmware
+    /// (e.g. an AC-adapter-driven transition reported via the thermal-mode event).
+    /// Triggers the existing performance-mode keyboard strobe in the resulting
+    /// mode's color — unless that exact mode was already strobed within the
+    /// dedupe window, which proves an earlier announcement (typically Fn+Q's
+    /// smart-fan event path) already executed the strobe for this transition.
+    /// </summary>
+    public Task AnnounceModeChangeAsync(PowerModeState mode)
+    {
+        var lastUtc = _lastStrobeUtc;
+        if (_lastStrobeMode == mode && (DateTime.UtcNow - lastUtc) < StrobeDedupeWindow)
+        {
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] AnnounceModeChange SKIPPED — identical mode already strobed. [mode={mode}, msAgo={(int)(DateTime.UtcNow - lastUtc).TotalMilliseconds}]");
+            return Task.CompletedTask;
+        }
+
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] AnnounceModeChange → FireStrobeAsync. [mode={mode}]");
+
+        return FireStrobeAsync(mode);
+    }
+
     private async Task ApplyDependenciesAsync(PowerModeState mode)
     {
         if (mode is PowerModeState.GodMode)
@@ -127,24 +158,52 @@ public class PowerModeFeature(
 
     private async Task FireStrobeAsync(PowerModeState mode)
     {
-        // Guard: allow only one strobe at a time — prevents triple execution
+        // Guard: allow only one strobe at a time � prevents triple execution
         // when SetStateAsync and ApplyPerformanceModeAsync overlap.
+        // [DIAGNOSTIC-ONLY] guard telemetry (no behavior change)
+        var sw = global::System.Diagnostics.Stopwatch.StartNew();
         if (Interlocked.CompareExchange(ref _strobeGuard, 1, 0) != 0)
+        {
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] FireStrobe BLOCKED by _strobeGuard (previous strobe still active). [mode={mode}]");
             return;
+        }
+
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] FireStrobe guard acquired. [mode={mode}]");
+
+        // [DIAGNOSTIC-DEDUPE] record ACTUAL strobe execution at guard acquisition —
+        // this is the proof-of-execution used by AnnounceModeChangeAsync.
+        _lastStrobeMode = mode;
+        _lastStrobeUtc = DateTime.UtcNow;
 
         try
         {
             if (await rgbKeyboardBacklightController.IsSupportedAsync().ConfigureAwait(false))
+            {
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] FireStrobe dispatching PlayTransitionAsync. [mode={mode}, supported=true]");
                 await rgbKeyboardBacklightController.PlayTransitionAsync(mode).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] FireStrobe PlayTransitionAsync returned. [mode={mode}, elapsedMs={sw.ElapsedMilliseconds}]");
+            }
+            else if (Log.Instance.IsTraceEnabled)
+            {
+                Log.Instance.Trace($"[DIAG] FireStrobe skipped: RGB controller not supported. [mode={mode}]");
+            }
         }
         catch (Exception ex)
         {
             if (Log.Instance.IsTraceEnabled)
                 Log.Instance.Trace($"Failed to trigger RGB strobe for power mode {mode}", ex);
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] FireStrobe EXCEPTION swallowed. [type={ex.GetType().FullName}, msg={ex.Message}, elapsedMs={sw.ElapsedMilliseconds}]");
         }
         finally
         {
             Interlocked.Exchange(ref _strobeGuard, 0);
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] FireStrobe guard released. [mode={mode}, totalElapsedMs={sw.ElapsedMilliseconds}]");
         }
     }
 

@@ -141,6 +141,7 @@ public partial class App
         await IoCContainer.Resolve<HWiNFOIntegration>().StartStopIfNeededAsync();
         await IoCContainer.Resolve<IpcServer>().StartStopIfNeededAsync();
         await IoCContainer.Resolve<BatteryDischargeRateMonitorService>().StartStopIfNeededAsync();
+        await IoCContainer.Resolve<VolumeBrightnessReactiveRgbService>().StartStopIfNeededAsync();
 
 #if !DEBUG
         Autorun.Validate();
@@ -268,6 +269,15 @@ public partial class App
             if (IoCContainer.TryResolve<BatteryDischargeRateMonitorService>() is { } batteryDischargeMon)
             {
                 await batteryDischargeMon.StopAsync();
+            }
+        }
+        catch { /* Ignored. */ }
+
+        try
+        {
+            if (IoCContainer.TryResolve<VolumeBrightnessReactiveRgbService>() is { } reactiveRgb)
+            {
+                await reactiveRgb.StopAsync();
             }
         }
         catch { /* Ignored. */ }

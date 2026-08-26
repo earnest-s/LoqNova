@@ -46,8 +46,13 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
     /// </summary>
     public async Task ResumeFromOverrideAsync()
     {
+        // [DIAGNOSTIC-ONLY]
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Effect ResumeFromOverride ENTER. [running={IsEffectRunning}]");
         dispatcher.IsOverrideActive = false;
         await dispatcher.ForceRenderAsync(_currentColors).ConfigureAwait(false);
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Effect ResumeFromOverride DONE.");
     }
 
     /// <summary>
@@ -72,7 +77,10 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
         _effectTask = RunEffectInternalAsync(effect, _effectCts.Token);
 
         if (Log.Instance.IsTraceEnabled)
+        {
             Log.Instance.Trace($"Started custom effect: {effect.Type}");
+            Log.Instance.Trace($"[DIAG] Effect STARTED. [type={effect.Type}]");
+        }
     }
 
     /// <summary>
@@ -80,6 +88,10 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
     /// </summary>
     public async Task StopEffectAsync()
     {
+        // [DIAGNOSTIC-ONLY]
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Effect StopEffectAsync ENTER. [running={IsEffectRunning}]");
+
         if (_effectCts is not null)
         {
             await _effectCts.CancelAsync().ConfigureAwait(false);
@@ -114,11 +126,16 @@ public class CustomRGBEffectController(RgbFrameDispatcher dispatcher, VantageDis
         catch (OperationCanceledException)
         {
             // Expected on cancellation
+            // [DIAGNOSTIC-ONLY]
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] Effect loop CANCELLED. [type={effect.Type}]");
         }
         catch (Exception ex)
         {
             if (Log.Instance.IsTraceEnabled)
                 Log.Instance.Trace($"Effect {effect.Type} threw an exception", ex);
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] Effect loop THREW. [type={effect.Type}, exType={ex.GetType().FullName}]");
         }
     }
 

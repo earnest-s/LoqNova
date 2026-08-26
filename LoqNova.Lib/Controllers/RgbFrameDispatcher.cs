@@ -1,4 +1,4 @@
-﻿// #define MOCK_RGB
+// #define MOCK_RGB
 
 // ============================================================================
 // RgbFrameDispatcher.cs
@@ -8,12 +8,12 @@
 // FrameRendered so the UI preview stays in perfect sync.
 //
 // Three render paths:
-//   RenderAsync()         — normal (custom effects). Gated by IsOverrideActive.
-//   ForceRenderAsync()    — override path (strobe, resume). Always writes.
-//   RenderPreviewOnly()   — preview only (firmware effect simulators). No HID.
+//   RenderAsync()         � normal (custom effects). Gated by IsOverrideActive.
+//   ForceRenderAsync()    � override path (strobe, resume). Always writes.
+//   RenderPreviewOnly()   � preview only (firmware effect simulators). No HID.
 //
 // One raw path:
-//   SendFirmwareCommandAsync() — raw LENOVO_RGB_KEYBOARD_STATE (presets, off).
+//   SendFirmwareCommandAsync() � raw LENOVO_RGB_KEYBOARD_STATE (presets, off).
 // ============================================================================
 
 using System;
@@ -41,7 +41,7 @@ public class RgbFrameDispatcher
 
     private SafeFileHandle? _deviceHandle;
 
-    // ────── Events ──────────────────────────────────────────────────
+    // ------ Events --------------------------------------------------
 
     /// <summary>
     /// Raised after every frame that should be visible in the UI preview.
@@ -50,7 +50,7 @@ public class RgbFrameDispatcher
     /// </summary>
     public event Action<ZoneColors>? FrameRendered;
 
-    // ────── State ───────────────────────────────────────────────────
+    // ------ State ---------------------------------------------------
 
     /// <summary>
     /// When true, the HID device is not opened even if present.
@@ -71,7 +71,7 @@ public class RgbFrameDispatcher
     /// </summary>
     public byte CurrentBrightness { get; set; } = 2;
 
-    // ────── Device handle ───────────────────────────────────────────
+    // ------ Device handle -------------------------------------------
 
     private SafeFileHandle? DeviceHandle
     {
@@ -98,7 +98,7 @@ public class RgbFrameDispatcher
         }
     }
 
-    // ────── Render methods ──────────────────────────────────────────
+    // ------ Render methods ------------------------------------------
 
     /// <summary>
     /// Normal render: writes zone colors to HID and fires <see cref="FrameRendered"/>.
@@ -137,7 +137,20 @@ public class RgbFrameDispatcher
         using (await HidLock.LockAsync(ct).ConfigureAwait(false))
         {
             var handle = DeviceHandle ?? throw new InvalidOperationException("RGB Keyboard unsupported");
-            await WriteZoneColors(handle, zones).ConfigureAwait(false);
+            // [DIAGNOSTIC-ONLY] write duration + failure telemetry (no behavior change)
+            var diagSw = global::System.Diagnostics.Stopwatch.StartNew();
+            try
+            {
+                await WriteZoneColors(handle, zones).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled && diagSw.ElapsedMilliseconds > 50)
+                    Log.Instance.Trace($"[DIAG] HID ForceRender SLOW write. [ms={diagSw.ElapsedMilliseconds}]");
+            }
+            catch (Exception ex)
+            {
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] HID ForceRender WRITE FAILED. [type={ex.GetType().FullName}, msg={ex.Message}, ms={diagSw.ElapsedMilliseconds}]", ex);
+                throw;
+            }
         }
 #endif
 
@@ -192,7 +205,7 @@ public class RgbFrameDispatcher
         await SendFirmwareCommandAsync(state).ConfigureAwait(false);
     }
 
-    // ────── Centralized color mapping ───────────────────────────────
+    // ------ Centralized color mapping -------------------------------
 
     /// <summary>
     /// Returns the canonical RGB color for a performance / power mode.
@@ -207,7 +220,7 @@ public class RgbFrameDispatcher
         _ => new RGBColor(255, 255, 255)
     };
 
-    // ────── Private HID write helpers ───────────────────────────────
+    // ------ Private HID write helpers -------------------------------
 
     private Task WriteZoneColors(SafeFileHandle handle, ZoneColors zones)
     {

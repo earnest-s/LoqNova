@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using LoqNova.Lib.Controllers;
+using LoqNova.Lib.Features;
 using LoqNova.Lib.System.Management;
 using LoqNova.Lib.Utils;
 
@@ -8,7 +9,8 @@ namespace LoqNova.Lib.Listeners;
 
 public class ThermalModeListener(
     WindowsPowerModeController windowsPowerModeController,
-    WindowsPowerPlanController windowsPowerPlanController)
+    WindowsPowerPlanController windowsPowerPlanController,
+    Lazy<PowerModeFeature> powerModeFeature)
     : AbstractWMIListener<ThermalModeListener.ChangedEventArgs, ThermalModeState, int>(WMI.LenovoGameZoneThermalModeEvent.Listen)
 {
     public class ChangedEventArgs(ThermalModeState state) : EventArgs
@@ -55,6 +57,18 @@ public class ThermalModeListener(
             ThermalModeState.GodMode => PowerModeState.GodMode,
             _ => throw new ArgumentOutOfRangeException(nameof(state), state, null)
         };
+
+        // Firmware-initiated performance mode transition (e.g. AC adapter driven).
+        // The thermal event payload already carries the resulting mode — announce the
+        // strobe IMMEDIATELY, before the (slower, throttled) Windows power
+        // synchronization runs, so keyboard feedback is not delayed by it.
+        // AnnounceModeChangeAsync deduplicates against an actually-executed strobe for
+        // the same mode (e.g. Fn+Q echo), and the SuppressNext() guard above already
+        // filters programmatic internal changes.
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Thermal event → resulting PowerModeState. [state={powerModeState}]");
+
+        await powerModeFeature.Value.AnnounceModeChangeAsync(powerModeState).ConfigureAwait(false);
 
         await windowsPowerModeController.SetPowerModeAsync(powerModeState).ConfigureAwait(false);
         await windowsPowerPlanController.SetPowerPlanAsync(powerModeState).ConfigureAwait(false);

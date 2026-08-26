@@ -139,5 +139,7 @@ public class IoCModule : Module
         builder.Register<SunriseSunset>();
 
         builder.Register<BatteryDischargeRateMonitorService>();
+
+        builder.Register<VolumeBrightnessReactiveRgbService>();
     }
 }

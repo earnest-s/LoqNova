@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using LoqNova.Lib.Controllers.CustomRGBEffects;
+using LoqNova.Lib.Utils;
 
 namespace LoqNova.Lib.Controllers;
 
@@ -46,6 +47,10 @@ public sealed class PerformanceModeTransitionEffect
         CancellationToken cancellationToken)
     {
         var sw = Stopwatch.StartNew();
+        // [DIAGNOSTIC-ONLY] frame telemetry (no behavior change)
+        var diagFrameIndex = 0;
+        if (Log.Instance.IsTraceEnabled)
+            Log.Instance.Trace($"[DIAG] Strobe PlayAsync START. [color=#{modeColor.R:X2}{modeColor.G:X2}{modeColor.B:X2}, totalMs={(int)TotalDurationMs}, realMs={(int)(TotalDurationMs / Speed)}]");
 
         try
         {
@@ -53,7 +58,11 @@ public sealed class PerformanceModeTransitionEffect
             {
                 var elapsedMs = (float)sw.Elapsed.TotalMilliseconds * Speed;
                 if (elapsedMs >= TotalDurationMs)
+                {
+                    if (Log.Instance.IsTraceEnabled)
+                        Log.Instance.Trace($"[DIAG] Strobe loop BREAK: duration reached. [frames={diagFrameIndex}, realMs={sw.Elapsed.TotalMilliseconds:F0}]");
                     break;
+                }
 
                 var brightness = ComputeBrightness(elapsedMs);
                 var r = (byte)(modeColor.R * brightness);
@@ -63,16 +72,32 @@ public sealed class PerformanceModeTransitionEffect
 
                 await dispatcher.ForceRenderAsync(new ZoneColors(color), cancellationToken)
                     .ConfigureAwait(false);
+
+                // [DIAGNOSTIC-ONLY]
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] Strobe frame {diagFrameIndex}. [realMs={sw.Elapsed.TotalMilliseconds:F1}, animMs={elapsedMs:F0}, brightness={brightness:F2}]");
+
+                diagFrameIndex++;
                 await Task.Delay(FrameDelayMs, cancellationToken).ConfigureAwait(false);
             }
 
             // Ensure we end on pure black
             if (!cancellationToken.IsCancellationRequested)
+            {
                 await dispatcher.ForceRenderAsync(ZoneColors.Black, cancellationToken).ConfigureAwait(false);
+                if (Log.Instance.IsTraceEnabled)
+                    Log.Instance.Trace($"[DIAG] Strobe final BLACK sent. [frames={diagFrameIndex}, realMs={sw.Elapsed.TotalMilliseconds:F0}]");
+            }
+            else if (Log.Instance.IsTraceEnabled)
+            {
+                Log.Instance.Trace($"[DIAG] Strobe ended on cancellation BEFORE final black. [frames={diagFrameIndex}]");
+            }
         }
         catch (OperationCanceledException)
         {
             // Interrupted — send black and exit cleanly
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] Strobe OCE at frame {diagFrameIndex}. [realMs={sw.Elapsed.TotalMilliseconds:F0}, tokenCancelled={cancellationToken.IsCancellationRequested}]");
             try { await dispatcher.ForceRenderAsync(ZoneColors.Black).ConfigureAwait(false); }
             catch { /* best effort */ }
             throw;

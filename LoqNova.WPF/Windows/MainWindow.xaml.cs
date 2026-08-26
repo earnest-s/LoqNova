@@ -295,6 +295,10 @@ public partial class MainWindow
                 PROCESS_INFORMATION_CLASS.ProcessPowerThrottling,
                 ptr.ToPointer(),
                 (uint)size);
+
+            // [DIAGNOSTIC-ONLY] efficiency-mode telemetry (no behavior change)
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[DIAG] SetEfficiencyMode applied. [enabled={enabled}, priorityClass={System.Diagnostics.Process.GetCurrentProcess().PriorityClass}]");
         }
         finally
         {
