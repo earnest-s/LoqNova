@@ -172,6 +172,11 @@ public class PowerModeFeature(
         if (Log.Instance.IsTraceEnabled)
             Log.Instance.Trace($"[DIAG] FireStrobe guard acquired. [mode={mode}]");
 
+        // [DIAGNOSTIC-DEDUPE] record ACTUAL strobe execution at guard acquisition —
+        // this is the proof-of-execution used by AnnounceModeChangeAsync.
+        _lastStrobeMode = mode;
+        _lastStrobeUtc = DateTime.UtcNow;
+
         try
         {
             if (await rgbKeyboardBacklightController.IsSupportedAsync().ConfigureAwait(false))
