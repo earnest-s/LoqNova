@@ -277,7 +277,7 @@ public class VolumeBrightnessReactiveRgbService(
                 }
 
                 var valueNow = _eventValue;
-                var zones = BuildVisualization(baseColor, valueNow);
+                var zones = BuildVisualization(valueNow);
                 await dispatcher.RenderAsync(zones, cancellationToken).ConfigureAwait(false);
 
                 // Latest-wins loop: keep rendering until the value has been quiet
