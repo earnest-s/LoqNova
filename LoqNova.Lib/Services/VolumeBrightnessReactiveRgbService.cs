@@ -460,6 +460,6 @@ public class VolumeBrightnessReactiveRgbService(
                 onDefaultChanged();
         }
 
-        public void OnPropertyValueChanged(string deviceId, NAudio.CoreAudioApi.Interfaces.PropertyKey propertyKey) { }
+        public void OnPropertyValueChanged(string deviceId, PropertyKey propertyKey) { }
     }
 }
