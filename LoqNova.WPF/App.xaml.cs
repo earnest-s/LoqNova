@@ -279,8 +279,6 @@ public partial class App
         if (Log.Instance.IsTraceEnabled)
             Log.Instance.Trace($"[{_sessionId}] ===== SHUTDOWN BEGIN =====");
 
-        var errors = new List<Exception>();
-
         await StopServiceAsync("AIController", () => IoCContainer.TryResolve<AIController>()?.StopAsync());
         await StopServiceAsync("RGBKeyboardBacklightController", async () =>
         {
@@ -297,12 +295,12 @@ public partial class App
         await StopServiceAsync("MacroController", () => Task.Run(() => IoCContainer.TryResolve<MacroController>()?.Stop()));
         await StopServiceAsync("AutomationProcessor", () => IoCContainer.TryResolve<AutomationProcessor>()?.SetEnabledAsync(false));
 
-        if (errors.Count > 0)
+        if (_shutdownErrors.Count > 0)
         {
-            var aggregate = new AggregateException("Shutdown errors", errors);
+            var aggregate = new AggregateException("Shutdown errors", _shutdownErrors);
             Log.Instance.ErrorReport("ShutdownAsync aggregate errors", aggregate);
             if (Log.Instance.IsTraceEnabled)
-                Log.Instance.Trace($"[{_sessionId}] Shutdown completed with {errors.Count} errors", aggregate);
+                Log.Instance.Trace($"[{_sessionId}] Shutdown completed with {_shutdownErrors.Count} errors", aggregate);
         }
         else if (Log.Instance.IsTraceEnabled)
         {
