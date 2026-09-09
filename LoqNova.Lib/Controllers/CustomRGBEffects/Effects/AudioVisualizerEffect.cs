@@ -1,15 +1,15 @@
 ﻿// ============================================================================
 // AudioVisualizerEffect.cs
 //
-// 4-zone audio visualizer using the SAME zone/intensity concept as
-// VolumeBrightnessReactiveRgbService: smooth level meter with per-zone
-// brightness response driven by overall audio intensity.
+// Audio visualizer using PRESET-DRIVEN zone colors + per-zone brightness
+// driven by audio intensity. Uses the SAME zone color source as the main
+// RGB system (RGBKeyboardSettings presets).
 //
 // PIPELINE:
 // 1. Audio Capture (WASAPI loopback -> mono ring buffer)
 // 2. RMS amplitude calculation (smoothed with attack/release envelope)
 // 3. Normalized intensity (0-1) mapped to 4-zone level meter (same as VBR service)
-// 4. Per-zone color scaling (uses shared zone color scheme: green/yellow/orange/red)
+// 4. Per-zone brightness applied to PRESET zone colors (not hard-coded palette)
 // 5. Frame output via CustomRGBEffectController -> RgbFrameDispatcher -> HID
 // ============================================================================
 
@@ -24,29 +24,30 @@ using NAudio.Wave;
 namespace LoqNova.Lib.Controllers.CustomRGBEffects.Effects;
 
 /// <summary>
-/// Audio visualizer using the SAME 4-zone level meter concept as VolumeBrightnessReactiveRgbService.
-/// Input: normalized audio intensity (0..1) -> 4 zones fill progressively (25% each).
-/// Smoothing: attack/release envelope on the intensity signal.
-/// Colors: shared zone color scheme (Zone1=Green, Zone2=Yellow, Zone3=Orange, Zone4=Red).
+/// Audio visualizer using PRESET zone colors + per-zone brightness from audio.
+/// Zone colors come from the currently selected RGB preset (same source as main RGB system).
+/// Audio signal controls ONLY per-zone brightness/intensity.
 /// </summary>
 public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
 {
     // ========================================================================
     // CONSTANTS
     // ========================================================================
-    private const int FftSize = 1024; // smaller FFT, lower latency
+    private const int FftSize = 1024;
     private const int SampleRate = 48000;
 
-    // Smoothing parameters (tunable)
-    private const float AttackTimeMs = 50f;   // ~50ms attack for musical responsiveness
-    private const float ReleaseTimeMs = 150f; // ~150ms release for smooth decay
-    private const float NoiseFloor = 0.0001f; // ignore very low signals
-    private const float MaxNormalizedInput = 2.0f; // clamp multiplier for AGC
+    // Smoothing parameters (tunable) - TARGET: energetic response
+    // Attack: ~20ms for punchy transients (kicks, snares)
+    // Release: ~60ms for fast fall without flicker
+    private const float AttackTimeMs = 20f;
+    private const float ReleaseTimeMs = 60f;
+    private const float NoiseFloor = 0.0001f;
 
     // ========================================================================
     // CONFIGURATION
     // ========================================================================
-    private readonly int _speed; // 1-4, controls overall responsiveness
+    private readonly int _speed; // 1-4, scales overall responsiveness
+    private readonly ZoneColors _presetZoneColors; // from current RGB preset
     private bool _disposed;
 
     // ========================================================================
@@ -61,37 +62,30 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private bool _ringReady;
 
     // ========================================================================
-    // ENVELOPE STATE (attack/release smoothing)
+    // ENVELOPE STATE (attack/release smoothing on GLOBAL intensity)
     // ========================================================================
-    private float _envelopeLevel = 0f;        // current smoothed intensity (0..1)
-    private float _agcEstimate = 0.1f;        // running estimate of typical peak for normalization
-
-    // ========================================================================
-    // ZONE COLORS (shared with VolumeBrightnessReactiveRgbService)
-    // ========================================================================
-    // Zone1 = Green, Zone2 = Yellow, Zone3 = Orange, Zone4 = Red
-    private static readonly RGBColor ZoneColor1 = new(0, 255, 0);       // Green
-    private static readonly RGBColor ZoneColor2 = new(255, 255, 0);     // Yellow
-    private static readonly RGBColor ZoneColor3 = new(255, 128, 0);     // Orange
-    private static readonly RGBColor ZoneColor4 = new(255, 0, 0);       // Red
-
-    private readonly RGBColor[] _zoneColors = [ZoneColor1, ZoneColor2, ZoneColor3, ZoneColor4];
+    private float _envelopeLevel = 0f; // smoothed global intensity (0..1)
 
     // ========================================================================
     // CONSTRUCTOR
     // ========================================================================
-    public AudioVisualizerEffect(ZoneColors? zoneColors = null, int speed = 2)
+    /// <summary>
+    /// Creates an audio visualizer effect.
+    /// </summary>
+    /// <param name="presetZoneColors">Zone colors from the currently selected RGB preset (Zone1..Zone4).</param>
+    /// <param name="speed">Speed 1-4, scales attack/release inversely (1=slow, 4=fast).</param>
+    public AudioVisualizerEffect(ZoneColors? presetZoneColors = null, int speed = 2)
     {
         _speed = Math.Clamp(speed, 1, 4);
-        // zoneColors parameter kept for factory compatibility; 
-        // we use shared VBR zone colors internally
+        // Use preset colors if provided, otherwise default to white (will be dimmed by audio)
+        _presetZoneColors = presetZoneColors ?? ZoneColors.White;
     }
 
     // ========================================================================
     // INTERFACE
     // ========================================================================
     public CustomRGBEffectType Type => CustomRGBEffectType.AudioVisualizer;
-    public string Description => "Audio-driven 4-zone level meter (shared with volume/brightness reactivity)";
+    public string Description => "Audio-driven 4-zone visualizer using preset colors";
     public bool RequiresInputMonitoring => false;
     public bool RequiresSystemAccess => true; // needs audio endpoint access
 
@@ -159,13 +153,13 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 if (rms < NoiseFloor)
                     rms = 0f;
 
-                // --- AGC: update running estimate of typical peak (very slow) ---
+                // --- Normalize RMS (simple AGC with running estimate) ---
+                // Track a slow-moving estimate of typical peak level
                 _agcEstimate = _agcEstimate * 0.999f + rms * 0.001f;
-
-                // Normalize RMS against AGC estimate (with minimum floor)
-                float normDenom = Math.Max(_agcEstimate * MaxNormalizedInput, 0.01f);
+                float normDenom = Math.Max(_agcEstimate * 3.0f, 0.01f); // scale factor
                 float normalizedRms = Math.Clamp(rms / normDenom, 0f, 1f);
 
+                // --- Attack/Release envelope on GLOBAL intensity ---
                 if (normalizedRms > _envelopeLevel)
                     _envelopeLevel += (normalizedRms - _envelopeLevel) * attackCoeff; // attack
                 else
@@ -173,22 +167,22 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
 
                 _envelopeLevel = Math.Clamp(_envelopeLevel, 0f, 1f);
 
-                // --- Map envelope (0..1) to 4-zone level meter (same as VBR service) ---
-                // Each zone = 25% range: Zone1=0-25%, Zone2=25-50%, Zone3=50-75%, Zone4=75-100%
+                // --- Map envelope (0..1) to 4-zone level meter with INDEPENDENT zone brightness ---
+                // Zone 1: 0-25%, Zone 2: 25-50%, Zone 3: 50-75%, Zone 4: 75-100%
+                // Each zone gets its own brightness from the envelope
                 float intensity = _envelopeLevel;
 
-                // Per-zone fill: clamp((intensity - zone_start) / 0.25, 0, 1)
                 float z1 = Math.Clamp(intensity / 0.25f, 0f, 1f);
                 float z2 = Math.Clamp((intensity - 0.25f) / 0.25f, 0f, 1f);
                 float z3 = Math.Clamp((intensity - 0.50f) / 0.25f, 0f, 1f);
                 float z4 = Math.Clamp((intensity - 0.75f) / 0.25f, 0f, 1f);
 
-                // Scale zone colors by fill amount
+                // Apply brightness to PRESET zone colors (not hard-coded palette)
                 var colors = new ZoneColors(
-                    ScaleColor(ZoneColor1, z1),
-                    ScaleColor(ZoneColor2, z2),
-                    ScaleColor(ZoneColor3, z3),
-                    ScaleColor(ZoneColor4, z4)
+                    ScaleColor(_presetZoneColors.Zone1, z1),
+                    ScaleColor(_presetZoneColors.Zone2, z2),
+                    ScaleColor(_presetZoneColors.Zone3, z3),
+                    ScaleColor(_presetZoneColors.Zone4, z4)
                 );
 
                 // --- Output frame ---
@@ -206,13 +200,17 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     }
 
     // ========================================================================
+    // AGC ESTIMATE STATE
+    // ========================================================================
+    private float _agcEstimate = 0.1f; // running estimate of typical peak
+
+    // ========================================================================
     // AUDIO CALLBACK - fills mono ring buffer
     // ========================================================================
     private void OnDataAvailable(object? sender, WaveInEventArgs e)
     {
         if (_capture == null || e.BytesRecorded == 0) return;
 
-        // WASAPI loopback gives 32-bit float stereo typically
         const int bytesPerSample = 4; // float32
         const int channels = 2;
         int frameBytes = bytesPerSample * channels;
@@ -247,13 +245,13 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         while (!cancellationToken.IsCancellationRequested)
         {
             float t = (float)stopwatch.Elapsed.TotalSeconds;
-            // Gentle breathing animation across zones
+            // Gentle breathing animation using PRESET colors at low brightness
             float phase = t * 0.5f;
             var colors = new ZoneColors(
-                ScaleColor(ZoneColor1, 0.15f + 0.1f * MathF.Sin(phase + 0.0f)),
-                ScaleColor(ZoneColor2, 0.15f + 0.1f * MathF.Sin(phase + 1.0f)),
-                ScaleColor(ZoneColor3, 0.15f + 0.1f * MathF.Sin(phase + 2.0f)),
-                ScaleColor(ZoneColor4, 0.15f + 0.1f * MathF.Sin(phase + 3.0f))
+                ScaleColor(_presetZoneColors.Zone1, 0.15f + 0.1f * MathF.Sin(phase + 0.0f)),
+                ScaleColor(_presetZoneColors.Zone2, 0.15f + 0.1f * MathF.Sin(phase + 1.0f)),
+                ScaleColor(_presetZoneColors.Zone3, 0.15f + 0.1f * MathF.Sin(phase + 2.0f)),
+                ScaleColor(_presetZoneColors.Zone4, 0.15f + 0.1f * MathF.Sin(phase + 3.0f))
             );
             await controller.SetColorsAsync(colors, cancellationToken).ConfigureAwait(false);
             await Task.Delay(33, cancellationToken).ConfigureAwait(false);
@@ -272,6 +270,9 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
             (byte)(color.B * brightness)
         );
     }
+
+    // AGC estimate for normalization (persists across frames)
+    private float _agcEstimate = 0.1f;
 
     private void StopCapture()
     {
