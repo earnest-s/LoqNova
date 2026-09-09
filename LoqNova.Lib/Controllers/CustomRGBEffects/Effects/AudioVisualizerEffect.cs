@@ -521,15 +521,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
             _lastRms = rms;
         }
 
-        Log.Instance.Trace($"[AudioVisualizer DEBUG] " +
-            $"SampleRate={_sampleRate} FftSize={FftSize} Hop={_hopSize} " +
-            $"Rms={_lastRms:E3} TotalPower={_lastTotalPower:E3} " +
-            $"B1raw={_lastBand1Raw:E3} B2raw={_lastBand2Raw:E3} B3raw={_lastBand3Raw:E3} B4raw={_lastBand4Raw:E3} " +
-            $"B1norm={_lastNorm1:F2} B2norm={_lastNorm2:F2} B3norm={_lastNorm3:F2} B4norm={_lastNorm4:F2} " +
-            $"B1base={_band1Baseline:E3} B2base={_band2Baseline:E3} B3base={_band3Baseline:E3} B4base={_band4Baseline:E3} " +
-            $"Target={progressionTarget:F2} Smooth={_smoothedProgression:F2} " +
-            $"Z1={z1:F2} Z2={z2:F2} Z3={z3:F2} Z4={z4:F2} " +
-            $"dtMs={dtMs:F1}");
+        Log.Instance.Trace($"[AudioVisualizer DEBUG] SampleRate={_sampleRate} FftSize={FftSize} Hop={_hopSize} Rms={_lastRms:E3} TotalPower={_lastTotalPower:E3} B1raw={_lastBand1Raw:E3} B2raw={_lastBand2Raw:E3} B3raw={_lastBand3Raw:E3} B4raw={_lastBand4Raw:E3} B1norm={_lastNorm1:F2} B2norm={_lastNorm2:F2} B3norm={_lastNorm3:F2} B4norm={_lastNorm4:F2} B1base={_band1Baseline:E3} B2base={_band2Baseline:E3} B3base={_band3Baseline:E3} B4base={_band4Baseline:E3} Target={progressionTarget:F2} Smooth={_smoothedProgression:F2} Z1={z1:F2} Z2={z2:F2} Z3={z3:F2} Z4={z4:F2} dtMs={dtMs:F1}");
     }
 
     // ========================================================================
