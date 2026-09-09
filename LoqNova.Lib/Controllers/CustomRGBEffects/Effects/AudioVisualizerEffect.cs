@@ -9,7 +9,7 @@
 // 3. SINGLE cumulative progression signal from spectral centroid/energy distribution
 // 4. Cumulative zone mapping: Z1 = clamp(p, 0, 1), Z2 = clamp(p-1, 0, 1), ...
 // 4. Per-zone attack/release on cumulative brightness
-// 5. Preset color × brightness
+// 5. Preset color x brightness
 // 6. Frame output via CustomRGBEffectController -> RgbFrameDispatcher -> HID
 // ============================================================================
 
@@ -26,7 +26,7 @@ namespace LoqNova.Lib.Controllers.CustomRGBEffects.Effects;
 /// <summary>
 /// Cumulative 4-stage frequency progression visualizer.
 /// Frequency determines the progression stage (0..4).
-/// Zones activate cumulatively: Z1 → Z1+Z2 → Z1+Z2+Z3 → Z1+Z2+Z3+Z4.
+/// Zones activate cumulatively: Z1 -> Z1+Z2 -> Z1+Z2+Z3 -> Z1+Z2+Z3+Z4.
 /// Zone colors come from the currently selected RGB preset.
 /// </summary>
 public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
@@ -101,61 +101,6 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private readonly object _analysisLock = new();
     private int _analysisVersion;
     private int _lastRenderedVersion;
-
-    // ========================================================================
-    // AUDIO CAPTURE
-    // ========================================================================
-    private WasapiLoopbackCapture? _capture;
-    private readonly object _audioLock = new();
-
-    // Ring buffer for audio samples (must hold at least FftSize samples)
-    private readonly float[] _ringBuffer = new float[FftSize * 2];
-    private int _ringWritePos;
-    private int _samplesSinceLastAnalysis;
-    private bool _ringReady;
-
-    // ========================================================================
-    // FFT STATE (pre-allocated, reused)
-    // ========================================================================
-    private readonly float[] _hannWindow = new float[FftSize];
-    private readonly float[] _fftInput = new float[FftSize];
-    private readonly double[] _fftReal = new double[FftSize];
-    private readonly double[] _fftImag = new double[FftSize];
-    private readonly float[] _magnitudes = new float[FftSize / 2];
-
-    // ========================================================================
-    // CONFIGURATION
-    // ========================================================================
-    private readonly int _speed;
-    private readonly ZoneColors _presetZoneColors;
-    private bool _disposed;
-
-    // ========================================================================
-    // TEMPORAL SMOOTHING
-    // ========================================================================
-    private const float AttackTimeMs = 8f;    // fast for transients
-    private const float ReleaseTimeMs = 100f; // slower release for smooth decay
-    private const float NoiseFloor = 0.00001f; // per-bin noise floor
-    private const float ProgressionNoiseFloor = 0.02f; // minimum progression to respond
-
-    // ========================================================================
-    // THREAD SYNC (stale-frame handling)
-    // ========================================================================
-    private readonly object _analysisLock = new();
-    private int _analysisVersion;
-    private int _lastRenderedVersion;
-
-    // ========================================================================
-    // AUDIO CAPTURE
-    // ========================================================================
-    private WasapiLoopbackCapture? _capture;
-
-    // ========================================================================
-    // CONFIGURATION
-    // ========================================================================
-    private readonly int _speed;
-    private readonly ZoneColors _presetZoneColors;
-    private bool _disposed;
 
     // ========================================================================
     // CONSTRUCTOR
@@ -278,7 +223,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 float p = _smoothedProgression;
 
                 // Gate: no response below threshold
-                if (p < ProgressionNoiseFloor) p = 0f;
+                if (p < MinResponseThreshold) p = 0f;
 
                 // Cumulative mapping: Z1 = clamp(p, 0, 1), Z2 = clamp(p-1, 0, 1), etc.
                 float z1 = Math.Clamp(p, 0f, 1f);
