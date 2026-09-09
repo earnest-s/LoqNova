@@ -1,15 +1,15 @@
 ﻿// ============================================================================
 // AudioVisualizerEffect.cs
 //
-// Audio visualizer using PRESET-DRIVEN zone colors + per-zone brightness
-// driven by FREQUENCY-BAND spectral analysis.
+// Cumulative 4-Stage Frequency Progression Visualizer
 //
 // PIPELINE:
 // 1. Audio Capture (WASAPI loopback -> mono ring buffer)
 // 2. Overlapped FFT analysis (1024-point, Hann window, 256-sample hop)
-// 3. 4-band spectral energy (RMS of power) with per-band peak-tracking AGC
-// 4. Per-band attack/release envelopes
-// 5. Per-zone brightness applied to PRESET zone colors
+// 3. SINGLE cumulative progression signal from spectral centroid/energy distribution
+// 4. Cumulative zone mapping: Z1 = clamp(p, 0, 1), Z2 = clamp(p-1, 0, 1), ...
+// 4. Per-zone attack/release on cumulative brightness
+// 5. Preset color × brightness
 // 6. Frame output via CustomRGBEffectController -> RgbFrameDispatcher -> HID
 // ============================================================================
 
@@ -24,9 +24,10 @@ using NAudio.Wave;
 namespace LoqNova.Lib.Controllers.CustomRGBEffects.Effects;
 
 /// <summary>
-/// Audio visualizer using PRESET zone colors + 4-band frequency analysis.
-/// Zone colors come from the currently selected RGB preset (same source as main RGB system).
-/// Audio signal is analyzed into 4 frequency bands, each driving independent zone brightness.
+/// Cumulative 4-stage frequency progression visualizer.
+/// Frequency determines the progression stage (0..4).
+/// Zones activate cumulatively: Z1 → Z1+Z2 → Z1+Z2+Z3 → Z1+Z2+Z3+Z4.
+/// Zone colors come from the currently selected RGB preset.
 /// </summary>
 public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
 {
@@ -34,29 +35,28 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // AUDIO / FFT CONSTANTS
     // ========================================================================
     private const int FftSize = 1024;
-    private const int HopSize = 256;              // 4x overlap -> ~5.3ms @ 48kHz
+    private const int DefaultHopSize = 256;       // ~5.3ms @ 48kHz
+    private const int MinHopSize = 64;
 
     // ========================================================================
-    // FREQUENCY BAND DEFINITIONS (log-spaced, calculated from ACTUAL sample rate)
+    // PROGRESSION MAPPING CONSTANTS
     // ========================================================================
-    // Zone 1: Sub-bass + Bass      -> 20 Hz  - 250 Hz
-    // Zone 2: Low-Mid              -> 250 Hz - 600 Hz
-    // Zone 3: Mid / Upper-Mid      -> 600 Hz - 2500 Hz
-    // Zone 4: High / Presence      -> 2500 Hz - 12000 Hz
-    private (int binStart, int binEnd)[] _bandBins;
+    // Frequency range mapped to progression [0..4]
+    private const float MinFreq = 40f;     // Hz - below this = no response
+    private const float MaxFreq = 12000f;  // Hz - above this = full progression
 
     // ========================================================================
-    // TEMPORAL SMOOTHING (per-band attack/release)
+    // TEMPORAL SMOOTHING
     // ========================================================================
-    private const float AttackTimeMs = 15f;     // fast for transients (kicks, snares)
-    private const float ReleaseTimeMs = 60f;    // fast fall, no linger
-    private const float NoiseFloor = 0.00001f;  // per-bin noise floor
-    private const float GateThreshold = 0.08f;  // normalized energy must exceed this to drive envelope
+    private const float AttackTimeMs = 10f;    // fast for transients
+    private const float ReleaseTimeMs = 80f;   // slower release for smooth decay
+    private const float NoiseFloor = 0.00001f; // per-bin noise floor
+    private const float MinResponseThreshold = 0.05f; // minimum progression to activate
 
     // ========================================================================
     // RUNTIME STATE
     // ========================================================================
-    private int _sampleRate = 48000;            // will be set from actual capture format
+    private int _sampleRate = 48000;            // set from actual capture format
     private float _freqResolution;              // sampleRate / FftSize
     private int _hopSize;                       // actual hop size in samples
 
@@ -89,11 +89,11 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private readonly float[] _magnitudes = new float[FftSize / 2];
 
     // ========================================================================
-    // PER-BAND STATE
+    // PROGRESSION STATE
     // ========================================================================
-    private readonly float[] _bandEnergy = new float[4];
-    private readonly float[] _bandAgc = new float[4] { 0.0001f, 0.0001f, 0.0001f, 0.0001f }; // peak AGC
-    private readonly float[] _bandEnvelope = new float[4];
+    private float _progression = 0f;            // current progression [0..4]
+    private float _progressionTarget = 0f;      // target from spectral analysis
+    private float _smoothedProgression = 0f;    // after attack/release
 
     // ========================================================================
     // THREAD SYNC (stale-frame handling)
@@ -101,6 +101,61 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private readonly object _analysisLock = new();
     private int _analysisVersion;
     private int _lastRenderedVersion;
+
+    // ========================================================================
+    // AUDIO CAPTURE
+    // ========================================================================
+    private WasapiLoopbackCapture? _capture;
+    private readonly object _audioLock = new();
+
+    // Ring buffer for audio samples (must hold at least FftSize samples)
+    private readonly float[] _ringBuffer = new float[FftSize * 2];
+    private int _ringWritePos;
+    private int _samplesSinceLastAnalysis;
+    private bool _ringReady;
+
+    // ========================================================================
+    // FFT STATE (pre-allocated, reused)
+    // ========================================================================
+    private readonly float[] _hannWindow = new float[FftSize];
+    private readonly float[] _fftInput = new float[FftSize];
+    private readonly double[] _fftReal = new double[FftSize];
+    private readonly double[] _fftImag = new double[FftSize];
+    private readonly float[] _magnitudes = new float[FftSize / 2];
+
+    // ========================================================================
+    // CONFIGURATION
+    // ========================================================================
+    private readonly int _speed;
+    private readonly ZoneColors _presetZoneColors;
+    private bool _disposed;
+
+    // ========================================================================
+    // TEMPORAL SMOOTHING
+    // ========================================================================
+    private const float AttackTimeMs = 8f;    // fast for transients
+    private const float ReleaseTimeMs = 100f; // slower release for smooth decay
+    private const float NoiseFloor = 0.00001f; // per-bin noise floor
+    private const float ProgressionNoiseFloor = 0.02f; // minimum progression to respond
+
+    // ========================================================================
+    // THREAD SYNC (stale-frame handling)
+    // ========================================================================
+    private readonly object _analysisLock = new();
+    private int _analysisVersion;
+    private int _lastRenderedVersion;
+
+    // ========================================================================
+    // AUDIO CAPTURE
+    // ========================================================================
+    private WasapiLoopbackCapture? _capture;
+
+    // ========================================================================
+    // CONFIGURATION
+    // ========================================================================
+    private readonly int _speed;
+    private readonly ZoneColors _presetZoneColors;
+    private bool _disposed;
 
     // ========================================================================
     // CONSTRUCTOR
@@ -119,7 +174,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // INTERFACE
     // ========================================================================
     public CustomRGBEffectType Type => CustomRGBEffectType.AudioVisualizer;
-    public string Description => "Audio-driven 4-zone frequency visualizer using preset colors";
+    public string Description => "Cumulative 4-stage frequency progression visualizer using preset colors";
     public bool RequiresInputMonitoring => false;
     public bool RequiresSystemAccess => true;
 
@@ -132,15 +187,12 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         try
         {
             _capture = new WasapiLoopbackCapture();
-            
+
             // CRITICAL: Get ACTUAL sample rate from capture format
             _sampleRate = _capture.WaveFormat.SampleRate;
             _freqResolution = (float)_sampleRate / FftSize;
-            _hopSize = Math.Max(64, _sampleRate / 200); // ~5ms hop, min 64
-            
-            // Recompute band bins for actual sample rate
-            ComputeBandBins();
-            
+            _hopSize = Math.Max(MinHopSize, _sampleRate / 200); // ~5ms hop, min 64
+
             if (Log.Instance.IsTraceEnabled)
                 Log.Instance.Trace($"[AudioVisualizer] Started: sampleRate={_sampleRate}Hz, fftSize={FftSize}, hop={_hopSize}, freqRes={_freqResolution:F2}Hz/bin");
 
@@ -169,6 +221,8 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         float releaseCoeff = 1f - MathF.Exp(-16f / (ReleaseTimeMs / speedFactor));
 
         var stopwatch = Stopwatch.StartNew();
+        long lastTicks = stopwatch.ElapsedTicks;
+        double ticksPerSecond = Stopwatch.Frequency;
 
         try
         {
@@ -176,6 +230,8 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
             {
                 // --- Perform overlapped FFT analysis when enough new samples accumulated ---
                 bool haveNewAnalysis = false;
+                float progressionTarget = 0f;
+
                 lock (_audioLock)
                 {
                     if (_ringReady && _samplesSinceLastAnalysis >= _hopSize)
@@ -195,67 +251,40 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                     }
                 }
 
-                // --- FFT and band analysis (outside lock to minimize audio thread blocking) ---
-                float[] bandEnergies = new float[4];
+                // --- FFT and progression analysis (outside lock) ---
                 if (haveNewAnalysis)
                 {
-                    ComputeFftAndBands(bandEnergies);
+                    progressionTarget = ComputeProgressionFromSpectrum();
                 }
 
-                // --- Per-band AGC + attack/release + zone mapping ---
-                float z1 = 0f, z2 = 0f, z3 = 0f, z4 = 0f;
+                // --- Smooth progression with attack/release ---
+                // Use actual elapsed time for frame-independent smoothing
+                long nowTicks = stopwatch.ElapsedTicks;
+                double dtMs = (nowTicks - lastTicks) * 1000.0 / ticksPerSecond;
+                lastTicks = nowTicks;
+                dtMs = Math.Clamp(dtMs, 1.0, 50.0); // clamp for stability
 
-                if (haveNewAnalysis)
-                {
-                    for (int b = 0; b < 4; b++)
-                    {
-                        // --- Per-band PEAK-TRACKING AGC (fast attack, slow release) ---
-                        // Track peaks, not mean - so quiet passages don't raise the noise floor
-                        if (bandEnergies[b] > _bandAgc[b])
-                            _bandAgc[b] = bandEnergies[b]; // instant attack on new peak
-                        else
-                            _bandAgc[b] *= 0.997f; // slow release (~333ms time constant)
+                float frameAttackCoeff = 1f - MathF.Exp(-(float)dtMs / (AttackTimeMs / speedFactor));
+                float frameReleaseCoeff = 1f - MathF.Exp(-(float)dtMs / (ReleaseTimeMs / speedFactor));
 
-                        // Normalize against PEAK level (with minimum floor)
-                        float normDenom = Math.Max(_bandAgc[b] * 2.5f, 0.001f);
-                        float normalized = Math.Clamp(bandEnergies[b] / normDenom, 0f, 1f);
-
-                        // --- HARD GATE: only energy significantly above noise floor drives envelope ---
-                        // This prevents broadband noise / quiet passages from activating zones
-                        float gated = normalized > GateThreshold ? normalized : 0f;
-
-                        // --- Per-band attack/release on GATED signal ---
-                        if (gated > _bandEnvelope[b])
-                            _bandEnvelope[b] += (gated - _bandEnvelope[b]) * attackCoeff;
-                        else
-                            _bandEnvelope[b] += (gated - _bandEnvelope[b]) * releaseCoeff;
-
-                        _bandEnvelope[b] = Math.Clamp(_bandEnvelope[b], 0f, 1f);
-                    }
-
-                    // --- Map each band envelope to its zone ---
-                    z1 = _bandEnvelope[0];
-                    z2 = _bandEnvelope[1];
-                    z3 = _bandEnvelope[2];
-                    z4 = _bandEnvelope[3];
-
-                    // Mark analysis as ready for rendering
-                    lock (_analysisLock)
-                        _analysisVersion++;
-                }
+                if (progressionTarget > _smoothedProgression)
+                    _smoothedProgression += (progressionTarget - _smoothedProgression) * frameAttackCoeff;
                 else
-                {
-                    // No new analysis this frame: apply release only
-                    for (int b = 0; b < 4; b++)
-                    {
-                        _bandEnvelope[b] += (0f - _bandEnvelope[b]) * releaseCoeff;
-                        _bandEnvelope[b] = Math.Clamp(_bandEnvelope[b], 0f, 1f);
-                    }
-                    z1 = _bandEnvelope[0];
-                    z2 = _bandEnvelope[1];
-                    z3 = _bandEnvelope[2];
-                    z4 = _bandEnvelope[3];
-                }
+                    _smoothedProgression += (progressionTarget - _smoothedProgression) * frameReleaseCoeff;
+
+                _smoothedProgression = Math.Clamp(_smoothedProgression, 0f, 4f);
+
+                // --- Cumulative zone mapping ---
+                float p = _smoothedProgression;
+
+                // Gate: no response below threshold
+                if (p < ProgressionNoiseFloor) p = 0f;
+
+                // Cumulative mapping: Z1 = clamp(p, 0, 1), Z2 = clamp(p-1, 0, 1), etc.
+                float z1 = Math.Clamp(p, 0f, 1f);
+                float z2 = Math.Clamp(p - 1f, 0f, 1f);
+                float z3 = Math.Clamp(p - 2f, 0f, 1f);
+                float z4 = Math.Clamp(p - 3f, 0f, 1f);
 
                 // --- Apply brightness to PRESET zone colors ---
                 var colors = new ZoneColors(
@@ -266,7 +295,6 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 );
 
                 // --- Stale-frame handling: only render if we have newer analysis ---
-                // This prevents processing stale frames when render loop is faster than analysis
                 bool shouldRender;
                 lock (_analysisLock)
                 {
@@ -279,7 +307,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                     await controller.SetColorsAsync(colors, cancellationToken).ConfigureAwait(false);
                 }
 
-                // ~60 fps frame rate - use actual elapsed time for smoother timing
+                // ~60 fps frame rate
                 await Task.Delay(16, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -291,45 +319,9 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     }
 
     // ========================================================================
-    // BAND BIN COMPUTATION (from actual sample rate)
+    // SPECTRAL ANALYSIS -> PROGRESSION
     // ========================================================================
-    private void ComputeBandBins()
-    {
-        // Log-spaced frequency bands appropriate for keyboard visualizer
-        // Zone 1: Bass        40 - 250 Hz
-        // Zone 2: Low-Mid     250 - 600 Hz
-        // Zone 3: Mid         600 - 2500 Hz
-        // Zone 4: High        2500 - min(12000, sampleRate/2)
-        
-        float nyquist = _sampleRate / 2f;
-        float fMax = Math.Min(12000f, nyquist);
-
-        int Bin(float freq) => (int)Math.Clamp(Math.Round(freq / _freqResolution), 1, FftSize / 2 - 1);
-
-        _bandBins = new (int, int)[]
-        {
-            (1, Bin(250f)),           // Zone 1: 20-250 Hz (bass/kick)
-            (Bin(250f) + 1, Bin(600f)),      // Zone 2: 250-600 Hz (low-mid)
-            (Bin(600f) + 1, Bin(2500f)),     // Zone 3: 600-2500 Hz (mid/upper-mid)
-            (Bin(2500f) + 1, Bin(fMax))      // Zone 4: 2500-12000 Hz (high/treble)
-        };
-
-        if (Log.Instance.IsTraceEnabled)
-        {
-            for (int i = 0; i < 4; i++)
-            {
-                var (s, e) = _bandBins[i];
-                float fStart = s * _freqResolution;
-                float fEnd = e * _freqResolution;
-                Log.Instance.Trace($"[AudioVisualizer] Zone {i+1}: {fStart:F0}-{fEnd:F0} Hz (bins {s}-{e})");
-            }
-        }
-    }
-
-    // ========================================================================
-    // FFT + BAND ENERGY COMPUTATION
-    // ========================================================================
-    private void ComputeFftAndBands(float[] outBandEnergies)
+    private float ComputeProgressionFromSpectrum()
     {
         // 1. Apply window and copy to real/imag arrays
         for (int i = 0; i < FftSize; i++)
@@ -342,41 +334,42 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         Fft(_fftReal, _fftImag, FftSize);
 
         // 2. Compute power spectrum (single-sided, properly scaled)
-        // For real input: power = 2 * (re^2 + im^2) / N^2 for bins 1..N/2-1
-        // DC (bin 0) and Nyquist (bin N/2) are not doubled
         float scale = 2.0f / FftSize;
         for (int i = 0; i < FftSize / 2; i++)
         {
             double re = _fftReal[i];
             double im = _fftImag[i];
             float magSq = (float)(re * re + im * im);
-            // Power spectral density: 2 * |X[k]|^2 / N^2 for k=1..N/2-1
-            // For simplicity and correct energy, we use magnitude^2 * scale
+            // Power spectral density: 2 * |X[k]|^2 / N^2
             _magnitudes[i] = magSq * scale * scale;
         }
 
-        // 3. Compute per-band energy (mean power in band = spectral energy density)
-        for (int b = 0; b < 4; b++)
+        // 2. Compute SPECTRAL CENTROID (weighted mean frequency)
+        // centroid = sum(freq * power) / sum(power)
+        double sumPower = 0.0;
+        double weightedSum = 0.0;
+
+        int maxBin = FftSize / 2;
+        for (int i = 1; i < maxBin; i++) // skip DC bin 0
         {
-            var (start, end) = _bandBins[b];
-            int count = end - start + 1;
-            if (count <= 0)
+            float power = _magnitudes[i];
+            if (power > NoiseFloor)
             {
-                outBandEnergies[b] = 0f;
-                continue;
+                float freq = i * _freqResolution;
+                sumPower += power;
+                weightedSum += freq * power;
             }
-
-            double sumPower = 0.0;
-            for (int i = start; i <= end; i++)
-            {
-                float power = _magnitudes[i];
-                if (power > NoiseFloor)
-                    sumPower += power;
-            }
-
-            // Mean power in band (proper spectral energy density)
-            outBandEnergies[b] = (float)(sumPower / count);
         }
+
+        if (sumPower <= 0) return 0f;
+
+        float centroid = (float)(weightedSum / sumPower);
+
+        // Map centroid frequency to progression [0..4]
+        // Linear mapping from MinFreq..MaxFreq to 0..4
+        float progression = (centroid - MinFreq) / (MaxFreq - MinFreq) * 4f;
+
+        return Math.Clamp(progression, 0f, 4f);
     }
 
     // ========================================================================
