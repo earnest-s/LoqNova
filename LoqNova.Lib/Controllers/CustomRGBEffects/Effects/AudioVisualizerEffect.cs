@@ -271,9 +271,6 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         );
     }
 
-    // AGC estimate for normalization (persists across frames)
-    private float _agcEstimate = 0.1f;
-
     private void StopCapture()
     {
         if (_capture != null)
