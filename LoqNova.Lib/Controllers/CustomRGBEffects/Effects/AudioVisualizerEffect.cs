@@ -41,24 +41,32 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     // FREQUENCY BAND DEFINITIONS (musically meaningful, log-spaced)
     // ========================================================================
-    // Zone 1: Sub-bass + Bass      -> 20 Hz  - 250 Hz  (bins 1-5)
-    // Zone 2: Low-Mid              -> 250 Hz - 500 Hz  (bins 6-10)
-    // Zone 3: Mid / Upper-Mid      -> 500 Hz - 2000 Hz (bins 11-42)
+    // Zone 1: Sub-bass + Bass      -> 20 Hz  - 250 Hz   (bins 1-5)
+    // Zone 2: Low-Mid              -> 250 Hz - 500 Hz    (bins 6-10)
+    // Zone 3: Mid / Upper-Mid      -> 500 Hz - 2000 Hz   (bins 11-42)
     // Zone 4: High / Presence      -> 2000 Hz - 16000 Hz (bins 43-341)
+    // Hz per bin = 48000 / 1024 = 46.875 Hz
+    // bin = freq / 46.875
+    // 20Hz   -> bin 0.4  -> 1
+    // 250Hz  -> bin 5.3  -> 5
+    // 500Hz  -> bin 10.7 -> 10
+    // 2000Hz -> bin 42.7 -> 42
+    // 16000Hz-> bin 341.3-> 341
     private static readonly (int binStart, int binEnd)[] BandBins = new[]
     {
-        (1, 5),       // Zone 1: 20-250 Hz   (bass / kick)
-        (6, 10),      // Zone 2: 250-500 Hz  (low-mid / bass guitar, low vocals)
-        (11, 42),     // Zone 3: 500-2000 Hz (mid / vocals, snare body)
+        (1, 5),       // Zone 1: 20-250 Hz     (bass / kick)
+        (6, 10),      // Zone 2: 250-500 Hz    (low-mid / bass guitar, low vocals)
+        (11, 42),     // Zone 3: 500-2000 Hz   (mid / vocals, snare body)
         (43, 341)     // Zone 4: 2000-16000 Hz (high / cymbals, hi-hats, transients)
     };
 
     // ========================================================================
     // TEMPORAL SMOOTHING (per-band attack/release)
     // ========================================================================
-    private const float AttackTimeMs = 15f;    // very fast for transients
-    private const float ReleaseTimeMs = 50f;   // fast fall, no linger
-    private const float NoiseFloor = 0.00001f; // per-bin noise floor
+    private const float AttackTimeMs = 12f;    // very fast for transients (kicks, snares)
+    private const float ReleaseTimeMs = 45f;   // fast fall, no linger
+    private const float NoiseFloor = 0.00005f; // per-bin noise floor (higher = less noise amplification)
+    private const float GateThreshold = 0.15f; // normalized energy must exceed this to drive envelope
 
     // ========================================================================
     // CONFIGURATION
