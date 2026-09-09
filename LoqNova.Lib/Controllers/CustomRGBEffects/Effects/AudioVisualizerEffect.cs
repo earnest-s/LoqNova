@@ -17,6 +17,7 @@ using System;
 using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
+using LoqNova.Lib.Utils;
 using NAudio.CoreAudioApi;
 using NAudio.Wave;
 
@@ -79,9 +80,11 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     // CONSTRUCTOR
     // ========================================================================
-    public AudioVisualizerEffect(int speed = 2)
+    public AudioVisualizerEffect(ZoneColors? zoneColors = null, int speed = 2)
     {
         _speed = Math.Clamp(speed, 1, 4);
+        // zoneColors parameter kept for factory compatibility; 
+        // we use shared VBR zone colors internally
     }
 
     // ========================================================================
