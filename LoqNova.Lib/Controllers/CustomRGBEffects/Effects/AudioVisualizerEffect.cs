@@ -156,20 +156,12 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 if (rms < NoiseFloor)
                     rms = 0f;
 
-                // --- Simple AGC: track running max to normalize ---
-                // We maintain a slow-moving estimate of "typical peak" for normalization
-                static float AgcFilter(float current, float estimate, float alpha) =>
-                    estimate * alpha + current * (1f - alpha);
+                // --- AGC: update running estimate of typical peak (very slow) ---
+                _agcEstimate = _agcEstimate * 0.999f + rms * 0.001f;
 
-                // Static field for AGC estimate (persists across frames)
-                // Using a local static to avoid instance field allocation
-                // In practice, this should be a field; using local static for simplicity
-                // We'll use a field instead for thread safety and clarity
-                // (moved to field below)
-
-                // --- Attack/Release envelope on RMS ---
-                // Normalize RMS to 0..1 range (assuming typical peak around 0.1-0.3)
-                float normalizedRms = Math.Clamp(rms * 10f, 0f, 1f); // rough scaling
+                // Normalize RMS against AGC estimate (with minimum floor)
+                float normDenom = Math.Max(_agcEstimate * MaxNormalizedInput, 0.01f);
+                float normalizedRms = Math.Clamp(rms / normDenom, 0f, 1f);
 
                 if (normalizedRms > _envelopeLevel)
                     _envelopeLevel += (normalizedRms - _envelopeLevel) * attackCoeff; // attack
