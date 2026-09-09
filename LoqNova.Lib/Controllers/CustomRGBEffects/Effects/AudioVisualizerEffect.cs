@@ -414,33 +414,36 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         if (norm4 < BandThreshold) norm4 = 0f; else norm4 = Math.Min(1f, (norm4 - BandThreshold) / (5f - BandThreshold));
 
         // 8. Compute single progression from normalized band energies
-        // SIMPLER, MORE ROBUST: highest active band determines progression range
-        // Each band contributes its normalized energy within its zone
+        // Find the HIGHEST active band - its normalized energy determines fractional progression within that zone
+        // Lower zones are always fully active when higher zones are active (cumulative)
 
         float progression = 0f;
 
-        // Zone 1: Bass presence (0..1)
-        if (norm1 > 0f)
+        // Check bands from highest to lowest to find the highest active region
+        // Band 4: Treble (3..4)
+        if (norm4 > 0f)
         {
-            progression = Math.Max(progression, norm1); // 0..1
+            progression = 3f + norm4;
         }
-
-        // Zone 2: Mids presence (1..2) - requires some bass foundation but not full
-        if (norm2 > 0f && norm1 > 0.1f) // bass just needs to be present
+        // Band 3: Upper mids (2..3)
+        else if (norm3 > 0f)
         {
-            progression = Math.Max(progression, 1f + norm2); // 1..2
+            progression = 2f + norm3;
         }
-
-        // Zone 3: Upper mids presence (2..3)
-        if (norm3 > 0f && norm1 > 0.1f && norm2 > 0.1f)
+        // Band 2: Mids (1..2)
+        else if (norm2 > 0f)
         {
-            progression = Math.Max(progression, 2f + norm3); // 2..3
+            progression = 1f + norm2;
         }
-
-        // Zone 4: Treble presence (3..4)
-        if (norm4 > 0f && norm1 > 0.1f && norm2 > 0.1f && norm3 > 0.1f)
+        // Band 1: Bass (0..1)
+        else if (norm1 > 0f)
         {
-            progression = Math.Max(progression, 3f + norm4); // 3..4
+            progression = norm1;
+        }
+        // No bands active
+        else
+        {
+            progression = 0f;
         }
 
         return Math.Clamp(progression, 0f, 4f);
