@@ -58,12 +58,6 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     // TEMPORAL SMOOTHING
     // ========================================================================
-    private const float AttackTimeMs = 10f;     // fast for transients
-    private const float ReleaseTimeMs = 80f;    // slower release for smooth decay
-    private const float NoiseFloor = 0.00001f;  // per-bin noise floor
-    private const float MinResponseThreshold = 0.05f; // minimum progression to activate
-
-    // Progression smoothing (separate from per-zone, applied to progression value)
     private const float ProgressionAttackMs = 15f;
     private const float ProgressionReleaseMs = 100f;
 
@@ -73,6 +67,20 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private const float BaselineAttackMs = 500f;   // slow rise
     private const float BaselineReleaseMs = 2000f; // slow decay
     private const float MinBaseline = 0.0001f;     // prevents division by zero / noise amplification
+
+    // ========================================================================
+    // NOISE FLOOR / GATES (RELAXED FOR DEBUGGING)
+    // ========================================================================
+    private const float NoiseFloor = 0.00001f;      // per-bin noise floor
+    private const float BandThreshold = 0.5f;       // must exceed baseline by this factor (RELAXED from 1.5)
+    private const float MinResponseThreshold = 0.02f; // minimum progression to activate (RELAXED from 0.05)
+
+    // ========================================================================
+    // DEBUG OVERRIDE
+    // ========================================================================
+    // Set to non-negative value to bypass audio analysis and force progression
+    // 0.5 = Z1 half, 1.5 = Z1 full + Z2 half, 2.5 = Z1,Z2 full + Z3 half, 3.5 = Z1,Z2,Z3 full + Z4 half
+    private const float DebugForcedProgression = -1f; // -1 = disabled, >=0 = forced value
 
     // ========================================================================
     // RUNTIME STATE
@@ -123,7 +131,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private readonly float[] _magnitudes = new float[FftSize / 2];
 
     // ========================================================================
-    // PROGRESSION STATE
+    // PROGRESSION STATE - SINGLE AUTHORITATIVE FIELDS
     // ========================================================================
     private float _smoothedProgression = 0f;    // after attack/release
     private float _progressionTarget = 0f;      // persistent target from last valid analysis
@@ -135,6 +143,13 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     private int _frameCounter;
     private readonly Stopwatch _diagStopwatch = Stopwatch.StartNew();
+    private long _lastDiagLogTicks = 0;
+
+    // Store latest analysis for diagnostics
+    private float _lastBand1Raw, _lastBand2Raw, _lastBand3Raw, _lastBand4Raw;
+    private float _lastNorm1, _lastNorm2, _lastNorm3, _lastNorm4;
+    private float _lastTotalPower;
+    private float _lastRms;
 
     // ========================================================================
     // CONSTRUCTOR
@@ -147,6 +162,15 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         // Pre-compute Hann window
         for (int i = 0; i < FftSize; i++)
             _hannWindow[i] = 0.5f * (1f - MathF.Cos(2f * MathF.PI * i / (FftSize - 1)));
+
+        // Log preset colors once
+        if (Log.Instance.IsTraceEnabled)
+        {
+            Log.Instance.Trace($"[AudioVisualizer] Preset Z1=({_presetZoneColors.Zone1.R},{_presetZoneColors.Zone1.G},{_presetZoneColors.Zone1.B}) " +
+                $"Z2=({_presetZoneColors.Zone2.R},{_presetZoneColors.Zone2.G},{_presetZoneColors.Zone2.B}) " +
+                $"Z3=({_presetZoneColors.Zone3.R},{_presetZoneColors.Zone3.G},{_presetZoneColors.Zone3.B}) " +
+                $"Z4=({_presetZoneColors.Zone4.R},{_presetZoneColors.Zone4.G},{_presetZoneColors.Zone4.B})");
+        }
     }
 
     // ========================================================================
@@ -179,6 +203,8 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
             {
                 Log.Instance.Trace($"[AudioVisualizer] Started: sampleRate={_sampleRate}Hz, fftSize={FftSize}, hop={_hopSize}, freqRes={_freqResolution:F2}Hz/bin");
                 Log.Instance.Trace($"[AudioVisualizer] Band bins: B1[{_band1StartBin}-{_band1EndBin}]({_band1BinCount}) B2[{_band2StartBin}-{_band2EndBin}]({_band2BinCount}) B3[{_band3StartBin}-{_band3EndBin}]({_band3BinCount}) B4[{_band4StartBin}-{_band4EndBin}]({_band4BinCount})");
+                if (DebugForcedProgression >= 0f)
+                    Log.Instance.Trace($"[AudioVisualizer] DEBUG: Forced progression = {DebugForcedProgression}");
             }
 
             _capture.DataAvailable += OnDataAvailable;
@@ -196,51 +222,57 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         long lastTicks = stopwatch.ElapsedTicks;
         double ticksPerSecond = Stopwatch.Frequency;
 
-try
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
             {
-                while (!cancellationToken.IsCancellationRequested)
+                // --- Perform overlapped FFT analysis when enough new samples accumulated ---
+                bool haveNewAnalysis = false;
+
+                lock (_audioLock)
                 {
-                    // --- Perform overlapped FFT analysis when enough new samples accumulated ---
-                    bool haveNewAnalysis = false;
-
-                    lock (_audioLock)
+                    if (_ringReady && _samplesSinceLastAnalysis >= _hopSize)
                     {
-                        if (_ringReady && _samplesSinceLastAnalysis >= _hopSize)
+                        // Copy newest FftSize samples (ending at write position - 1)
+                        int startPos = (_ringWritePos - FftSize) % (FftSize * 2);
+                        if (startPos < 0) startPos += FftSize * 2;
+
+                        for (int i = 0; i < FftSize; i++)
                         {
-                            // Copy newest FftSize samples (ending at write position - 1)
-                            int startPos = (_ringWritePos - FftSize) % (FftSize * 2);
-                            if (startPos < 0) startPos += FftSize * 2;
-
-                            for (int i = 0; i < FftSize; i++)
-                            {
-                                int srcIdx = (startPos + i) % (FftSize * 2);
-                                _fftInput[i] = _ringBuffer[srcIdx] * _hannWindow[i];
-                            }
-
-                            _samplesSinceLastAnalysis = 0;
-                            haveNewAnalysis = true;
+                            int srcIdx = (startPos + i) % (FftSize * 2);
+                            _fftInput[i] = _ringBuffer[srcIdx] * _hannWindow[i];
                         }
-                    }
 
-                    // --- FFT and progression analysis (outside lock) ---
-                    if (haveNewAnalysis)
-                    {
-                        float newTarget = ComputeProgressionFromSpectrum();
-                        lock (_analysisLock)
-                        {
-                            _progressionTarget = newTarget;
-                            _analysisVersion++;
-                        }
+                        _samplesSinceLastAnalysis = 0;
+                        haveNewAnalysis = true;
                     }
+                }
 
-                    // --- Get persistent progression target ---
-                    float progressionTarget;
+                // --- FFT and progression analysis (outside lock) ---
+                if (haveNewAnalysis)
+                {
+                    float newTarget = ComputeProgressionFromSpectrum();
                     lock (_analysisLock)
                     {
-                        progressionTarget = _progressionTarget;
+                        _progressionTarget = newTarget;
+                        _analysisVersion++;
                     }
+                }
 
-                    // --- Smooth progression with attack/release ---
+                // --- Get persistent progression target ---
+                float progressionTarget;
+                lock (_analysisLock)
+                {
+                    progressionTarget = _progressionTarget;
+                }
+
+                // --- DEBUG OVERRIDE: bypass audio analysis entirely ---
+                if (DebugForcedProgression >= 0f)
+                {
+                    progressionTarget = DebugForcedProgression;
+                }
+
+                // --- Smooth progression with attack/release ---
                 // Use actual elapsed time for frame-independent smoothing
                 long nowTicks = stopwatch.ElapsedTicks;
                 double dtMs = (nowTicks - lastTicks) * 1000.0 / ticksPerSecond;
@@ -279,11 +311,13 @@ try
 
                 await controller.SetColorsAsync(colors, cancellationToken).ConfigureAwait(false);
 
-                // --- Throttled diagnostic logging ---
+                // --- Throttled diagnostic logging (every ~250ms) ---
                 _frameCounter++;
-                if (_frameCounter % 120 == 0) // ~2Hz at 60fps
+                long nowDiagTicks = DateTime.UtcNow.Ticks;
+                if (nowDiagTicks - _lastDiagLogTicks > 2_500_000) // 250ms in ticks (100ns units)
                 {
-                    LogDiagnostics(z1, z2, z3, z4);
+                    _lastDiagLogTicks = nowDiagTicks;
+                    LogDiagnostics(z1, z2, z3, z4, progressionTarget, dtMs);
                 }
 
                 // ~60 fps frame rate
@@ -339,13 +373,17 @@ try
         // 3. Compute power spectrum (single-sided, properly scaled)
         // Power = 2 * |X[k]|^2 / N^2 for Hann window (coherent gain = 0.5)
         float scale = 2.0f / FftSize;
+        double totalPower = 0.0;
         for (int i = 0; i < FftSize / 2; i++)
         {
             double re = _fftReal[i];
             double im = _fftImag[i];
             float magSq = (float)(re * re + im * im);
-            _magnitudes[i] = magSq * scale * scale;
+            float power = magSq * scale * scale;
+            _magnitudes[i] = power;
+            totalPower += power;
         }
+        _lastTotalPower = (float)totalPower;
 
         // 4. Compute energy density (average power per bin) for each band
         float band1Energy = ComputeBandEnergyDensity(_band1StartBin, _band1EndBin, _band1BinCount);
@@ -353,76 +391,60 @@ try
         float band3Energy = ComputeBandEnergyDensity(_band3StartBin, _band3EndBin, _band3BinCount);
         float band4Energy = ComputeBandEnergyDensity(_band4StartBin, _band4EndBin, _band4BinCount);
 
-        // 5. Update adaptive baselines (slow AGC)
+        _lastBand1Raw = band1Energy;
+        _lastBand2Raw = band2Energy;
+        _lastBand3Raw = band3Energy;
+        _lastBand4Raw = band4Energy;
+
+        // 5. Update adaptive baselines (slow AGC) - use actual elapsed time
         UpdateBaselines(band1Energy, band2Energy, band3Energy, band4Energy);
 
         // 6. Normalize each band by its baseline
-        // This makes bands comparable regardless of bin count or spectral tilt
         float norm1 = band1Energy / _band1Baseline;
         float norm2 = band2Energy / _band2Baseline;
         float norm3 = band3Energy / _band3Baseline;
         float norm4 = band4Energy / _band4Baseline;
 
-        // 7. Apply soft threshold to suppress noise
-        const float bandThreshold = 1.5f; // must exceed baseline by this factor
-        if (norm1 < bandThreshold) norm1 = 0f; else norm1 = (norm1 - bandThreshold) / (10f - bandThreshold); // map [1.5, 10] -> [0, 1]
-        if (norm2 < bandThreshold) norm2 = 0f; else norm2 = (norm2 - bandThreshold) / (10f - bandThreshold);
-        if (norm3 < bandThreshold) norm3 = 0f; else norm3 = (norm3 - bandThreshold) / (10f - bandThreshold);
-        if (norm4 < bandThreshold) norm4 = 0f; else norm4 = (norm4 - bandThreshold) / (10f - bandThreshold);
+        _lastNorm1 = norm1;
+        _lastNorm2 = norm2;
+        _lastNorm3 = norm3;
+        _lastNorm4 = norm4;
 
-        norm1 = Math.Clamp(norm1, 0f, 1f);
-        norm2 = Math.Clamp(norm2, 0f, 1f);
-        norm3 = Math.Clamp(norm3, 0f, 1f);
-        norm4 = Math.Clamp(norm4, 0f, 1f);
+        // 7. Apply soft threshold to suppress noise (RELAXED)
+        if (norm1 < BandThreshold) norm1 = 0f; else norm1 = Math.Min(1f, (norm1 - BandThreshold) / (5f - BandThreshold)); // map [0.5, 5] -> [0, 1]
+        if (norm2 < BandThreshold) norm2 = 0f; else norm2 = Math.Min(1f, (norm2 - BandThreshold) / (5f - BandThreshold));
+        if (norm3 < BandThreshold) norm3 = 0f; else norm3 = Math.Min(1f, (norm3 - BandThreshold) / (5f - BandThreshold));
+        if (norm4 < BandThreshold) norm4 = 0f; else norm4 = Math.Min(1f, (norm4 - BandThreshold) / (5f - BandThreshold));
 
         // 8. Compute single progression from normalized band energies
-        // Progression logic:
-        // - Band 1 active -> progression toward 1.0
-        // - Band 1 + Band 2 active -> progression toward 2.0
-        // - Band 1 + Band 2 + Band 3 active -> progression toward 3.0
-        // - All bands active -> progression toward 4.0
-        //
-        // Weight bands by their normalized energy.
-        // Lower bands must be present for higher bands to contribute fully.
+        // SIMPLER, MORE ROBUST: highest active band determines progression range
+        // Each band contributes its normalized energy within its zone
 
         float progression = 0f;
 
-        // Zone 1: Bass presence
+        // Zone 1: Bass presence (0..1)
         if (norm1 > 0f)
         {
-            progression = 1f * norm1; // 0..1
+            progression = Math.Max(progression, norm1); // 0..1
         }
 
-        // Zone 2: Mids presence (requires bass)
-        if (norm2 > 0f && norm1 > 0f)
+        // Zone 2: Mids presence (1..2) - requires some bass foundation but not full
+        if (norm2 > 0f && norm1 > 0.1f) // bass just needs to be present
         {
-            // Bass anchors at 1.0, mids push toward 2.0
-            progression = 1f + 1f * norm2 * norm1; // 1..2, gated by bass
+            progression = Math.Max(progression, 1f + norm2); // 1..2
         }
 
-        // Zone 3: Upper mids presence (requires bass + mids)
-        if (norm3 > 0f && norm1 > 0f && norm2 > 0f)
+        // Zone 3: Upper mids presence (2..3)
+        if (norm3 > 0f && norm1 > 0.1f && norm2 > 0.1f)
         {
-            // Mids anchor at 2.0, upper mids push toward 3.0
-            float midAnchor = Math.Min(1f, norm1 + norm2 * 0.5f); // how solid is the mid foundation
-            progression = 2f + 1f * norm3 * midAnchor; // 2..3
+            progression = Math.Max(progression, 2f + norm3); // 2..3
         }
 
-        // Zone 4: Treble presence (requires bass + mids + upper mids)
-        if (norm4 > 0f && norm1 > 0f && norm2 > 0f && norm3 > 0f)
+        // Zone 4: Treble presence (3..4)
+        if (norm4 > 0f && norm1 > 0.1f && norm2 > 0.1f && norm3 > 0.1f)
         {
-            // Upper mids anchor at 3.0, treble pushes toward 4.0
-            float highAnchor = Math.Min(1f, norm1 * 0.33f + norm2 * 0.33f + norm3 * 0.33f);
-            progression = 3f + 1f * norm4 * highAnchor; // 3..4
+            progression = Math.Max(progression, 3f + norm4); // 3..4
         }
-
-        // Alternative simpler progression that's more robust:
-        // Weighted sum with cumulative gating
-        //float progressionSimple = 0f;
-        //if (norm1 > 0) progressionSimple += 1f * norm1;
-        //if (norm1 > 0 && norm2 > 0) progressionSimple += 1f * norm2;
-        //if (norm1 > 0 && norm2 > 0 && norm3 > 0) progressionSimple += 1f * norm3;
-        //if (norm1 > 0 && norm2 > 0 && norm3 > 0 && norm4 > 0) progressionSimple += 1f * norm4;
 
         return Math.Clamp(progression, 0f, 4f);
     }
@@ -448,7 +470,7 @@ try
 
     private void UpdateBaselines(float b1, float b2, float b3, float b4)
     {
-        // Use actual elapsed time for frame-independent baseline adaptation
+        // Use actual elapsed time since last FFT analysis for frame-independent baseline adaptation
         float dtMs = (float)_diagStopwatch.Elapsed.TotalMilliseconds;
         _diagStopwatch.Restart();
         dtMs = Math.Clamp(dtMs, 1f, 50f);
@@ -480,22 +502,37 @@ try
     // ========================================================================
     // DIAGNOSTICS
     // ========================================================================
-    private void LogDiagnostics(float z1, float z2, float z3, float z4)
+    private void LogDiagnostics(float z1, float z2, float z3, float z4, float progressionTarget, double dtMs)
     {
         if (!Log.Instance.IsTraceEnabled) return;
 
-        // Recompute band energies for logging (or store them)
-        float band1Energy = ComputeBandEnergyDensity(_band1StartBin, _band1EndBin, _band1BinCount);
-        float band2Energy = ComputeBandEnergyDensity(_band2StartBin, _band2EndBin, _band2BinCount);
-        float band3Energy = ComputeBandEnergyDensity(_band3StartBin, _band3EndBin, _band3BinCount);
-        float band4Energy = ComputeBandEnergyDensity(_band4StartBin, _band4EndBin, _band4BinCount);
+        // Compute RMS from ring buffer (last FftSize samples)
+        float rms = 0f;
+        if (_ringReady)
+        {
+            double sumSq = 0.0;
+            int count = Math.Min(FftSize, _samplesSinceLastAnalysis + _hopSize); // approximate
+            int startPos = (_ringWritePos - FftSize) % (FftSize * 2);
+            if (startPos < 0) startPos += FftSize * 2;
+            for (int i = 0; i < FftSize; i++)
+            {
+                int idx = (startPos + i) % (FftSize * 2);
+                float s = _ringBuffer[idx];
+                sumSq += s * s;
+            }
+            rms = (float)Math.Sqrt(sumSq / FftSize);
+            _lastRms = rms;
+        }
 
-        float norm1 = band1Energy / _band1Baseline;
-        float norm2 = band2Energy / _band2Baseline;
-        float norm3 = band3Energy / _band3Baseline;
-        float norm4 = band4Energy / _band4Baseline;
-
-        Log.Instance.Trace($"[AudioVisualizer] Bands: B1={band1Energy:E3}(norm={norm1:F2},base={_band1Baseline:E3}) B2={band2Energy:E3}(norm={norm2:F2},base={_band2Baseline:E3}) B3={band3Energy:E3}(norm={norm3:F2},base={_band3Baseline:E3}) B4={band4Energy:E3}(norm={norm4:F2},base={_band4Baseline:E3}) | Prog={_smoothedProgression:F2} | Z={z1:F2},{z2:F2},{z3:F2},{z4:F2}");
+        Log.Instance.Trace($"[AudioVisualizer DEBUG] " +
+            $"SampleRate={_sampleRate} FftSize={FftSize} Hop={_hopSize} " +
+            $"Rms={_lastRms:E3} TotalPower={_lastTotalPower:E3} " +
+            $"B1raw={_lastBand1Raw:E3} B2raw={_lastBand2Raw:E3} B3raw={_lastBand3Raw:E3} B4raw={_lastBand4Raw:E3} " +
+            $"B1norm={_lastNorm1:F2} B2norm={_lastNorm2:F2} B3norm={_lastNorm3:F2} B4norm={_lastNorm4:F2} " +
+            $"B1base={_band1Baseline:E3} B2base={_band2Baseline:E3} B3base={_band3Baseline:E3} B4base={_band4Baseline:E3} " +
+            $"Target={progressionTarget:F2} Smooth={_smoothedProgression:F2} " +
+            $"Z1={z1:F2} Z2={z2:F2} Z3={z3:F2} Z4={z4:F2} " +
+            $"dtMs={dtMs:F1}");
     }
 
     // ========================================================================
