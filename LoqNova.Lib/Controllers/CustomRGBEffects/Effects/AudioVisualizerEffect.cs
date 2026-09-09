@@ -100,7 +100,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // PER-BAND STATE
     // ========================================================================
     private readonly float[] _bandEnergy = new float[4];       // current spectral energy
-    private readonly float[] _bandAgc = new float[4] { 0.1f, 0.1f, 0.1f, 0.1f }; // per-band AGC
+    private readonly float[] _bandAgc = new float[4] { 0.0001f, 0.0001f, 0.0001f, 0.0001f }; // per-band peak AGC (starts at noise floor)
     private readonly float[] _bandEnvelope = new float[4];     // per-band attack/release
 
     // ========================================================================
@@ -205,16 +205,26 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 {
                     for (int b = 0; b < 4; b++)
                     {
-                        // --- Per-band AGC (fast: ~200ms time constant) ---
-                        _bandAgc[b] = _bandAgc[b] * 0.992f + bandEnergies[b] * 0.008f;
-                        float normDenom = Math.Max(_bandAgc[b] * 3.0f, 0.001f);
+                        // --- Per-band PEAK-TRACKING AGC (fast attack, slow release) ---
+                        // Track peaks, not mean - so quiet passages don't raise the noise floor
+                        if (bandEnergies[b] > _bandAgc[b])
+                            _bandAgc[b] = bandEnergies[b]; // instant attack on new peak
+                        else
+                            _bandAgc[b] *= 0.997f; // slow release (~333ms time constant)
+
+                        // Normalize against PEAK level (with minimum floor)
+                        float normDenom = Math.Max(_bandAgc[b] * 2.5f, 0.001f);
                         float normalized = Math.Clamp(bandEnergies[b] / normDenom, 0f, 1f);
 
-                        // --- Per-band attack/release ---
-                        if (normalized > _bandEnvelope[b])
-                            _bandEnvelope[b] += (normalized - _bandEnvelope[b]) * attackCoeff;
+                        // --- HARD GATE: only energy significantly above noise floor drives envelope ---
+                        // This prevents broadband noise / quiet passages from activating zones
+                        float gated = normalized > GateThreshold ? normalized : 0f;
+
+                        // --- Per-band attack/release on GATED signal ---
+                        if (gated > _bandEnvelope[b])
+                            _bandEnvelope[b] += (gated - _bandEnvelope[b]) * attackCoeff;
                         else
-                            _bandEnvelope[b] += (normalized - _bandEnvelope[b]) * releaseCoeff;
+                            _bandEnvelope[b] += (gated - _bandEnvelope[b]) * releaseCoeff;
 
                         _bandEnvelope[b] = Math.Clamp(_bandEnvelope[b], 0f, 1f);
                     }
