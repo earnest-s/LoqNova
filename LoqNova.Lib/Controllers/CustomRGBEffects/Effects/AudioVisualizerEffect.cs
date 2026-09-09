@@ -38,8 +38,8 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private const int SampleRate = 48000;
 
     // Smoothing parameters (tunable)
-    private const float AttackTimeMs = 10f;   // fast attack for responsiveness
-    private const float ReleaseTimeMs = 200f; // slower release for smooth decay
+    private const float AttackTimeMs = 50f;   // ~50ms attack for musical responsiveness
+    private const float ReleaseTimeMs = 150f; // ~150ms release for smooth decay
     private const float NoiseFloor = 0.0001f; // ignore very low signals
     private const float MaxNormalizedInput = 2.0f; // clamp multiplier for AGC
 
