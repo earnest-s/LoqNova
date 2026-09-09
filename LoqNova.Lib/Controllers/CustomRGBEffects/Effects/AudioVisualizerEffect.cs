@@ -166,10 +166,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         // Log preset colors once
         if (Log.Instance.IsTraceEnabled)
         {
-            Log.Instance.Trace($"[AudioVisualizer] Preset Z1=({_presetZoneColors.Zone1.R},{_presetZoneColors.Zone1.G},{_presetZoneColors.Zone1.B}) " +
-                $"Z2=({_presetZoneColors.Zone2.R},{_presetZoneColors.Zone2.G},{_presetZoneColors.Zone2.B}) " +
-                $"Z3=({_presetZoneColors.Zone3.R},{_presetZoneColors.Zone3.G},{_presetZoneColors.Zone3.B}) " +
-                $"Z4=({_presetZoneColors.Zone4.R},{_presetZoneColors.Zone4.G},{_presetZoneColors.Zone4.B})");
+            Log.Instance.Trace($"[AudioVisualizer] Preset Z1=({_presetZoneColors.Zone1.R},{_presetZoneColors.Zone1.G},{_presetZoneColors.Zone1.B}) Z2=({_presetZoneColors.Zone2.R},{_presetZoneColors.Zone2.G},{_presetZoneColors.Zone2.B}) Z3=({_presetZoneColors.Zone3.R},{_presetZoneColors.Zone3.G},{_presetZoneColors.Zone3.B}) Z4=({_presetZoneColors.Zone4.R},{_presetZoneColors.Zone4.G},{_presetZoneColors.Zone4.B})");
         }
     }
 
