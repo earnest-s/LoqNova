@@ -11,7 +11,7 @@ using Windows.Win32.UI.WindowsAndMessaging;
 
 namespace LoqNova.Lib.Macro;
 
-public class MacroController
+public class MacroController : IDisposable
 {
     public class RecorderReceivedEventArgs : EventArgs
     {
@@ -33,6 +33,7 @@ public class MacroController
     private readonly MacroSettings _settings;
 
     private HHOOK _kbHook;
+    private bool _disposed;
 
     public event EventHandler<RecorderReceivedEventArgs>? RecorderReceived;
     public event EventHandler<RecorderStoppedEventArgs>? RecorderStopped;
@@ -75,6 +76,24 @@ public class MacroController
             return;
 
         _kbHook = PInvoke.SetWindowsHookEx(WINDOWS_HOOK_ID.WH_KEYBOARD_LL, _kbProc, HINSTANCE.Null, 0);
+    }
+
+    public void Stop()
+    {
+        if (_kbHook != default)
+        {
+            PInvoke.UnhookWindowsHookEx(_kbHook);
+            _kbHook = default;
+        }
+    }
+
+    public void Dispose()
+    {
+        if (!_disposed)
+        {
+            Stop();
+            _disposed = true;
+        }
     }
 
     public void StartRecording(MacroRecorderSettings settings = MacroRecorderSettings.Keyboard) => _recorder.StartRecording(settings);
