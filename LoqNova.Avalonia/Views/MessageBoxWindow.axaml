@@ -1,0 +1,18 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="LoqNova.Avalonia.Views.MessageBoxWindow"
+        Width="460" Height="200" CanResize="False" ShowInTaskbar="False"
+        WindowStartupLocation="CenterOwner">
+    <Window.Styles>
+        <Style Selector="Window">
+            <Setter Property="Background" Value="#16181D" />
+        </Style>
+    </Window.Styles>
+    <Grid RowDefinitions="*,Auto" Margin="20">
+        <TextBlock x:Name="MessageText" Grid.Row="0" TextWrapping="Wrap" VerticalAlignment="Center"
+                   Foreground="#D8DAE0" FontSize="13" />
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="OK" MinWidth="90" Click="Ok_Click" />
+        </StackPanel>
+    </Grid>
+</Window>
