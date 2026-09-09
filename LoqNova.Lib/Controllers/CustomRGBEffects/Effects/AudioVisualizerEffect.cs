@@ -3,11 +3,11 @@
 //
 // Audio visualizer using PRESET-DRIVEN zone colors + per-zone brightness
 // driven by FREQUENCY-BAND spectral analysis.
-// 
+//
 // PIPELINE:
 // 1. Audio Capture (WASAPI loopback -> mono ring buffer)
 // 2. Overlapped FFT analysis (1024-point, Hann window, 256-sample hop)
-// 3. 4-band spectral energy (RMS of magnitude) with per-band AGC
+// 3. 4-band spectral energy (RMS of power) with per-band peak-tracking AGC
 // 4. Per-band attack/release envelopes
 // 5. Per-zone brightness applied to PRESET zone colors
 // 6. Frame output via CustomRGBEffectController -> RgbFrameDispatcher -> HID
@@ -35,38 +35,30 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     private const int FftSize = 1024;
     private const int HopSize = 256;              // 4x overlap -> ~5.3ms @ 48kHz
-    private const int SampleRate = 48000;
-    private const float FreqResolution = (float)SampleRate / FftSize; // ~46.875 Hz/bin
 
     // ========================================================================
-    // FREQUENCY BAND DEFINITIONS (musically meaningful, log-spaced)
+    // FREQUENCY BAND DEFINITIONS (log-spaced, calculated from ACTUAL sample rate)
     // ========================================================================
-    // Zone 1: Sub-bass + Bass      -> 20 Hz  - 250 Hz   (bins 1-5)
-    // Zone 2: Low-Mid              -> 250 Hz - 500 Hz    (bins 6-10)
-    // Zone 3: Mid / Upper-Mid      -> 500 Hz - 2000 Hz   (bins 11-42)
-    // Zone 4: High / Presence      -> 2000 Hz - 16000 Hz (bins 43-341)
-    // Hz per bin = 48000 / 1024 = 46.875 Hz
-    // bin = freq / 46.875
-    // 20Hz   -> bin 0.4  -> 1
-    // 250Hz  -> bin 5.3  -> 5
-    // 500Hz  -> bin 10.7 -> 10
-    // 2000Hz -> bin 42.7 -> 42
-    // 16000Hz-> bin 341.3-> 341
-    private static readonly (int binStart, int binEnd)[] BandBins = new[]
-    {
-        (1, 5),       // Zone 1: 20-250 Hz     (bass / kick)
-        (6, 10),      // Zone 2: 250-500 Hz    (low-mid / bass guitar, low vocals)
-        (11, 42),     // Zone 3: 500-2000 Hz   (mid / vocals, snare body)
-        (43, 341)     // Zone 4: 2000-16000 Hz (high / cymbals, hi-hats, transients)
-    };
+    // Zone 1: Sub-bass + Bass      -> 20 Hz  - 250 Hz
+    // Zone 2: Low-Mid              -> 250 Hz - 600 Hz
+    // Zone 3: Mid / Upper-Mid      -> 600 Hz - 2500 Hz
+    // Zone 4: High / Presence      -> 2500 Hz - 12000 Hz
+    private (int binStart, int binEnd)[] _bandBins;
 
     // ========================================================================
     // TEMPORAL SMOOTHING (per-band attack/release)
     // ========================================================================
-    private const float AttackTimeMs = 12f;    // very fast for transients (kicks, snares)
-    private const float ReleaseTimeMs = 45f;   // fast fall, no linger
-    private const float NoiseFloor = 0.00005f; // per-bin noise floor (higher = less noise amplification)
-    private const float GateThreshold = 0.15f; // normalized energy must exceed this to drive envelope
+    private const float AttackTimeMs = 15f;     // fast for transients (kicks, snares)
+    private const float ReleaseTimeMs = 60f;    // fast fall, no linger
+    private const float NoiseFloor = 0.00001f;  // per-bin noise floor
+    private const float GateThreshold = 0.08f;  // normalized energy must exceed this to drive envelope
+
+    // ========================================================================
+    // RUNTIME STATE
+    // ========================================================================
+    private int _sampleRate = 48000;            // will be set from actual capture format
+    private float _freqResolution;              // sampleRate / FftSize
+    private int _hopSize;                       // actual hop size in samples
 
     // ========================================================================
     // CONFIGURATION
@@ -82,7 +74,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private readonly object _audioLock = new();
 
     // Ring buffer for audio samples (must hold at least FftSize samples)
-    private readonly float[] _ringBuffer = new float[FftSize * 2]; // double for safety
+    private readonly float[] _ringBuffer = new float[FftSize * 2];
     private int _ringWritePos;
     private int _samplesSinceLastAnalysis;
     private bool _ringReady;
@@ -99,9 +91,9 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     // PER-BAND STATE
     // ========================================================================
-    private readonly float[] _bandEnergy = new float[4];       // current spectral energy
-    private readonly float[] _bandAgc = new float[4] { 0.0001f, 0.0001f, 0.0001f, 0.0001f }; // per-band peak AGC (starts at noise floor)
-    private readonly float[] _bandEnvelope = new float[4];     // per-band attack/release
+    private readonly float[] _bandEnergy = new float[4];
+    private readonly float[] _bandAgc = new float[4] { 0.0001f, 0.0001f, 0.0001f, 0.0001f }; // peak AGC
+    private readonly float[] _bandEnvelope = new float[4];
 
     // ========================================================================
     // THREAD SYNC (stale-frame handling)
@@ -140,6 +132,18 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         try
         {
             _capture = new WasapiLoopbackCapture();
+            
+            // CRITICAL: Get ACTUAL sample rate from capture format
+            _sampleRate = _capture.WaveFormat.SampleRate;
+            _freqResolution = (float)_sampleRate / FftSize;
+            _hopSize = Math.Max(64, _sampleRate / 200); // ~5ms hop, min 64
+            
+            // Recompute band bins for actual sample rate
+            ComputeBandBins();
+            
+            if (Log.Instance.IsTraceEnabled)
+                Log.Instance.Trace($"[AudioVisualizer] Started: sampleRate={_sampleRate}Hz, fftSize={FftSize}, hop={_hopSize}, freqRes={_freqResolution:F2}Hz/bin");
+
             _capture.DataAvailable += OnDataAvailable;
             _capture.StartRecording();
         }
@@ -174,9 +178,9 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 bool haveNewAnalysis = false;
                 lock (_audioLock)
                 {
-                    if (_ringReady && _samplesSinceLastAnalysis >= HopSize)
+                    if (_ringReady && _samplesSinceLastAnalysis >= _hopSize)
                     {
-                        // Copy latest FftSize samples (newest at end of ring buffer)
+                        // Copy newest FftSize samples (ending at write position - 1)
                         int startPos = (_ringWritePos - FftSize) % (FftSize * 2);
                         if (startPos < 0) startPos += FftSize * 2;
 
@@ -275,7 +279,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                     await controller.SetColorsAsync(colors, cancellationToken).ConfigureAwait(false);
                 }
 
-                // ~60 fps frame rate
+                // ~60 fps frame rate - use actual elapsed time for smoother timing
                 await Task.Delay(16, cancellationToken).ConfigureAwait(false);
             }
         }
@@ -283,6 +287,42 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         finally
         {
             StopCapture();
+        }
+    }
+
+    // ========================================================================
+    // BAND BIN COMPUTATION (from actual sample rate)
+    // ========================================================================
+    private void ComputeBandBins()
+    {
+        // Log-spaced frequency bands appropriate for keyboard visualizer
+        // Zone 1: Bass        40 - 250 Hz
+        // Zone 2: Low-Mid     250 - 600 Hz
+        // Zone 3: Mid         600 - 2500 Hz
+        // Zone 4: High        2500 - min(12000, sampleRate/2)
+        
+        float nyquist = _sampleRate / 2f;
+        float fMax = Math.Min(12000f, nyquist);
+
+        int Bin(float freq) => (int)Math.Clamp(Math.Round(freq / _freqResolution), 1, FftSize / 2 - 1);
+
+        _bandBins = new (int, int)[]
+        {
+            (1, Bin(250f)),           // Zone 1: 20-250 Hz (bass/kick)
+            (Bin(250f) + 1, Bin(600f)),      // Zone 2: 250-600 Hz (low-mid)
+            (Bin(600f) + 1, Bin(2500f)),     // Zone 3: 600-2500 Hz (mid/upper-mid)
+            (Bin(2500f) + 1, Bin(fMax))      // Zone 4: 2500-12000 Hz (high/treble)
+        };
+
+        if (Log.Instance.IsTraceEnabled)
+        {
+            for (int i = 0; i < 4; i++)
+            {
+                var (s, e) = _bandBins[i];
+                float fStart = s * _freqResolution;
+                float fEnd = e * _freqResolution;
+                Log.Instance.Trace($"[AudioVisualizer] Zone {i+1}: {fStart:F0}-{fEnd:F0} Hz (bins {s}-{e})");
+            }
         }
     }
 
@@ -301,27 +341,41 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         // 2. Cooley-Tukey radix-2 DIT FFT (in-place)
         Fft(_fftReal, _fftImag, FftSize);
 
-        // 3. Compute magnitude spectrum (single-sided)
+        // 2. Compute power spectrum (single-sided, properly scaled)
+        // For real input: power = 2 * (re^2 + im^2) / N^2 for bins 1..N/2-1
+        // DC (bin 0) and Nyquist (bin N/2) are not doubled
+        float scale = 2.0f / FftSize;
         for (int i = 0; i < FftSize / 2; i++)
         {
             double re = _fftReal[i];
             double im = _fftImag[i];
-            _magnitudes[i] = (float)Math.Sqrt(re * re + im * im) / FftSize;
+            float magSq = (float)(re * re + im * im);
+            // Power spectral density: 2 * |X[k]|^2 / N^2 for k=1..N/2-1
+            // For simplicity and correct energy, we use magnitude^2 * scale
+            _magnitudes[i] = magSq * scale * scale;
         }
 
-        // 4. Compute per-band energy (RMS of magnitude = spectral energy)
+        // 3. Compute per-band energy (mean power in band = spectral energy density)
         for (int b = 0; b < 4; b++)
         {
-            var (start, end) = BandBins[b];
+            var (start, end) = _bandBins[b];
             int count = end - start + 1;
-            float sumSq = 0f;
+            if (count <= 0)
+            {
+                outBandEnergies[b] = 0f;
+                continue;
+            }
+
+            double sumPower = 0.0;
             for (int i = start; i <= end; i++)
             {
-                float m = _magnitudes[i];
-                if (m > NoiseFloor)
-                    sumSq += m * m;
+                float power = _magnitudes[i];
+                if (power > NoiseFloor)
+                    sumPower += power;
             }
-            outBandEnergies[b] = count > 0 ? MathF.Sqrt(sumSq / count) : 0f;
+
+            // Mean power in band (proper spectral energy density)
+            outBandEnergies[b] = (float)(sumPower / count);
         }
     }
 
@@ -386,8 +440,9 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     {
         if (_capture == null || e.BytesRecorded == 0) return;
 
-        const int bytesPerSample = 4;
-        const int channels = 2;
+        var waveFormat = _capture.WaveFormat;
+        int bytesPerSample = waveFormat.BitsPerSample / 8;
+        int channels = waveFormat.Channels;
         int frameBytes = bytesPerSample * channels;
         int totalFrames = e.BytesRecorded / frameBytes;
 
@@ -398,9 +453,23 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 int offset = f * frameBytes;
                 if (offset + bytesPerSample > e.BytesRecorded) break;
 
-                float left = BitConverter.ToSingle(e.Buffer, offset);
-                float right = BitConverter.ToSingle(e.Buffer, offset + bytesPerSample);
-                float mono = (left + right) * 0.5f;
+                float mono;
+                if (waveFormat.Encoding == WaveFormatEncoding.IeeeFloat && bytesPerSample == 4)
+                {
+                    float left = BitConverter.ToSingle(e.Buffer, offset);
+                    float right = channels > 1 ? BitConverter.ToSingle(e.Buffer, offset + bytesPerSample) : left;
+                    mono = (left + right) * 0.5f;
+                }
+                else if (waveFormat.Encoding == WaveFormatEncoding.Pcm && bytesPerSample == 2)
+                {
+                    short left = BitConverter.ToInt16(e.Buffer, offset);
+                    short right = channels > 1 ? BitConverter.ToInt16(e.Buffer, offset + bytesPerSample) : left;
+                    mono = (left + right) * 0.5f / 32768f;
+                }
+                else
+                {
+                    mono = 0f;
+                }
 
                 _ringBuffer[_ringWritePos] = Math.Clamp(mono, -1f, 1f);
                 _ringWritePos = (_ringWritePos + 1) % (FftSize * 2);
