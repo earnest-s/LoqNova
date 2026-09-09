@@ -412,6 +412,13 @@ public partial class App
 
         try
         {
+            // Clean up any stale EventWaitHandle from previous crashed instance
+            try
+            {
+                EventWaitHandle.OpenExisting(EVENT_NAME)?.Close();
+            }
+            catch { /* no existing handle */ }
+
             _singleInstanceMutex = new Mutex(true, MUTEX_NAME, out var isOwned);
             _singleInstanceWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, EVENT_NAME);
 
@@ -429,6 +436,9 @@ public partial class App
         {
             if (Log.Instance.IsTraceEnabled)
                 Log.Instance.Trace($"[{_sessionId}] Abandoned mutex detected, taking ownership...");
+
+            // Clean up stale wait handle
+            try { EventWaitHandle.OpenExisting(EVENT_NAME)?.Close(); } catch { }
 
             _singleInstanceWaitHandle = new EventWaitHandle(false, EventResetMode.AutoReset, EVENT_NAME);
         }
