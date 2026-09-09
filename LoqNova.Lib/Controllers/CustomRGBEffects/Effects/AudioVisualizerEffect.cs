@@ -126,6 +126,9 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // PROGRESSION STATE
     // ========================================================================
     private float _smoothedProgression = 0f;    // after attack/release
+    private float _progressionTarget = 0f;      // persistent target from last valid analysis
+    private readonly object _analysisLock = new();
+    private int _analysisVersion;
 
     // ========================================================================
     // DIAGNOSTICS
@@ -193,40 +196,51 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         long lastTicks = stopwatch.ElapsedTicks;
         double ticksPerSecond = Stopwatch.Frequency;
 
-        try
-        {
-            while (!cancellationToken.IsCancellationRequested)
+try
             {
-                // --- Perform overlapped FFT analysis when enough new samples accumulated ---
-                bool haveNewAnalysis = false;
-                float progressionTarget = 0f;
-
-                lock (_audioLock)
+                while (!cancellationToken.IsCancellationRequested)
                 {
-                    if (_ringReady && _samplesSinceLastAnalysis >= _hopSize)
+                    // --- Perform overlapped FFT analysis when enough new samples accumulated ---
+                    bool haveNewAnalysis = false;
+
+                    lock (_audioLock)
                     {
-                        // Copy newest FftSize samples (ending at write position - 1)
-                        int startPos = (_ringWritePos - FftSize) % (FftSize * 2);
-                        if (startPos < 0) startPos += FftSize * 2;
-
-                        for (int i = 0; i < FftSize; i++)
+                        if (_ringReady && _samplesSinceLastAnalysis >= _hopSize)
                         {
-                            int srcIdx = (startPos + i) % (FftSize * 2);
-                            _fftInput[i] = _ringBuffer[srcIdx] * _hannWindow[i];
+                            // Copy newest FftSize samples (ending at write position - 1)
+                            int startPos = (_ringWritePos - FftSize) % (FftSize * 2);
+                            if (startPos < 0) startPos += FftSize * 2;
+
+                            for (int i = 0; i < FftSize; i++)
+                            {
+                                int srcIdx = (startPos + i) % (FftSize * 2);
+                                _fftInput[i] = _ringBuffer[srcIdx] * _hannWindow[i];
+                            }
+
+                            _samplesSinceLastAnalysis = 0;
+                            haveNewAnalysis = true;
                         }
-
-                        _samplesSinceLastAnalysis = 0;
-                        haveNewAnalysis = true;
                     }
-                }
 
-                // --- FFT and progression analysis (outside lock) ---
-                if (haveNewAnalysis)
-                {
-                    progressionTarget = ComputeProgressionFromSpectrum();
-                }
+                    // --- FFT and progression analysis (outside lock) ---
+                    if (haveNewAnalysis)
+                    {
+                        float newTarget = ComputeProgressionFromSpectrum();
+                        lock (_analysisLock)
+                        {
+                            _progressionTarget = newTarget;
+                            _analysisVersion++;
+                        }
+                    }
 
-                // --- Smooth progression with attack/release ---
+                    // --- Get persistent progression target ---
+                    float progressionTarget;
+                    lock (_analysisLock)
+                    {
+                        progressionTarget = _progressionTarget;
+                    }
+
+                    // --- Smooth progression with attack/release ---
                 // Use actual elapsed time for frame-independent smoothing
                 long nowTicks = stopwatch.ElapsedTicks;
                 double dtMs = (nowTicks - lastTicks) * 1000.0 / ticksPerSecond;
