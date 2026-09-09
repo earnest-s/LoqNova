@@ -311,8 +311,6 @@ public partial class App
         Shutdown();
     }
 
-    private readonly List<Exception> _shutdownErrors = new();
-
     private async Task StopServiceAsync(string name, Func<Task?> stopAction)
     {
         try
