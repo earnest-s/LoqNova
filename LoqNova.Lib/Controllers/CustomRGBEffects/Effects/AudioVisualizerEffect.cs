@@ -5,12 +5,13 @@
 //
 // PIPELINE:
 // 1. Audio Capture (WASAPI loopback -> mono ring buffer)
-// 2. Overlapped FFT analysis (1024-point, Hann window, 256-sample hop)
-// 3. SINGLE cumulative progression signal from spectral centroid/energy distribution
-// 4. Cumulative zone mapping: Z1 = clamp(p, 0, 1), Z2 = clamp(p-1, 0, 1), ...
-// 4. Per-zone attack/release on cumulative brightness
-// 5. Preset color x brightness
-// 6. Frame output via CustomRGBEffectController -> RgbFrameDispatcher -> HID
+// 2. Overlapped FFT analysis (1024-point, Hann window, ~5ms hop)
+// 3. 4-band spectral energy analysis with energy-density normalization
+// 4. Single cumulative progression from band energies
+// 5. Cumulative zone mapping: Z1 = clamp(p, 0, 1), Z2 = clamp(p-1, 0, 1), ...
+// 6. Attack/release smoothing on progression
+// 7. Preset color x brightness
+// 8. Frame output via CustomRGBEffectController -> RgbFrameDispatcher -> HID
 // ============================================================================
 
 using System;
@@ -39,19 +40,39 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private const int MinHopSize = 64;
 
     // ========================================================================
-    // PROGRESSION MAPPING CONSTANTS
+    // FREQUENCY BANDS (musically meaningful ranges)
     // ========================================================================
-    // Frequency range mapped to progression [0..4]
-    private const float MinFreq = 40f;     // Hz - below this = no response
-    private const float MaxFreq = 12000f;  // Hz - above this = full progression
+    // Zone 1: 20-250 Hz     (bass / low)
+    // Zone 2: 250-2000 Hz   (mids)
+    // Zone 3: 2000-4000 Hz  (upper mids / presence)
+    // Zone 4: 4000-20000 Hz (treble / highs)
+    private const float Band1MinFreq = 20f;
+    private const float Band1MaxFreq = 250f;
+    private const float Band2MinFreq = 250f;
+    private const float Band2MaxFreq = 2000f;
+    private const float Band3MinFreq = 2000f;
+    private const float Band3MaxFreq = 4000f;
+    private const float Band4MinFreq = 4000f;
+    private const float Band4MaxFreq = 20000f;
 
     // ========================================================================
     // TEMPORAL SMOOTHING
     // ========================================================================
-    private const float AttackTimeMs = 10f;    // fast for transients
-    private const float ReleaseTimeMs = 80f;   // slower release for smooth decay
-    private const float NoiseFloor = 0.00001f; // per-bin noise floor
+    private const float AttackTimeMs = 10f;     // fast for transients
+    private const float ReleaseTimeMs = 80f;    // slower release for smooth decay
+    private const float NoiseFloor = 0.00001f;  // per-bin noise floor
     private const float MinResponseThreshold = 0.05f; // minimum progression to activate
+
+    // Progression smoothing (separate from per-zone, applied to progression value)
+    private const float ProgressionAttackMs = 15f;
+    private const float ProgressionReleaseMs = 100f;
+
+    // ========================================================================
+    // ADAPTIVE BASELINE (slow AGC for band normalization)
+    // ========================================================================
+    private const float BaselineAttackMs = 500f;   // slow rise
+    private const float BaselineReleaseMs = 2000f; // slow decay
+    private const float MinBaseline = 0.0001f;     // prevents division by zero / noise amplification
 
     // ========================================================================
     // RUNTIME STATE
@@ -59,6 +80,19 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     private int _sampleRate = 48000;            // set from actual capture format
     private float _freqResolution;              // sampleRate / FftSize
     private int _hopSize;                       // actual hop size in samples
+
+    // Pre-computed bin ranges for each band (computed once sample rate is known)
+    private int _band1StartBin, _band1EndBin;
+    private int _band2StartBin, _band2EndBin;
+    private int _band3StartBin, _band3EndBin;
+    private int _band4StartBin, _band4EndBin;
+    private int _band1BinCount, _band2BinCount, _band3BinCount, _band4BinCount;
+
+    // Adaptive baselines for each band (energy density)
+    private float _band1Baseline = MinBaseline;
+    private float _band2Baseline = MinBaseline;
+    private float _band3Baseline = MinBaseline;
+    private float _band4Baseline = MinBaseline;
 
     // ========================================================================
     // CONFIGURATION
@@ -91,16 +125,13 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     // PROGRESSION STATE
     // ========================================================================
-    private float _progression = 0f;            // current progression [0..4]
-    private float _progressionTarget = 0f;      // target from spectral analysis
     private float _smoothedProgression = 0f;    // after attack/release
 
     // ========================================================================
-    // THREAD SYNC (stale-frame handling)
+    // DIAGNOSTICS
     // ========================================================================
-    private readonly object _analysisLock = new();
-    private int _analysisVersion;
-    private int _lastRenderedVersion;
+    private int _frameCounter;
+    private readonly Stopwatch _diagStopwatch = Stopwatch.StartNew();
 
     // ========================================================================
     // CONSTRUCTOR
@@ -138,8 +169,14 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
             _freqResolution = (float)_sampleRate / FftSize;
             _hopSize = Math.Max(MinHopSize, _sampleRate / 200); // ~5ms hop, min 64
 
+            // Compute bin ranges for each frequency band
+            ComputeBandBinRanges();
+
             if (Log.Instance.IsTraceEnabled)
+            {
                 Log.Instance.Trace($"[AudioVisualizer] Started: sampleRate={_sampleRate}Hz, fftSize={FftSize}, hop={_hopSize}, freqRes={_freqResolution:F2}Hz/bin");
+                Log.Instance.Trace($"[AudioVisualizer] Band bins: B1[{_band1StartBin}-{_band1EndBin}]({_band1BinCount}) B2[{_band2StartBin}-{_band2EndBin}]({_band2BinCount}) B3[{_band3StartBin}-{_band3EndBin}]({_band3BinCount}) B4[{_band4StartBin}-{_band4EndBin}]({_band4BinCount})");
+            }
 
             _capture.DataAvailable += OnDataAvailable;
             _capture.StartRecording();
@@ -151,19 +188,6 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
             await RunIdleFallbackAsync(controller, cancellationToken).ConfigureAwait(false);
             return;
         }
-
-        // Pre-calculated attack/release coefficients per frame (~16ms @ 60fps)
-        float speedFactor = _speed switch
-        {
-            1 => 0.5f,
-            2 => 1.0f,
-            3 => 1.5f,
-            4 => 2.0f,
-            _ => 1.0f
-        };
-
-        float attackCoeff = 1f - MathF.Exp(-16f / (AttackTimeMs / speedFactor));
-        float releaseCoeff = 1f - MathF.Exp(-16f / (ReleaseTimeMs / speedFactor));
 
         var stopwatch = Stopwatch.StartNew();
         long lastTicks = stopwatch.ElapsedTicks;
@@ -209,13 +233,13 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                 lastTicks = nowTicks;
                 dtMs = Math.Clamp(dtMs, 1.0, 50.0); // clamp for stability
 
-                float frameAttackCoeff = 1f - MathF.Exp(-(float)dtMs / (AttackTimeMs / speedFactor));
-                float frameReleaseCoeff = 1f - MathF.Exp(-(float)dtMs / (ReleaseTimeMs / speedFactor));
+                float progAttackCoeff = 1f - MathF.Exp(-(float)dtMs / ProgressionAttackMs);
+                float progReleaseCoeff = 1f - MathF.Exp(-(float)dtMs / ProgressionReleaseMs);
 
                 if (progressionTarget > _smoothedProgression)
-                    _smoothedProgression += (progressionTarget - _smoothedProgression) * frameAttackCoeff;
+                    _smoothedProgression += (progressionTarget - _smoothedProgression) * progAttackCoeff;
                 else
-                    _smoothedProgression += (progressionTarget - _smoothedProgression) * frameReleaseCoeff;
+                    _smoothedProgression += (progressionTarget - _smoothedProgression) * progReleaseCoeff;
 
                 _smoothedProgression = Math.Clamp(_smoothedProgression, 0f, 4f);
 
@@ -239,17 +263,13 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
                     ScaleColor(_presetZoneColors.Zone4, z4)
                 );
 
-                // --- Stale-frame handling: only render if we have newer analysis ---
-                bool shouldRender;
-                lock (_analysisLock)
-                {
-                    shouldRender = _analysisVersion > _lastRenderedVersion;
-                    if (shouldRender) _lastRenderedVersion = _analysisVersion;
-                }
+                await controller.SetColorsAsync(colors, cancellationToken).ConfigureAwait(false);
 
-                if (shouldRender)
+                // --- Throttled diagnostic logging ---
+                _frameCounter++;
+                if (_frameCounter % 120 == 0) // ~2Hz at 60fps
                 {
-                    await controller.SetColorsAsync(colors, cancellationToken).ConfigureAwait(false);
+                    LogDiagnostics(z1, z2, z3, z4);
                 }
 
                 // ~60 fps frame rate
@@ -261,6 +281,30 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         {
             StopCapture();
         }
+    }
+
+    // ========================================================================
+    // COMPUTE BAND BIN RANGES FROM ACTUAL SAMPLE RATE
+    // ========================================================================
+    private void ComputeBandBinRanges()
+    {
+        // Nyquist frequency
+        float nyquist = _sampleRate * 0.5f;
+        float maxFreq = Math.Min(Band4MaxFreq, nyquist);
+
+        _band1StartBin = Math.Max(1, (int)MathF.Ceiling(Band1MinFreq / _freqResolution));
+        _band1EndBin = Math.Min(FftSize / 2 - 1, (int)MathF.Floor(Math.Min(Band1MaxFreq, maxFreq) / _freqResolution));
+        _band2StartBin = Math.Max(_band1EndBin + 1, (int)MathF.Ceiling(Band2MinFreq / _freqResolution));
+        _band2EndBin = Math.Min(FftSize / 2 - 1, (int)MathF.Floor(Math.Min(Band2MaxFreq, maxFreq) / _freqResolution));
+        _band3StartBin = Math.Max(_band2EndBin + 1, (int)MathF.Ceiling(Band3MinFreq / _freqResolution));
+        _band3EndBin = Math.Min(FftSize / 2 - 1, (int)MathF.Floor(Math.Min(Band3MaxFreq, maxFreq) / _freqResolution));
+        _band4StartBin = Math.Max(_band3EndBin + 1, (int)MathF.Ceiling(Band4MinFreq / _freqResolution));
+        _band4EndBin = Math.Min(FftSize / 2 - 1, (int)MathF.Floor(maxFreq / _freqResolution));
+
+        _band1BinCount = Math.Max(1, _band1EndBin - _band1StartBin + 1);
+        _band2BinCount = Math.Max(1, _band2EndBin - _band2StartBin + 1);
+        _band3BinCount = Math.Max(1, _band3EndBin - _band3StartBin + 1);
+        _band4BinCount = Math.Max(1, _band4EndBin - _band4StartBin + 1);
     }
 
     // ========================================================================
@@ -278,43 +322,166 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
         // 2. Cooley-Tukey radix-2 DIT FFT (in-place)
         Fft(_fftReal, _fftImag, FftSize);
 
-        // 2. Compute power spectrum (single-sided, properly scaled)
+        // 3. Compute power spectrum (single-sided, properly scaled)
+        // Power = 2 * |X[k]|^2 / N^2 for Hann window (coherent gain = 0.5)
         float scale = 2.0f / FftSize;
         for (int i = 0; i < FftSize / 2; i++)
         {
             double re = _fftReal[i];
             double im = _fftImag[i];
             float magSq = (float)(re * re + im * im);
-            // Power spectral density: 2 * |X[k]|^2 / N^2
             _magnitudes[i] = magSq * scale * scale;
         }
 
-        // 2. Compute SPECTRAL CENTROID (weighted mean frequency)
-        // centroid = sum(freq * power) / sum(power)
-        double sumPower = 0.0;
-        double weightedSum = 0.0;
+        // 4. Compute energy density (average power per bin) for each band
+        float band1Energy = ComputeBandEnergyDensity(_band1StartBin, _band1EndBin, _band1BinCount);
+        float band2Energy = ComputeBandEnergyDensity(_band2StartBin, _band2EndBin, _band2BinCount);
+        float band3Energy = ComputeBandEnergyDensity(_band3StartBin, _band3EndBin, _band3BinCount);
+        float band4Energy = ComputeBandEnergyDensity(_band4StartBin, _band4EndBin, _band4BinCount);
 
-        int maxBin = FftSize / 2;
-        for (int i = 1; i < maxBin; i++) // skip DC bin 0
+        // 5. Update adaptive baselines (slow AGC)
+        UpdateBaselines(band1Energy, band2Energy, band3Energy, band4Energy);
+
+        // 6. Normalize each band by its baseline
+        // This makes bands comparable regardless of bin count or spectral tilt
+        float norm1 = band1Energy / _band1Baseline;
+        float norm2 = band2Energy / _band2Baseline;
+        float norm3 = band3Energy / _band3Baseline;
+        float norm4 = band4Energy / _band4Baseline;
+
+        // 7. Apply soft threshold to suppress noise
+        const float bandThreshold = 1.5f; // must exceed baseline by this factor
+        if (norm1 < bandThreshold) norm1 = 0f; else norm1 = (norm1 - bandThreshold) / (10f - bandThreshold); // map [1.5, 10] -> [0, 1]
+        if (norm2 < bandThreshold) norm2 = 0f; else norm2 = (norm2 - bandThreshold) / (10f - bandThreshold);
+        if (norm3 < bandThreshold) norm3 = 0f; else norm3 = (norm3 - bandThreshold) / (10f - bandThreshold);
+        if (norm4 < bandThreshold) norm4 = 0f; else norm4 = (norm4 - bandThreshold) / (10f - bandThreshold);
+
+        norm1 = Math.Clamp(norm1, 0f, 1f);
+        norm2 = Math.Clamp(norm2, 0f, 1f);
+        norm3 = Math.Clamp(norm3, 0f, 1f);
+        norm4 = Math.Clamp(norm4, 0f, 1f);
+
+        // 8. Compute single progression from normalized band energies
+        // Progression logic:
+        // - Band 1 active -> progression toward 1.0
+        // - Band 1 + Band 2 active -> progression toward 2.0
+        // - Band 1 + Band 2 + Band 3 active -> progression toward 3.0
+        // - All bands active -> progression toward 4.0
+        //
+        // Weight bands by their normalized energy.
+        // Lower bands must be present for higher bands to contribute fully.
+
+        float progression = 0f;
+
+        // Zone 1: Bass presence
+        if (norm1 > 0f)
+        {
+            progression = 1f * norm1; // 0..1
+        }
+
+        // Zone 2: Mids presence (requires bass)
+        if (norm2 > 0f && norm1 > 0f)
+        {
+            // Bass anchors at 1.0, mids push toward 2.0
+            progression = 1f + 1f * norm2 * norm1; // 1..2, gated by bass
+        }
+
+        // Zone 3: Upper mids presence (requires bass + mids)
+        if (norm3 > 0f && norm1 > 0f && norm2 > 0f)
+        {
+            // Mids anchor at 2.0, upper mids push toward 3.0
+            float midAnchor = Math.Min(1f, norm1 + norm2 * 0.5f); // how solid is the mid foundation
+            progression = 2f + 1f * norm3 * midAnchor; // 2..3
+        }
+
+        // Zone 4: Treble presence (requires bass + mids + upper mids)
+        if (norm4 > 0f && norm1 > 0f && norm2 > 0f && norm3 > 0f)
+        {
+            // Upper mids anchor at 3.0, treble pushes toward 4.0
+            float highAnchor = Math.Min(1f, norm1 * 0.33f + norm2 * 0.33f + norm3 * 0.33f);
+            progression = 3f + 1f * norm4 * highAnchor; // 3..4
+        }
+
+        // Alternative simpler progression that's more robust:
+        // Weighted sum with cumulative gating
+        //float progressionSimple = 0f;
+        //if (norm1 > 0) progressionSimple += 1f * norm1;
+        //if (norm1 > 0 && norm2 > 0) progressionSimple += 1f * norm2;
+        //if (norm1 > 0 && norm2 > 0 && norm3 > 0) progressionSimple += 1f * norm3;
+        //if (norm1 > 0 && norm2 > 0 && norm3 > 0 && norm4 > 0) progressionSimple += 1f * norm4;
+
+        return Math.Clamp(progression, 0f, 4f);
+    }
+
+    private float ComputeBandEnergyDensity(int startBin, int endBin, int binCount)
+    {
+        double sumPower = 0.0;
+        int validBins = 0;
+
+        for (int i = startBin; i <= endBin; i++)
         {
             float power = _magnitudes[i];
             if (power > NoiseFloor)
             {
-                float freq = i * _freqResolution;
                 sumPower += power;
-                weightedSum += freq * power;
+                validBins++;
             }
         }
 
-        if (sumPower <= 0) return 0f;
+        if (validBins == 0) return 0f;
+        return (float)(sumPower / validBins); // energy density = average power per bin
+    }
 
-        float centroid = (float)(weightedSum / sumPower);
+    private void UpdateBaselines(float b1, float b2, float b3, float b4)
+    {
+        // Use actual elapsed time for frame-independent baseline adaptation
+        float dtMs = (float)_diagStopwatch.Elapsed.TotalMilliseconds;
+        _diagStopwatch.Restart();
+        dtMs = Math.Clamp(dtMs, 1f, 50f);
 
-        // Map centroid frequency to progression [0..4]
-        // Linear mapping from MinFreq..MaxFreq to 0..4
-        float progression = (centroid - MinFreq) / (MaxFreq - MinFreq) * 4f;
+        float baselineAttackCoeff = 1f - MathF.Exp(-dtMs / BaselineAttackMs);
+        float baselineReleaseCoeff = 1f - MathF.Exp(-dtMs / BaselineReleaseMs);
 
-        return Math.Clamp(progression, 0f, 4f);
+        // Attack: baseline rises quickly to track signal
+        // Release: baseline decays slowly to hold the reference level
+        if (b1 > _band1Baseline) _band1Baseline += (b1 - _band1Baseline) * baselineAttackCoeff;
+        else _band1Baseline += (b1 - _band1Baseline) * baselineReleaseCoeff;
+
+        if (b2 > _band2Baseline) _band2Baseline += (b2 - _band2Baseline) * baselineAttackCoeff;
+        else _band2Baseline += (b2 - _band2Baseline) * baselineReleaseCoeff;
+
+        if (b3 > _band3Baseline) _band3Baseline += (b3 - _band3Baseline) * baselineAttackCoeff;
+        else _band3Baseline += (b3 - _band3Baseline) * baselineReleaseCoeff;
+
+        if (b4 > _band4Baseline) _band4Baseline += (b4 - _band4Baseline) * baselineAttackCoeff;
+        else _band4Baseline += (b4 - _band4Baseline) * baselineReleaseCoeff;
+
+        // Clamp baselines to minimum
+        _band1Baseline = Math.Max(_band1Baseline, MinBaseline);
+        _band2Baseline = Math.Max(_band2Baseline, MinBaseline);
+        _band3Baseline = Math.Max(_band3Baseline, MinBaseline);
+        _band4Baseline = Math.Max(_band4Baseline, MinBaseline);
+    }
+
+    // ========================================================================
+    // DIAGNOSTICS
+    // ========================================================================
+    private void LogDiagnostics(float z1, float z2, float z3, float z4)
+    {
+        if (!Log.Instance.IsTraceEnabled) return;
+
+        // Recompute band energies for logging (or store them)
+        float band1Energy = ComputeBandEnergyDensity(_band1StartBin, _band1EndBin, _band1BinCount);
+        float band2Energy = ComputeBandEnergyDensity(_band2StartBin, _band2EndBin, _band2BinCount);
+        float band3Energy = ComputeBandEnergyDensity(_band3StartBin, _band3EndBin, _band3BinCount);
+        float band4Energy = ComputeBandEnergyDensity(_band4StartBin, _band4EndBin, _band4BinCount);
+
+        float norm1 = band1Energy / _band1Baseline;
+        float norm2 = band2Energy / _band2Baseline;
+        float norm3 = band3Energy / _band3Baseline;
+        float norm4 = band4Energy / _band4Baseline;
+
+        Log.Instance.Trace($"[AudioVisualizer] Bands: B1={band1Energy:E3}(norm={norm1:F2},base={_band1Baseline:E3}) B2={band2Energy:E3}(norm={norm2:F2},base={_band2Baseline:E3}) B3={band3Energy:E3}(norm={norm3:F2},base={_band3Baseline:E3}) B4={band4Energy:E3}(norm={norm4:F2},base={_band4Baseline:E3}) | Prog={_smoothedProgression:F2} | Z={z1:F2},{z2:F2},{z3:F2},{z4:F2}");
     }
 
     // ========================================================================
