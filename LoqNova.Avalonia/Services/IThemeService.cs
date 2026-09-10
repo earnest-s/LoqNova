@@ -1,9 +1,15 @@
 using System;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
-using Avalonia.Controls;
-using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Services;
+
+public enum AppTheme
+{
+    System,
+    Light,
+    Dark
+}
 
 public interface IThemeService
 {
