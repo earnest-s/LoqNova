@@ -1,0 +1,158 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             x:Class="LoqNova.Avalonia.Views.Pages.BatteryPage"
+             x:DataType="vm:BatteryViewModel">
+
+    <Design.DataContext>
+        <vm:BatteryViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer Classes="PageContainer">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <TextBlock Text="Battery" Classes="PageTitle" />
+            
+            <!-- Battery Status Card -->
+            <Border Classes="ContentCard" HorizontalAlignment="Center">
+                <StackPanel Orientation="Horizontal" Spacing="24">
+                    <!-- Battery Icon -->
+                    <Border Width="120" Height="60" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
+                        <Grid ColumnDefinitions="*,Auto">
+                            <Border x:Name="BatteryFill" Grid.Column="0" Background="#00B294" CornerRadius="0,6,6,0">
+                                <Border.Width>
+                                    <Binding Path="Percentage" Converter="{StaticResource EnumToDisplayConverter}" />
+                                </Border.Width>
+                            </Border>
+                            <Border Grid.Column="1" Width="8" Background="{StaticResource BorderBrush}" CornerRadius="0,6,6,0" Margin="-2,0,0,0" />
+                        </Grid>
+                    </Border>
+                    
+                    <!-- Battery Info -->
+                    <StackPanel VerticalAlignment="Center" Spacing="4">
+                        <TextBlock Text="{Binding Percentage, StringFormat='{}{0}%'}" FontSize="32" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding StatusText}" Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+                        <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
+                            <StackPanel>
+                                <TextBlock Text="{Binding HealthPercent, StringFormat='{}{0}%'}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="Health" Classes="Caption" />
+                            </StackPanel>
+                            <StackPanel Margin="24,0,0,0">
+                                <TextBlock Text="{Binding CycleCount}" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                <TextBlock Text="Cycles" Classes="Caption" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Battery Details Grid -->
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto,Auto,Auto,Auto" Margin="0,0,0,16">
+                <Border Grid.Row="0" Grid.Column="0" Classes="FeatureCard" Margin="0,0,8,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Temperature" Classes="CardTitle" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding TemperatureC, StringFormat='{}{0:F1}°C'}" Classes="CardValue" />
+                            <ToggleSwitch IsChecked="{Binding UseFahrenheit}" OnContent="°F" OffContent="°C" />
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="0" Grid.Column="1" Classes="FeatureCard" Margin="8,0,0,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Discharge Rate" Classes="CardTitle" />
+                        <TextBlock Text="{Binding DischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" />
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="1" Grid.Column="0" Classes="FeatureCard" Margin="0,0,8,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Min / Max Discharge" Classes="CardTitle" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <StackPanel>
+                                <TextBlock Text="{Binding MinDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="#00B294" />
+                                <TextBlock Text="Min" Classes="Caption" />
+                            </StackPanel>
+                            <StackPanel Margin="16,0,0,0">
+                                <TextBlock Text="{Binding MaxDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="#E81123" />
+                                <TextBlock Text="Max" Classes="Caption" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="1" Grid.Column="1" Classes="FeatureCard" Margin="8,0,0,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Capacity" Classes="CardTitle" />
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <StackPanel>
+                                <TextBlock Text="{Binding CurrentCapacity, StringFormat='{}{0} mAh'}" Classes="CardValue" />
+                                <TextBlock Text="Current" Classes="Caption" />
+                            </StackPanel>
+                            <StackPanel Margin="16,0,0,0">
+                                <TextBlock Text="{Binding FullChargeCapacity, StringFormat='{}{0} mAh'}" Classes="CardValue" />
+                                <TextBlock Text="Full" Classes="Caption" />
+                            </StackPanel>
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="2" Grid.Column="0" Classes="FeatureCard" Margin="0,0,8,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Design Capacity" Classes="CardTitle" />
+                        <TextBlock Text="{Binding DesignCapacity, StringFormat='{}{0} mAh'}" Classes="CardValue" />
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="2" Grid.Column="1" Classes="FeatureCard" Margin="8,0,0,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="On Battery Since" Classes="CardTitle" />
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="{Binding OnBatteryDuration, StringFormat='{}{0:hh\\:mm\\:ss}'}" Classes="CardValue" />
+                            <ToggleSwitch IsChecked="{Binding UseFahrenheit}" IsVisible="False" /> <!-- Placeholder for alignment -->
+                        </StackPanel>
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="3" Grid.Column="0" Classes="FeatureCard" Margin="0,0,8,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Manufacture Date" Classes="CardTitle" />
+                        <TextBlock Text="{Binding ManufactureDate, StringFormat='{}{0:MMM d, yyyy}'}" Classes="CardValue" />
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="3" Grid.Column="1" Classes="FeatureCard" Margin="8,0,0,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="First Use Date" Classes="CardTitle" />
+                        <TextBlock Text="{Binding FirstUseDate, StringFormat='{}{0:MMM d, yyyy}'}" Classes="CardValue" />
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="4" Grid.Column="0" Classes="FeatureCard" Margin="0,0,8,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Battery Mode" Classes="CardTitle" />
+                        <ComboBox ItemsSource="{Binding BatteryModes}"
+                                  SelectedItem="{Binding CurrentMode}"
+                                  Background="{StaticResource SurfaceBrush}"
+                                  BorderBrush="{StaticResource BorderBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                    </StackPanel>
+                </Border>
+                
+                <Border Grid.Row="4" Grid.Column="1" Classes="FeatureCard" Margin="8,0,0,8">
+                    <StackPanel Spacing="4">
+                        <TextBlock Text="Night Charge" Classes="CardTitle" />
+                        <ComboBox ItemsSource="{Binding NightChargeModes}"
+                                  SelectedItem="{Binding NightChargeMode}"
+                                  Background="{StaticResource SurfaceBrush}"
+                                  BorderBrush="{StaticResource BorderBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                    </StackPanel>
+                </Border>
+            </Grid>
+            
+            <!-- Refresh Button -->
+            <Button Classes="PrimaryButton" Content="Refresh" Command="{Binding RefreshCommand}" HorizontalAlignment="Center" Margin="0,16,0,0" />
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
