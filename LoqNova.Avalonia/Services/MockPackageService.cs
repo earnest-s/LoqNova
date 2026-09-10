@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectCollection;
+using System.Linq;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 
