@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System.Collections.ObjectCollection;
 using System.Threading.Tasks;
 
 namespace LoqNova.Avalonia.Services;
@@ -37,8 +37,8 @@ public interface IMacroService
     int SelectedKeyNumber { get; set; }
     bool IsRecording { get; }
     
-    event Action<MacroKey> MacroKeyChanged;
-    event Action<bool> RecordingStateChanged;
+    event Action<MacroKey>? MacroKeyChanged;
+    event Action<bool>? RecordingStateChanged;
     
     Task InitializeAsync();
     Task StartRecordingAsync(int keyNumber);

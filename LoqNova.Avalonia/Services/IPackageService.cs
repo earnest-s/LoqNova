@@ -1,4 +1,4 @@
-using System.Collections.ObjectModel;
+using System.Collections.ObjectCollection;
 using System.Threading.Tasks;
 
 namespace LoqNova.Avalonia.Services;
@@ -44,9 +44,9 @@ public interface IPackageService
     double DownloadProgress { get; }
     string CurrentDownloadStatus { get; }
     
-    event Action PackagesChanged;
-    event Action<double> ProgressChanged;
-    event Action<bool> DownloadingStateChanged;
+    event Action? PackagesChanged;
+    event Action<double>? ProgressChanged;
+    event Action<bool>? DownloadingStateChanged;
     
     Task InitializeAsync();
     Task SearchAsync();
