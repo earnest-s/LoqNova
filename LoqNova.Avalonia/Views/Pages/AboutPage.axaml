@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             x:Class="LoqNova.Avalonia.Views.Pages.AboutPage"
+             x:DataType="vm:AboutViewModel">
+
+    <Design.DataContext>
+        <vm:AboutViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer Classes="PageContainer">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <TextBlock Text="About" Classes="PageTitle" />
+            
+            <!-- App Info -->
+            <Border Classes="ContentCard" HorizontalAlignment="Center">
+                <StackPanel Spacing="16" HorizontalAlignment="Center">
+                    <Image Source="avares://LoqNova.Avalonia/Assets/icon.ico" Width="128" Height="128" />
+                    <TextBlock Text="{Binding AppName}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                    <TextBlock Text="{Binding Version, StringFormat='Version {0}'}" Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
+                    <TextBlock Text="{Binding BuildDate, StringFormat='Build Date: {0}'}" Classes="Caption" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Links -->
+            <Border Classes="ContentCard">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Links" Classes="SectionHeader" />
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,16,0,0">
+                        <Button Classes="GhostButton" Content="GitHub Repository" Command="{Binding OpenGitHubCommand}" />
+                        <Button Classes="PrimaryButton" Content="Check for Updates" Command="{Binding CheckForUpdatesCommand}" />
+                        <Button Classes="GhostButton" Content="Donate" Command="{Binding OpenDonationCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Credits -->
+            <Border Classes="ContentCard">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Credits" Classes="SectionHeader" />
+                    
+                    <ItemsControl ItemsSource="{Binding Credits}" Margin="0,16,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Classes="GhostButton" Content="{Binding Name}" Command="{Binding $parent[Window].DataContext.OpenUrlCommand}" CommandParameter="{Binding Url}" HorizontalAlignment="Left" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+            
+            <!-- License -->
+            <Border Classes="ContentCard">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="License" Classes="SectionHeader" />
+                    
+                    <ScrollViewer MaxHeight="300" Margin="0,16,0,0">
+                        <TextBlock Text="{Binding LicenseText}" Classes="BodySmall" TextWrapping="Wrap" FontFamily="Consolas" />
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+            
+            <!-- Open Source Licenses -->
+            <Border Classes="ContentCard">
+                <StackPanel Spacing="12">
+                    <TextBlock Text="Open Source Licenses" Classes="SectionHeader" />
+                    
+                    <ScrollViewer MaxHeight="400" Margin="0,16,0,0">
+                        <TextBlock Text="{Binding OpenSourceLicenses}" Classes="BodySmall" TextWrapping="Wrap" FontFamily="Consolas" />
+                    </ScrollViewer>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
