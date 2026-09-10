@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="LoqNova.Avalonia.Views.Controls.RGB.KeyboardPreviewControl">
+
+    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="16">
+        <Canvas Width="600" Height="200">
+            <!-- Zone 1 - Left -->
+            <Border x:Name="Zone1Border" Canvas.Left="20" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
+                <Border.Background>
+                    <SolidColorBrush x:Name="Zone1ColorBrush" Color="{Binding Zone1Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+                </Border.Background>
+                <TextBlock Text="Zone 1" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            
+            <!-- Zone 2 - Left Center -->
+            <Border x:Name="Zone2Border" Canvas.Left="180" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
+                <Border.Background>
+                    <SolidColorBrush x:Name="Zone2ColorBrush" Color="{Binding Zone2Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+                </Border.Background>
+                <TextBlock Text="Zone 2" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            
+            <!-- Zone 3 - Right Center -->
+            <Border x:Name="Zone3Border" Canvas.Left="340" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
+                <Border.Background>
+                    <SolidColorBrush x:Name="Zone3ColorBrush" Color="{Binding Zone3Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+                </Border.Background>
+                <TextBlock Text="Zone 3" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            
+            <!-- Zone 4 - Right -->
+            <Border x:Name="Zone4Border" Canvas.Left="500" Canvas.Top="40" Width="80" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
+                <Border.Background>
+                    <SolidColorBrush x:Name="Zone4ColorBrush" Color="{Binding Zone4Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+                </Border.Background>
+                <TextBlock Text="Zone 4" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+            
+            <!-- Brightness indicator -->
+            <StackPanel Canvas.Left="20" Canvas.Top="170" Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Brightness:" Classes="Caption" VerticalAlignment="Center" />
+                <ProgressBar Width="200" Height="8" Value="{Binding Brightness, Converter={StaticResource EnumToDisplayConverter}}" Maximum="2" />
+            </StackPanel>
+        </Canvas>
+    </Border>
+</UserControl>
