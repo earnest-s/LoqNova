@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace LoqNova.Avalonia.Services;
@@ -40,9 +41,9 @@ public interface IBatteryService
     BatteryNightChargeState NightChargeMode { get; }
     bool IsPowerAdapterConnected { get; }
     
-    event Action<int> PercentageChanged;
-    event Action<bool> ChargingChanged;
-    event Action<BatteryState> ModeChanged;
+    event Action<int>? PercentageChanged;
+    event Action<bool>? ChargingChanged;
+    event Action<BatteryState>? ModeChanged;
     
     Task InitializeAsync();
     Task SetModeAsync(BatteryState mode);

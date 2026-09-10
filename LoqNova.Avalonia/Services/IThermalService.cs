@@ -10,9 +10,9 @@ public interface IThermalService
     int FanSpeedPercent { get; }
     bool IsFanControlSupported { get; }
     
-    event Action<double> CpuTemperatureChanged;
-    event Action<double> GpuTemperatureChanged;
-    event Action<int> FanSpeedChanged;
+    event Action<double>? CpuTemperatureChanged;
+    event Action<double>? GpuTemperatureChanged;
+    event Action<int>? FanSpeedChanged;
     
     Task InitializeAsync();
     Task SetFanSpeedAsync(int percent);

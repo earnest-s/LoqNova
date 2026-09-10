@@ -28,7 +28,7 @@ public interface ISettingsService
     bool SyncBrightnessToAllPowerPlans { get; set; }
     bool ResetBatteryOnSinceOnReboot { get; set; }
     
-    event Action SettingsChanged;
+    event Action? SettingsChanged;
     
     Task InitializeAsync();
     Task SaveAsync();

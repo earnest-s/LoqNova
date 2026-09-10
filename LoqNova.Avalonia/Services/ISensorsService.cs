@@ -10,11 +10,11 @@ public interface ISensorsService
     double GpuTemperature { get; }
     int FanSpeedRpm { get; }
     
-    event Action<double> CpuUsageChanged;
-    event Action<double> GpuUsageChanged;
-    event Action<double> CpuTemperatureChanged;
-    event Action<double> GpuTemperatureChanged;
-    event Action<int> FanSpeedChanged;
+    event Action<double>? CpuUsageChanged;
+    event Action<double>? GpuUsageChanged;
+    event Action<double>? CpuTemperatureChanged;
+    event Action<double>? GpuTemperatureChanged;
+    event Action<int>? FanSpeedChanged;
     
     Task InitializeAsync();
 }

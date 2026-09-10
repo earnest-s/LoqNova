@@ -41,7 +41,7 @@ public interface IAutomationService
     ObservableCollection<AutomationPipeline> AutomaticPipelines { get; }
     ObservableCollection<AutomationPipeline> ManualPipelines { get; }
     
-    event Action PipelinesChanged;
+    event Action? PipelinesChanged;
     
     Task InitializeAsync();
     Task AddPipelineAsync(AutomationPipeline pipeline, bool isManual);
