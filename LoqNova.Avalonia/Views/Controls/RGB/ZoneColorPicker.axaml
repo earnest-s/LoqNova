@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker">
+
+    <StackPanel Spacing="8">
+        <StackPanel Orientation="Horizontal" Spacing="8">
+            <TextBlock Text="{Binding ZoneNumber, StringFormat='Zone {0}'}" Classes="Label" VerticalAlignment="Center" Width="80" />
+            <Border Width="32" Height="32" CornerRadius="4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                <Border.Background>
+                    <SolidColorBrush Color="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+                </Border.Background>
+            </Border>
+        </StackPanel>
+        
+        <ColorPicker Color="{Binding Color, Mode=TwoWay}" />
+    </StackPanel>
+</UserControl>

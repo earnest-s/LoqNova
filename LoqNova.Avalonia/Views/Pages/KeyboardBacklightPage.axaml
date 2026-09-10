@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
+             x:Class="LoqNova.Avalonia.Views.Pages.KeyboardBacklightPage"
+             x:DataType="vm:KeyboardBacklightViewModel">
+
+    <Design.DataContext>
+        <vm:KeyboardBacklightViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer Classes="PageContainer">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock Text="Keyboard Backlight" Classes="PageTitle" />
+                <Button Classes="GhostButton" Content="Spectrum" IsVisible="{Binding IsSpectrumKeyboard}" Margin="0,8,0,0" />
+            </StackPanel>
+            
+            <!-- Keyboard Preview -->
+            <Border Classes="ContentCard" HorizontalAlignment="Center">
+                <controls:KeyboardPreviewControl Zone1Color="{Binding Zone1Color}"
+                                                 Zone2Color="{Binding Zone2Color}"
+                                                 Zone3Color="{Binding Zone3Color}"
+                                                 Zone4Color="{Binding Zone4Color}"
+                                                 Brightness="{Binding SelectedBrightness}" />
+            </Border>
+            
+            <!-- Presets -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Presets" Classes="SectionHeader" />
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <Button Classes="PresetButton" Content="Off" 
+                                IsEnabled="{Binding SelectedPreset, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:Off}"
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Off}" />
+                        <Button Classes="PresetButton" Content="Preset 1" 
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset1}" />
+                        <Button Classes="PresetButton" Content="Preset 2" 
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset2}" />
+                        <Button Classes="PresetButton" Content="Preset 3" 
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset3}" />
+                        <Button Classes="PresetButton" Content="Preset 4" 
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset4}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Brightness -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Brightness" Classes="SectionHeader" />
+                    <ComboBox ItemsSource="{Binding BrightnessLevels}"
+                              SelectedItem="{Binding SelectedBrightness}"
+                              Width="150"
+                              Margin="0,8,0,0"
+                              Background="{StaticResource SurfaceBrush}"
+                              BorderBrush="{StaticResource BorderBrush}"
+                              Foreground="{StaticResource TextPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Effects -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Effects" Classes="SectionHeader" />
+                    <ComboBox ItemsSource="{Binding Effects}"
+                              SelectedItem="{Binding SelectedEffect}"
+                              Width="200"
+                              Margin="0,8,0,0"
+                              Background="{StaticResource SurfaceBrush}"
+                              BorderBrush="{StaticResource BorderBrush}"
+                              Foreground="{StaticResource TextPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Custom Effects (shown when custom effect selected) -->
+            <Border Classes="ContentCard" IsVisible="{Binding IsCustomEffect}">
+                <StackPanel>
+                    <TextBlock Text="Custom Effects" Classes="SectionHeader" />
+                    <ComboBox ItemsSource="{Binding CustomEffects}"
+                              SelectedItem="{Binding SelectedEffect}"
+                              Width="200"
+                              Margin="0,8,0,0"
+                              Background="{StaticResource SurfaceBrush}"
+                              BorderBrush="{StaticResource BorderBrush}"
+                              Foreground="{StaticResource TextPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Speed -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Speed" Classes="SectionHeader" />
+                    <ComboBox ItemsSource="{Binding Speeds}"
+                              SelectedItem="{Binding SelectedSpeed}"
+                              Width="150"
+                              Margin="0,8,0,0"
+                              Background="{StaticResource SurfaceBrush}"
+                              BorderBrush="{StaticResource BorderBrush}"
+                              Foreground="{StaticResource TextPrimaryBrush}" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Zone Colors -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock Text="Zone Colors" Classes="SectionHeader" VerticalAlignment="Center" />
+                        <Button Classes="GhostButton" Content="Synchronize All" Command="{Binding SynchronizeAllZonesCommand}" VerticalAlignment="Center" />
+                    </StackPanel>
+                    
+                    <Grid ColumnDefinitions="*,*,*,*" Margin="0,16,0,0">
+                        <controls:ZoneColorPicker Grid.Column="0" ZoneNumber="1" Color="{Binding Zone1Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Grid.Column="1" ZoneNumber="2" Color="{Binding Zone2Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Grid.Column="2" ZoneNumber="3" Color="{Binding Zone3Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Grid.Column="3" ZoneNumber="4" Color="{Binding Zone4Color, Mode=TwoWay}" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Zones Synchronized -->
+            <Border Classes="ContentCard">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <TextBlock Text="Synchronize Zones" Classes="Body" VerticalAlignment="Center" />
+                    <ToggleSwitch IsChecked="{Binding ZonesSynchronized}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
