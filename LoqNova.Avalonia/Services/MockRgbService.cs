@@ -36,10 +36,7 @@ public class MockRgbService : IRgbService
     public event Action<int, RgbZoneColor>? ZoneColorChanged;
     public event Action<bool>? SynchronizationChanged;
     
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
     
     public Task SetPresetAsync(RgbPreset preset)
     {
