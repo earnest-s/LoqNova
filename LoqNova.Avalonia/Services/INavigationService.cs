@@ -1,5 +1,7 @@
+using System;
 using System.Threading.Tasks;
-using LoqNova.Avalonia.ViewModels.Pages;
+using Avalonia.Controls;
+using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Services;
 
@@ -18,9 +20,9 @@ public enum NavigationPage
 public interface INavigationService
 {
     NavigationPage CurrentPage { get; }
-    event Action<NavigationPage> PageChanged;
+    event Action<NavigationPage>? PageChanged;
     
-    Task InitializeAsync(Avalonia.Controls.Window mainWindow);
+    Task InitializeAsync(Window mainWindow);
     Task NavigateToAsync(NavigationPage page);
     Task NavigateToDialogAsync<TViewModel>() where TViewModel : class;
     Task CloseDialogAsync();
