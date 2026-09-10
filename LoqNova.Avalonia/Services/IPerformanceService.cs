@@ -1,7 +1,15 @@
+using System;
 using System.Threading.Tasks;
-using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Services;
+
+public enum PowerModeState
+{
+    Quiet,
+    Balance,
+    Performance,
+    GodMode
+}
 
 public interface IPerformanceService
 {
@@ -13,9 +21,9 @@ public interface IPerformanceService
     double CpuThermalLimit { get; set; }
     double GpuThermalLimit { get; set; }
     
-    event Action<PowerModeState> ModeChanged;
-    event Action<double> CpuPowerLimitChanged;
-    event Action<double> GpuPowerLimitChanged;
+    event Action<PowerModeState>? ModeChanged;
+    event Action<double>? CpuPowerLimitChanged;
+    event Action<double>? GpuPowerLimitChanged;
     
     Task InitializeAsync();
     Task SetModeAsync(PowerModeState mode);
