@@ -1,0 +1,84 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels"
+             x:Class="LoqNova.Avalonia.Views.Controls.Sensors.SensorsPanel"
+             x:DataType="vm:DashboardViewModel">
+
+    <Border Classes="ContentCard">
+        <Grid RowDefinitions="Auto,*,Auto" ColumnDefinitions="*,*,*,*,*">
+            <!-- Header -->
+            <TextBlock Grid.Row="0" Grid.ColumnSpan="5" Text="Sensors" Classes="CardTitle" Margin="0,0,0,16" />
+            
+            <!-- CPU Usage -->
+            <Border Grid.Row="1" Grid.Column="0" Classes="SensorCard" Margin="0,0,8,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" Width="20" Height="20" Foreground="#0078D4" />
+                        <TextBlock Text="CPU" Classes="SensorCardTitle" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding CpuUsage, StringFormat='{}{0:F1}%'}" Classes="SensorCardValue" Foreground="#0078D4" />
+                    <ProgressBar Value="{Binding CpuUsage}" Classes="CpuUsageBar" Maximum="100" />
+                </StackPanel>
+            </Border>
+            
+            <!-- GPU Usage -->
+            <Border Grid.Row="1" Grid.Column="1" Classes="SensorCard" Margin="8,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm0 16H4V5h16v14zM10 7h10v2H10zm0 4h10v2H10zm0 4h10v2H10z" Width="20" Height="20" Foreground="#00B294" />
+                        <TextBlock Text="GPU" Classes="SensorCardTitle" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding GpuUsage, StringFormat='{}{0:F1}%'}" Classes="SensorCardValue" Foreground="#00B294" />
+                    <ProgressBar Value="{Binding GpuUsage}" Classes="GpuUsageBar" Maximum="100" />
+                </StackPanel>
+            </Border>
+            
+            <!-- CPU Temperature -->
+            <Border Grid.Row="1" Grid.Column="2" Classes="SensorCard" Margin="8,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" Width="20" Height="20" Foreground="#E81123" />
+                        <TextBlock Text="CPU Temp" Classes="SensorCardTitle" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding CpuTemperature, StringFormat='{}{0:F0}°C'}" Classes="SensorCardValue" Foreground="#E81123" />
+                    <ProgressBar Value="{Binding CpuTemperature}" Classes="TemperatureBar" Maximum="100" />
+                </StackPanel>
+            </Border>
+            
+            <!-- GPU Temperature -->
+            <Border Grid.Row="1" Grid.Column="3" Classes="SensorCard" Margin="8,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" Width="20" Height="20" Foreground="#E81123" />
+                        <TextBlock Text="GPU Temp" Classes="SensorCardTitle" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding GpuTemperature, StringFormat='{}{0:F0}°C'}" Classes="SensorCardValue" Foreground="#E81123" />
+                    <ProgressBar Value="{Binding GpuTemperature}" Classes="TemperatureBar" Maximum="100" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Fan Speed -->
+            <Border Grid.Row="1" Grid.Column="4" Classes="SensorCard" Margin="8,0,0,0">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <PathIcon Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z" Width="20" Height="20" Foreground="#744DA9" />
+                        <TextBlock Text="Fan" Classes="SensorCardTitle" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding FanSpeedRpm, StringFormat='{}{0} RPM'}" Classes="SensorCardValue" Foreground="#744DA9" />
+                    <ProgressBar Value="{Binding FanSpeedPercent}" Classes="FanSpeedBar" Maximum="100" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Power Mode Indicator -->
+            <Border Grid.Row="2" Grid.ColumnSpan="5" Margin="0,16,0,0" Padding="12" Background="{StaticResource SurfaceBrush}" CornerRadius="8" BorderBrush="{Binding PowerModeColor}" BorderThickness="2">
+                <StackPanel Orientation="Horizontal" Spacing="12">
+                    <Border Width="16" Height="16" CornerRadius="8" Background="{Binding PowerModeColor}" />
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="{Binding CurrentPowerMode, Converter={StaticResource EnumToDisplayConverter}}" Classes="Body" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                        <TextBlock Text="Power Mode" Classes="Caption" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </Grid>
+    </Border>
+</UserControl>
