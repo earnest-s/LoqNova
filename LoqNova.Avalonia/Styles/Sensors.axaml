@@ -1,0 +1,63 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Sensor Bar -->
+    <Style x:Key="SensorBar" TargetType="Border">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+    
+    <Style x:Key="SensorBarFill" TargetType="Border">
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Height" Value="8" />
+    </Style>
+    
+    <!-- Sensor Progress Bar -->
+    <Style x:Key="SensorProgressBar" TargetType="ProgressBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Minimum" Value="0" />
+        <Setter Property="Maximum" Value="100" />
+    </Style>
+    
+    <!-- CPU Usage Bar -->
+    <Style x:Key="CpuUsageBar" TargetType="ProgressBar" BasedOn="{StaticResource SensorProgressBar}">
+        <Setter Property="Foreground" Value="#0078D4" />
+    </Style>
+    
+    <!-- GPU Usage Bar -->
+    <Style x:Key="GpuUsageBar" TargetType="ProgressBar" BasedOn="{StaticResource SensorProgressBar}">
+        <Setter Property="Foreground" Value="#00B294" />
+    </Style>
+    
+    <!-- Temperature Bar -->
+    <Style x:Key="TemperatureBar" TargetType="ProgressBar" BasedOn="{StaticResource SensorProgressBar}">
+        <Setter Property="Foreground" Value="#E81123" />
+    </Style>
+    
+    <!-- Fan Speed Bar -->
+    <Style x:Key="FanSpeedBar" TargetType="ProgressBar" BasedOn="{StaticResource SensorProgressBar}">
+        <Setter Property="Foreground" Value="#744DA9" />
+    </Style>
+    
+    <!-- Sensor Card Layout -->
+    <Style x:Key="SensorCard" TargetType="Border" BasedOn="{StaticResource SensorCard}">
+        <Setter Property="Margin" Value="4" />
+    </Style>
+    
+    <Style x:Key="SensorCardTitle" TargetType="TextBlock" BasedOn="{StaticResource Label}">
+        <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+    
+    <Style x:Key="SensorCardValue" TargetType="TextBlock" BasedOn="{StaticResource Value}" />
+    <Style x:Key="SensorCardUnit" TargetType="TextBlock" BasedOn="{StaticResource Unit}" />
+    
+    <!-- Sensor Grid -->
+    <Style x:Key="SensorGrid" TargetType="Grid">
+        <Setter Property="ColumnDefinitions" Value="Auto,Auto,*" />
+    </Style>
+</ResourceDictionary>
