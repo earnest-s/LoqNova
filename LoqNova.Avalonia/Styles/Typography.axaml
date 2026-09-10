@@ -1,0 +1,119 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <!-- Font Families -->
+    <FontFamily x:Key="DefaultFontFamily">avares://Avalonia.Fonts.Inter/#Inter</FontFamily>
+    
+    <!-- Font Sizes -->
+    <x:Double x:Key="FontSizeXS">11</x:Double>
+    <x:Double x:Key="FontSizeSM">12</x:Double>
+    <x:Double x:Key="FontSizeMD">13</x:Double>
+    <x:Double x:Key="FontSizeLG">14</x:Double>
+    <x:Double x:Key="FontSizeXL">16</x:Double>
+    <x:Double x:Key="FontSize2XL">18</x:Double>
+    <x:Double x:Key="FontSize3XL">20</x:Double>
+    <x:Double x:Key="FontSize4XL">24</x:Double>
+    <x:Double x:Key="FontSize5XL">28</x:Double>
+    <x:Double x:Key="FontSize6XL">32</x:Double>
+    
+    <!-- Font Weights -->
+    <FontWeight x:Key="FontWeightLight">300</FontWeight>
+    <FontWeight x:Key="FontWeightNormal">400</FontWeight>
+    <FontWeight x:Key="FontWeightMedium">500</FontWeight>
+    <FontWeight x:Key="FontWeightSemiBold">600</FontWeight>
+    <FontWeight x:Key="FontWeightBold">700</FontWeight>
+    
+    <!-- Line Heights -->
+    <x:Double x:Key="LineHeightTight">1.25</x:Double>
+    <x:Double x:Key="LineHeightNormal">1.5</x:Double>
+    <x:Double x:Key="LineHeightRelaxed">1.75</x:Double>
+    
+    <!-- Text Styles -->
+    <Style x:Key="Heading1" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize5XL}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightBold}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightTight}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="Heading2" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize4XL}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightTight}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="Heading3" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize3XL}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="Heading4" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize2XL}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="BodyLarge" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeLG}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="Body" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="BodySmall" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+    
+    <Style x:Key="Caption" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+    </Style>
+    
+    <Style x:Key="Label" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="Value" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeLG}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightTight}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="Unit" TargetType="TextBlock">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
+        <Setter Property="LineHeight" Value="{StaticResource LineHeightNormal}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+    </Style>
+</ResourceDictionary>
