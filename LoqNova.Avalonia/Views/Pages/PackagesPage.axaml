@@ -1,0 +1,131 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             x:Class="LoqNova.Avalonia.Views.Pages.PackagesPage"
+             x:DataType="vm:PackagesViewModel">
+
+    <Design.DataContext>
+        <vm:PackagesViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer Classes="PageContainer">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock Text="Packages" Classes="PageTitle" />
+            </StackPanel>
+            
+            <!-- Search/Filters -->
+            <Border Classes="ContentCard">
+                <StackPanel Spacing="16">
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0,0,0,8">
+                        <TextBlock Text="Machine Type:" Classes="Label" VerticalAlignment="Center" />
+                        <TextBox Grid.Column="1" Text="{Binding MachineType}" Width="120" Margin="8,0,16,0"
+                                 Background="{StaticResource SurfaceBrush}"
+                                 BorderBrush="{StaticResource BorderBrush}"
+                                 Foreground="{StaticResource TextPrimaryBrush}" />
+                        
+                        <TextBlock Grid.Column="2" Text="OS:" Classes="Label" VerticalAlignment="Center" Margin="16,0,8,0" />
+                        <ComboBox Grid.Column="3" ItemsSource="{Binding OperatingSystems}"
+                                  SelectedItem="{Binding OperatingSystem}"
+                                  Width="180"
+                                  Background="{StaticResource SurfaceBrush}"
+                                  BorderBrush="{StaticResource BorderBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="Auto,*,Auto,Auto,Auto" Margin="0,0,0,8">
+                        <TextBlock Text="Source:" Classes="Label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding Sources}"
+                                  SelectedItem="{Binding Source}"
+                                  Width="150" Margin="8,0,16,0"
+                                  Background="{StaticResource SurfaceBrush}"
+                                  BorderBrush="{StaticResource BorderBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        
+                        <CheckBox Grid.Column="2" Content="Only Show Updates" IsChecked="{Binding OnlyShowUpdates}" Margin="16,0,16,0" VerticalAlignment="Center" />
+                        
+                        <TextBlock Grid.Column="3" Text="Filter:" Classes="Label" VerticalAlignment="Center" Margin="16,0,8,0" />
+                        <TextBox Grid.Column="4" Text="{Binding FilterText}" Width="200" Margin="0,0,16,0"
+                                 Background="{StaticResource SurfaceBrush}"
+                                 BorderBrush="{StaticResource BorderBrush}"
+                                 Foreground="{StaticResource TextPrimaryBrush}"
+                                 Watermark="Search packages..." />
+                    </Grid>
+                    
+                    <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,8">
+                        <TextBlock Text="Sort By:" Classes="Label" VerticalAlignment="Center" />
+                        <ComboBox Grid.Column="1" ItemsSource="{Binding SortOptions}"
+                                  SelectedItem="{Binding SortBy}"
+                                  Width="150" Margin="8,0,16,0"
+                                  Background="{StaticResource SurfaceBrush}"
+                                  BorderBrush="{StaticResource BorderBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        
+                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8">
+                            <TextBlock Text="Download to:" Classes="Label" VerticalAlignment="Center" />
+                            <TextBox Text="{Binding DownloadPath}" Width="300" Margin="8,0,8,0"
+                                     Background="{StaticResource SurfaceBrush}"
+                                     BorderBrush="{StaticResource BorderBrush}"
+                                     Foreground="{StaticResource TextPrimaryBrush}" IsReadOnly="True" />
+                            <Button Classes="GhostButton" Content="Browse" Command="{Binding BrowseDownloadPathCommand}" />
+                        </StackPanel>
+                    </Grid>
+                    
+                    <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                        <Button Classes="PrimaryButton" Content="Search" Command="{Binding SearchCommand}" IsEnabled="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}" />
+                        <Button Classes="PrimaryButton" Content="Download Selected" Command="{Binding DownloadCommand}" IsEnabled="{Binding IsDownloading, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}" />
+                        <Button Classes="GhostButton" Content="Cancel" Command="{Binding CancelDownloadCommand}" IsVisible="{Binding IsDownloading}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Progress Bar -->
+            <Border Classes="ContentCard" IsVisible="{Binding IsDownloading}">
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="12">
+                        <ProgressBar Value="{Binding DownloadProgress}" Maximum="100" Width="400" Height="12" />
+                        <TextBlock Text="{Binding DownloadProgress, StringFormat='{}{0:F0}%'}" Classes="Body" VerticalAlignment="Center" MinWidth="50" />
+                    </StackPanel>
+                    <TextBlock Text="{Binding CurrentDownloadStatus}" Classes="Caption" />
+                </StackPanel>
+            </Border>
+            
+            <!-- Package List -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock Text="Available Packages" Classes="SectionHeader" />
+                        <Button Classes="GhostButton" Content="Hide All" Command="{Binding ToggleHideAllCommand}" CommandParameter="True" />
+                        <Button Classes="GhostButton" Content="Show All" Command="{Binding ToggleHideAllCommand}" CommandParameter="False" />
+                    </StackPanel>
+                    
+                    <ItemsControl ItemsSource="{Binding Packages}" Margin="0,16,0,0">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Classes="FeatureCard" Margin="0,8,0,0" IsVisible="{Binding IsHidden, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0">
+                                        <Border Grid.Column="0" Width="4" Background="{Binding IsUpdate, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=update:#E81123,default:Transparent}" CornerRadius="4,0,0,4" />
+                                        
+                                        <StackPanel Grid.Column="1" Margin="12,0,0,0" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" Classes="Body" FontWeight="Medium" />
+                                            <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,4,0,0">
+                                                <TextBlock Text="{Binding Category}" Classes="Caption" Foreground="{StaticResource PrimaryBrush}" />
+                                                <TextBlock Text="{Binding Version}" Classes="Caption" />
+                                                <TextBlock Text="{Binding Date, StringFormat='{}{0:MMM d, yyyy}'}" Classes="Caption" />
+                                                <TextBlock Text="{Binding SizeText}" Classes="Caption" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        
+                                        <Button Grid.Column="2" Classes="GhostButton" Content="Hide" Command="{Binding $parent[Window].DataContext.ToggleHiddenCommand}" CommandParameter="{Binding}" />
+                                        <Button Grid.Column="3" Classes="GhostButton" Content="Download" IsVisible="{Binding IsUpdate}" />
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
