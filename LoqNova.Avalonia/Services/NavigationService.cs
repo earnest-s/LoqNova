@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Avalonia.Controls;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels.Pages;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace LoqNova.Avalonia.Services;
 
@@ -23,14 +24,12 @@ public class NavigationService : INavigationService
     public async Task InitializeAsync(Window mainWindow)
     {
         _mainWindow = mainWindow;
-        // Find the content host in the main window
         _contentHost = mainWindow.FindControl<ContentControl>("ContentHost");
         
         if (_contentHost != null)
         {
             await NavigateToAsync(NavigationPage.Dashboard);
         }
-        await Task.CompletedTask;
     }
     
     public async Task NavigateToAsync(NavigationPage page)
@@ -58,7 +57,6 @@ public class NavigationService : INavigationService
         }
         
         PageChanged?.Invoke(page);
-        await Task.CompletedTask;
     }
     
     private Control CreateViewForViewModel(object viewModel)
@@ -77,15 +75,7 @@ public class NavigationService : INavigationService
         };
     }
     
-    public Task NavigateToDialogAsync<TViewModel>() where TViewModel : class
-    {
-        // Dialog navigation would be implemented here
-        // For now, just return completed
-        return Task.CompletedTask;
-    }
+    public Task NavigateToDialogAsync<TViewModel>() where TViewModel : class => Task.CompletedTask;
     
-    public Task CloseDialogAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task CloseDialogAsync() => Task.CompletedTask;
 }
