@@ -19,7 +19,7 @@
     <Color x:Key="PressedColor">#404040</Color>
     <Color x:Key="FocusColor">#0078D4</Color>
     <Color x:Key="DisabledColor">#444444</Color>
-    <Color x:Key "DisabledTextColor">#666666</Color>
+    <Color x:Key="DisabledTextColor">#666666</Color>
     
     <!-- Power Mode Colors -->
     <Color x:Key="QuietModeColor">#0078D4</Color>
