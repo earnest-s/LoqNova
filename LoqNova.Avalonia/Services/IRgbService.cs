@@ -1,5 +1,5 @@
+using System;
 using System.Threading.Tasks;
-using LoqNova.Lib.Controllers.CustomRGBEffects;
 
 namespace LoqNova.Avalonia.Services;
 
