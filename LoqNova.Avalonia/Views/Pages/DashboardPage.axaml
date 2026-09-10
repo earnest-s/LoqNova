@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
+             x:Class="LoqNova.Avalonia.Views.Pages.DashboardPage"
+             x:DataType="vm:DashboardViewModel">
+
+    <Design.DataContext>
+        <vm:DashboardViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer Classes="PageContainer">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock Text="Dashboard" Classes="PageTitle" />
+                <Button Classes="GhostButton" Content="Edit Dashboard" Command="{Binding EditDashboardCommand}" Margin="0,8,0,0" />
+                <Button Classes="PrimaryButton" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,8,0,0" />
+            </StackPanel>
+            
+            <!-- Power Mode Selector -->
+            <Border Classes="ContentCard">
+                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,16">
+                    <TextBlock Text="Power Mode" Classes="CardTitle" VerticalAlignment="Center" />
+                    
+                    <ComboBox Grid.Column="1" HorizontalAlignment="Right" Width="180" Margin="0,0,16,0"
+                              ItemsSource="{Binding PowerModeItems}"
+                              SelectedItem="{Binding CurrentPowerMode}"
+                              Background="{StaticResource SurfaceBrush}"
+                              BorderBrush="{StaticResource BorderBrush}"
+                              Foreground="{StaticResource TextPrimaryBrush}" />
+                    
+                    <Button Grid.Column="2" Classes="GhostButton" Content="GodMode" Command="{Binding OpenGodModeCommand}" Margin="0,0,8,0" />
+                </Grid>
+            </Border>
+            
+            <!-- Sensors Panel -->
+            <controls:SensorsPanel CpuUsage="{Binding CpuUsage}"
+                                   GpuUsage="{Binding GpuUsage}"
+                                   CpuTemperature="{Binding CpuTemperature}"
+                                   GpuTemperature="{Binding GpuTemperature}"
+                                   FanSpeedRpm="{Binding FanSpeedRpm}"
+                                   FanSpeedPercent="{Binding FanSpeedPercent}"
+                                   PowerModeColor="{Binding PowerModeColor}" />
+            
+            <!-- Dashboard Widgets -->
+            <ItemsControl ItemsSource="{Binding Widgets}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel ItemWidth="280" ItemHeight="140" Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <controls:DashboardWidget Widget="{Binding}" />
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
