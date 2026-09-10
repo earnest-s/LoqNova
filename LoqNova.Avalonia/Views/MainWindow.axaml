@@ -1,0 +1,150 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels"
+        xmlns:views="clr-namespace:LoqNova.Avalonia.Views"
+        xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
+        x:Class="LoqNova.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Title="LOQ Nova"
+        Width="1200"
+        Height="800"
+        MinWidth="1000"
+        MinHeight="700"
+        WindowStartupLocation="CenterScreen"
+        Icon="avares://LoqNova.Avalonia/Assets/icon.ico"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1"
+        Background="{StaticResource BackgroundBrush}">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel />
+    </Design.DataContext>
+
+    <Panel>
+        <!-- Title Bar Area -->
+        <Grid RowDefinitions="Auto,*" ColumnDefinitions="*,Auto">
+            <!-- Title Bar -->
+            <Border Grid.Row="0" Grid.ColumnSpan="2" Height="32" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <!-- Window Icon -->
+                    <Image Source="avares://LoqNova.Avalonia/Assets/icon.ico" Width="16" Height="16" Margin="12,0,8,0" VerticalAlignment="Center" />
+                    
+                    <!-- Title -->
+                    <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,0" />
+                    
+                    <!-- Window Controls -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Margin="0,0,8,0">
+                        <Button Classes="IconButton" ToolTip.Tip="Minimize" Command="{Binding MinimizeCommand}">
+                            <PathIcon Data="M0 10h24" Width="20" Height="20" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Button>
+                        <Button Classes="IconButton" ToolTip.Tip="Maximize" Command="{Binding MaximizeCommand}">
+                            <PathIcon Data="M4 4h16v16H4z" Width="20" Height="20" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Button>
+                        <Button Classes="IconButton" ToolTip.Tip="Close" Command="{Binding CloseCommand}" Background="Transparent">
+                            <PathIcon Data="M18 6L6 18M6 6l12 12" Width="20" Height="20" Foreground="{StaticResource TextSecondaryBrush}" />
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+            
+            <!-- Main Content Area -->
+            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*">
+                <!-- Navigation Sidebar -->
+                <Border Grid.Column="0" Classes="NavigationSidebar">
+                    <Grid RowDefinitions="Auto,*,Auto,Auto">
+                        <!-- App Logo -->
+                        <Border Margin="16,16,16,8">
+                            <StackPanel Orientation="Horizontal" Spacing="10">
+                                <Image Source="avares://LoqNova.Avalonia/Assets/icon.ico" Width="32" Height="32" />
+                                <StackPanel>
+                                    <TextBlock Text="LOQ Nova" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
+                                    <TextBlock Text="{Binding DeviceModel}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Border>
+                        
+                        <!-- Status Indicators -->
+                        <StackPanel Grid.Row="1" Margin="16,0,16,8" Spacing="6" IsVisible="{Binding IsTracing}">
+                            <Border Padding="8,4" Background="{StaticResource AccentBrush}" CornerRadius="4">
+                                <TextBlock Text="TRACING" FontSize="10" FontWeight="Bold" Foreground="White" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Margin="16,0,16,8" Spacing="6" IsVisible="{Binding IsVantageActive}">
+                            <Border Padding="8,4" Background="#FF8C00" CornerRadius="4">
+                                <TextBlock Text="VANTAGE ACTIVE" FontSize="10" FontWeight="Bold" Foreground="White" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Margin="16,0,16,8" Spacing="6" IsVisible="{Binding IsLegionZoneActive}">
+                            <Border Padding="8,4" Background="#FF8C00" CornerRadius="4">
+                                <TextBlock Text="LEGIONZONE ACTIVE" FontSize="10" FontWeight="Bold" Foreground="White" />
+                            </Border>
+                        </StackPanel>
+                        <StackPanel Grid.Row="1" Margin="16,0,16,8" Spacing="6" IsVisible="{Binding IsFnKeysActive}">
+                            <Border Padding="8,4" Background="#FF8C00" CornerRadius="4">
+                                <TextBlock Text="FN KEYS ACTIVE" FontSize="10" FontWeight="Bold" Foreground="White" />
+                            </Border>
+                        </StackPanel>
+                        
+                        <!-- Navigation Items -->
+                        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                            <StackPanel Spacing="0">
+                                <ItemsControl ItemsSource="{Binding NavigationItems}">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Classes="NavigationItem"
+                                                    Command="{Binding $parent[Window].DataContext.Navigate}"
+                                                    CommandParameter="{Binding Page}"
+                                                    IsVisible="{Binding IsVisible}"
+                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}"
+                                                    Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                <StackPanel Orientation="Horizontal" Spacing="12">
+                                                    <PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
+                                                              Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
+                                                    <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
+                                                               Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=selected:White,default:TextPrimaryBrush}" />
+                                                </StackPanel>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </StackPanel>
+                        </ScrollViewer>
+                        
+                        <!-- Separator -->
+                        <Separator Classes="NavigationSeparator" Grid.Row="2" />
+                        
+                        <!-- Footer Navigation Items -->
+                        <StackPanel Grid.Row="3" Margin="0,0,0,16" Spacing="0">
+                            <ItemsControl ItemsSource="{Binding NavigationItems}">
+                                <ItemsControl.ItemTemplate>
+                                    <DataTemplate>
+                                        <Button Classes="FooterNavigationItem"
+                                                Command="{Binding $parent[Window].DataContext.Navigate}"
+                                                CommandParameter="{Binding Page}"
+                                                IsVisible="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=footer}"
+                                                Background="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}"
+                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                            <StackPanel Orientation="Horizontal" Spacing="12">
+                                                <PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
+                                                          Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
+                                                <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
+                                                           Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=selected:White,default:TextPrimaryBrush}" />
+                                            </StackPanel>
+                                        </Button>
+                                    </DataTemplate>
+                                </ItemsControl.ItemTemplate>
+                            </ItemsControl>
+                        </StackPanel>
+                    </Grid>
+                </Border>
+                
+                <!-- Content Host -->
+                <ContentControl Grid.Column="1" x:Name="ContentHost" Margin="0" />
+            </Grid>
+        </Grid>
+        
+        <!-- Snackbar Host -->
+        <controls:SnackbarHost x:Name="SnackbarHost" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="24" />
+    </Panel>
+</Window>

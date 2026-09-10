@@ -3,13 +3,13 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using LoqNova.Avalonia.Converters;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels;
 using LoqNova.Avalonia.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
-using LoqNova.Lib;
 
 namespace LoqNova.Avalonia;
 
@@ -28,6 +28,11 @@ public partial class App : Application
         // Build DI container
         var builder = new ContainerBuilder();
         
+        // Register converters
+        builder.RegisterType<BoolToVisibilityConverter>().SingleInstance();
+        builder.RegisterType<EnumToDisplayConverter>().SingleInstance();
+        builder.RegisterType<RgbZoneColorToBrushConverter>().SingleInstance();
+        
         // Register core services
         builder.RegisterType<ThemeService>().As<IThemeService>().SingleInstance();
         builder.RegisterType<NavigationService>().As<INavigationService>().SingleInstance();
@@ -41,6 +46,7 @@ public partial class App : Application
         builder.RegisterType<MockRgbService>().As<IRgbService>().SingleInstance();
         builder.RegisterType<MockThermalService>().As<IThermalService>().SingleInstance();
         builder.RegisterType<MockBatteryService>().As<IBatteryService>().SingleInstance();
+        builder.RegisterType<MockSensorsService>().As<ISensorsService>().SingleInstance();
         builder.RegisterType<MockSettingsService>().As<ISettingsService>().SingleInstance();
         builder.RegisterType<MockAutomationService>().As<IAutomationService>().SingleInstance();
         builder.RegisterType<MockMacroService>().As<IMacroService>().SingleInstance();
@@ -76,7 +82,7 @@ public partial class App : Application
         builder.RegisterType<DeviceInformationViewModel>().InstancePerDependency();
         builder.RegisterType<LanguageSelectorViewModel>().InstancePerDependency();
         builder.RegisterType<StatusViewModel>().InstancePerDependency();
-        builder.RegisterType<SymbolRegularPickerViewModel>().InstancePerDependency();
+        builder.RegisterType<UnsupportedViewModel>().InstancePerDependency();
         builder.RegisterType<UpdateViewModel>().InstancePerDependency();
         builder.RegisterType<NotificationViewModel>().InstancePerDependency();
         builder.RegisterType<MacroRecordingViewModel>().InstancePerDependency();
