@@ -1,0 +1,135 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             x:Class="LoqNova.Avalonia.Views.Pages.MacroPage"
+             x:DataType="vm:MacroViewModel">
+
+    <Design.DataContext>
+        <vm:MacroViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer Classes="PageContainer">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <TextBlock Text="Macros" Classes="PageTitle" />
+                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
+                    <ToggleSwitch IsChecked="{Binding IsEnabled}" OnContent="Enabled" OffContent="Disabled" />
+                    <Button Classes="PrimaryButton" Content="Save" Command="{Binding SaveCommand}" />
+                </StackPanel>
+            </StackPanel>
+            
+            <!-- Number Pad -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Select Key" Classes="SectionHeader" />
+                    
+                    <UniformGrid Rows="3" Columns="4" Margin="0,16,0,0" Spacing="8">
+                        <Button Classes="SecondaryButton" Content="1" Command="{Binding SelectKeyCommand}" CommandParameter="1" 
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:1}" />
+                        <Button Classes="SecondaryButton" Content="2" Command="{Binding SelectKeyCommand}" CommandParameter="2"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:2}" />
+                        <Button Classes="SecondaryButton" Content="3" Command="{Binding SelectKeyCommand}" CommandParameter="3"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:3}" />
+                        <Button Classes="SecondaryButton" Content="4" Command="{Binding SelectKeyCommand}" CommandParameter="4"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:4}" />
+                        <Button Classes="SecondaryButton" Content="5" Command="{Binding SelectKeyCommand}" CommandParameter="5"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:5}" />
+                        <Button Classes="SecondaryButton" Content="6" Command="{Binding SelectKeyCommand}" CommandParameter="6"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:6}" />
+                        <Button Classes="SecondaryButton" Content="7" Command="{Binding SelectKeyCommand}" CommandParameter="7"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:7}" />
+                        <Button Classes="SecondaryButton" Content="8" Command="{Binding SelectKeyCommand}" CommandParameter="8"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:8}" />
+                        <Button Classes="SecondaryButton" Content="9" Command="{Binding SelectKeyCommand}" CommandParameter="9"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:9}" />
+                        <Button Classes="SecondaryButton" Content="0" Command="{Binding SelectKeyCommand}" CommandParameter="0"
+                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=not:0}" />
+                        <Button Classes="GhostButton" Content="Clear" />
+                        <Button Classes="GhostButton" Content="Back" />
+                    </UniformGrid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Selected Key Editor -->
+            <Border Classes="ContentCard" IsVisible="{Binding SelectedKeyViewModel, Converter={StaticResource BoolToVisibilityConverter}}">
+                <StackPanel Spacing="16">
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock Text="{Binding SelectedKeyViewModel.Name, StringFormat='Key {0}'}" Classes="Heading4" />
+                        <ToggleSwitch IsChecked="{Binding SelectedKeyViewModel.Enabled}" OnContent="Enabled" OffContent="Disabled" VerticalAlignment="Center" />
+                    </StackPanel>
+                    
+                    <!-- Macro Events -->
+                    <ItemsControl ItemsSource="{Binding SelectedKeyViewModel.Events}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,8,0,0" Padding="12" Background="{StaticResource SurfaceBrush}" CornerRadius="6">
+                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0">
+                                        <PathIcon Data="{Binding TypeName, Converter={StaticResource EnumToDisplayConverter}, ConverterParameter=Key:M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z,Mouse:M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z}" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" />
+                                        
+                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
+                                            <StackPanel IsVisible="{Binding TypeName, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Key}">
+                                                <TextBlock Text="Key:" Classes="BodySmall" VerticalAlignment="Center" />
+                                                <ComboBox SelectedItem="{Binding Key}" Width="100" Margin="8,0,0,0"
+                                                          ItemsSource="{Binding AvailableKeys}"
+                                                          Background="{StaticResource SurfaceBrush}"
+                                                          BorderBrush="{StaticResource BorderBrush}"
+                                                          Foreground="{StaticResource TextPrimaryBrush}" />
+                                            </StackPanel>
+                                            
+                                            <StackPanel IsVisible="{Binding TypeName, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=Mouse}" Orientation="Horizontal" Spacing="8">
+                                                <TextBlock Text="X:" Classes="BodySmall" VerticalAlignment="Center" />
+                                                <NumericUpDown Value="{Binding X}" Width="80" Minimum="-9999" Maximum="9999" />
+                                                <TextBlock Text="Y:" Classes="BodySmall" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                                <NumericUpDown Value="{Binding Y}" Width="80" Minimum="-9999" Maximum="9999" />
+                                                <TextBlock Text="Button:" Classes="BodySmall" VerticalAlignment="Center" Margin="16,0,0,0" />
+                                                <ComboBox SelectedItem="{Binding Button}" Width="100"
+                                                          ItemsSource="{Binding AvailableMouseButtons}"
+                                                          Background="{StaticResource SurfaceBrush}"
+                                                          BorderBrush="{StaticResource BorderBrush}"
+                                                          Foreground="{StaticResource TextPrimaryBrush}" />
+                                            </StackPanel>
+                                            
+                                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,0">
+                                                <TextBlock Text="Press:" Classes="BodySmall" VerticalAlignment="Center" />
+                                                <ToggleSwitch IsChecked="{Binding IsPress}" OnContent="Down" OffContent="Up" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                        
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+                                            <TextBlock Text="Delay:" Classes="BodySmall" VerticalAlignment="Center" />
+                                            <NumericUpDown Value="{Binding DelayMs}" Width="100" Minimum="0" Maximum="10000" Increment="10" />
+                                            <TextBlock Text="ms" Classes="Caption" VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        
+                                        <Button Grid.Column="3" Classes="IconButton" ToolTip.Tip="Remove" Command="{Binding $parent[ItemsControl].DataContext.RemoveEventCommand}" CommandParameter="{Binding}">
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="20" Height="20" Foreground="{StaticResource TextMutedBrush}" />
+                                        </Button>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    
+                    <!-- Add Event Buttons -->
+                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+                        <Button Classes="SecondaryButton" Content="Add Key" Command="{Binding SelectedKeyViewModel.AddKeyEventCommand}" CommandParameter="A" />
+                        <Button Classes="SecondaryButton" Content="Add Mouse" Command="{Binding SelectedKeyViewModel.AddMouseEventCommand}" CommandParameter="Left" />
+                        <Button Classes="GhostButton" Content="Clear All" Command="{Binding SelectedKeyViewModel.ClearEventsCommand}" />
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Recording Controls -->
+            <Border Classes="ContentCard" IsVisible="{Binding IsRecording}">
+                <StackPanel Spacing="16" HorizontalAlignment="Center">
+                    <TextBlock Text="Recording..." Classes="Heading3" Foreground="#E81123" />
+                    <TextBlock Text="{Binding RecordingTime, StringFormat='{}{0:mm\\:ss\\.ff}'}" Classes="Heading2" FontFamily="Consolas" />
+                    <TextBlock Text="{Binding LastKey, StringFormat='Last: {0}'}" Classes="Body" />
+                    <TextBlock Text="{Binding EventCount, StringFormat='Events: {0}'}" Classes="Caption" />
+                    <Button Classes="DangerButton" Content="Stop Recording" Command="{Binding StopRecordingCommand}" />
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
