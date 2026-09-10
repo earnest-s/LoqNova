@@ -23,7 +23,6 @@ public class ThemeService : IThemeService
     {
         CurrentTheme = _settings.Theme;
         ApplyTheme(CurrentTheme);
-        await Task.CompletedTask;
     }
     
     public Task SetThemeAsync(AppTheme theme)

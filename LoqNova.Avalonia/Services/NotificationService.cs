@@ -1,7 +1,5 @@
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
-using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Notifications;
 using LoqNova.Avalonia.Services;
@@ -30,7 +28,6 @@ public class NotificationService : INotificationService
                 MaxItems = 5
             };
         }
-        await Task.CompletedTask;
     }
     
     public Task ShowAsync(NotificationMessage message)
@@ -45,10 +42,7 @@ public class NotificationService : INotificationService
             _ => NotificationType.Info
         };
         
-        // Map our custom types to Avalonia types
-        var avaloniaType = notificationType;
-        
-        _notificationManager?.Show(new Notification(message.Title, message.Message ?? "", avaloniaType)
+        _notificationManager?.Show(new Notification(message.Title, message.Message ?? "", notificationType)
         {
             Duration = message.Duration ?? TimeSpan.FromSeconds(5)
         });
@@ -57,8 +51,5 @@ public class NotificationService : INotificationService
         return Task.CompletedTask;
     }
     
-    public Task ShutdownAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task ShutdownAsync() => Task.CompletedTask;
 }
