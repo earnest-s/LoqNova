@@ -1,0 +1,79 @@
+<ResourceDictionary xmlns="https://github.com/avaloniaui"
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+    
+    <ResourceDictionary.MergedDictionaries>
+        <ResourceInclude Source="Styles/Colors.axaml" />
+        <ResourceInclude Source="Styles/Typography.axaml" />
+        <ResourceInclude Source="Styles/Cards.axaml" />
+        <ResourceInclude Source="Styles/Navigation.axaml" />
+        <ResourceInclude Source="Styles/Buttons.axaml" />
+        <ResourceInclude Source="Styles/Sensors.axaml" />
+    </ResourceDictionary.MergedDictionaries>
+    
+    <!-- Global Converters -->
+    <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" xmlns:local="clr-namespace:LoqNova.Avalonia.Converters" />
+    <local:EnumToDisplayConverter x:Key="EnumToDisplayConverter" xmlns:local="clr-namespace:LoqNova.Avalonia.Converters" />
+    <local:RgbZoneColorToBrushConverter x:Key="RgbZoneColorToBrushConverter" xmlns:local="clr-namespace:LoqNova.Avalonia.Converters" />
+    
+    <!-- Common Styles -->
+    <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource Heading3}">
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+    
+    <Style x:Key="SubSectionHeader" TargetType="TextBlock" BasedOn="{StaticResource Heading4}">
+        <Setter Property="Margin" Value="0,16,0,8" />
+    </Style>
+    
+    <Style x:Key="PageTitle" TargetType="TextBlock" BasedOn="{StaticResource Heading2}">
+        <Setter Property="Margin" Value="0,0,0,24" />
+    </Style>
+    
+    <Style x:Key="PageContainer" TargetType="ScrollViewer">
+        <Setter Property="Padding" Value="24" />
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
+    
+    <Style x:Key="ContentCard" TargetType="Border" BasedOn="{StaticResource FeatureCard}">
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+    
+    <Style x:Key="SettingsRow" TargetType="Grid">
+        <Setter Property="ColumnDefinitions" Value="*,Auto" />
+        <Setter Property="Margin" Value="0,8,0,8" />
+    </Style>
+    
+    <Style x:Key="SettingsLabel" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    
+    <Style x:Key="SettingsControl" TargetType="Control">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="MinWidth" Value="150" />
+    </Style>
+    
+    <Style x:Key="Divider" TargetType="Separator">
+        <Setter Property="Margin" Value="0,16" />
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+    
+    <Style x:Key="Icon" TargetType="PathIcon">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="SmallIcon" TargetType="PathIcon">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+    
+    <Style x:Key="LargeIcon" TargetType="PathIcon">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+</ResourceDictionary>
