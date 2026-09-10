@@ -39,7 +39,6 @@ public class MockThermalService : IThermalService
     
     private void SimulateChanges()
     {
-        // Simulate small temperature variations
         _cpuTemp += (_random.NextDouble() - 0.5) * 2;
         _cpuTemp = Math.Clamp(_cpuTemp, 40, 90);
         CpuTemperatureChanged?.Invoke(_cpuTemp);
@@ -62,9 +61,5 @@ public class MockThermalService : IThermalService
         return Task.CompletedTask;
     }
     
-    public Task SetFanCurveAsync(FanCurvePoint[] curve)
-    {
-        // Mock implementation - just acknowledge
-        return Task.CompletedTask;
-    }
+    public Task SetFanCurveAsync(FanCurvePoint[] curve) => Task.CompletedTask;
 }
