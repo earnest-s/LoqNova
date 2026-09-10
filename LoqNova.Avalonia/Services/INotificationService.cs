@@ -1,3 +1,4 @@
+using System;
 using System.Threading.Tasks;
 
 namespace LoqNova.Avalonia.Services;
@@ -42,7 +43,7 @@ public class NotificationMessage
 
 public interface INotificationService
 {
-    event Action<NotificationMessage> NotificationRequested;
+    event Action<NotificationMessage>? NotificationRequested;
     
     Task InitializeAsync();
     Task ShowAsync(NotificationMessage message);
