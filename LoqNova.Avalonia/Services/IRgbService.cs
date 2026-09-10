@@ -19,7 +19,6 @@ public enum RgbEffect
     WaveRightToLeft = 2,
     WaveLeftToRight = 3,
     Smooth = 4,
-    // Custom effects
     Ambient = 100,
     AudioVisualizer = 101,
     BreathingColorCycle = 102,
@@ -73,12 +72,12 @@ public interface IRgbService
     RgbZoneColor Zone4Color { get; }
     bool ZonesSynchronized { get; }
     
-    event Action<RgbPreset> PresetChanged;
-    event Action<RgbEffect> EffectChanged;
-    event Action<RgbSpeed> SpeedChanged;
-    event Action<RgbBrightness> BrightnessChanged;
-    event Action<int, RgbZoneColor> ZoneColorChanged;
-    event Action<bool> SynchronizationChanged;
+    event Action<RgbPreset>? PresetChanged;
+    event Action<RgbEffect>? EffectChanged;
+    event Action<RgbSpeed>? SpeedChanged;
+    event Action<RgbBrightness>? BrightnessChanged;
+    event Action<int, RgbZoneColor>? ZoneColorChanged;
+    event Action<bool>? SynchronizationChanged;
     
     Task InitializeAsync();
     Task SetPresetAsync(RgbPreset preset);
