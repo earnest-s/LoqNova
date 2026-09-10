@@ -1,5 +1,5 @@
 using System.Threading.Tasks;
-using LoqNova.Lib.Features.PowerMode;
+using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Services;
 
