@@ -1,0 +1,202 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             x:Class="LoqNova.Avalonia.Views.Pages.SettingsPage"
+             x:DataType="vm:SettingsViewModel">
+
+    <Design.DataContext>
+        <vm:SettingsViewModel />
+    </Design.DataContext>
+
+    <ScrollViewer Classes="PageContainer">
+        <StackPanel Spacing="24">
+            <!-- Page Header -->
+            <TextBlock Text="Settings" Classes="PageTitle" />
+            
+            <!-- General -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="General" Classes="SectionHeader" />
+                    
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto" Margin="0,16,0,0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Language" Classes="SettingsLabel" />
+                        <ComboBox Grid.Row="0" Grid.Column="1" ItemsSource="{Binding Languages}"
+                                  SelectedItem="{Binding Language}"
+                                  Width="200"
+                                  Background="{StaticResource SurfaceBrush}"
+                                  BorderBrush="{StaticResource BorderBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Temperature Unit" Classes="SettingsLabel" />
+                        <ToggleSwitch Grid.Row="1" Grid.Column="1" IsChecked="{Binding TemperatureUnitFahrenheit}" OnContent="°F" OffContent="°C" />
+                        
+                        <TextBlock Grid.Row="2" Grid.Column="0" Text="Theme" Classes="SettingsLabel" />
+                        <ComboBox Grid.Row="2" Grid.Column="1" ItemsSource="{Binding Themes}"
+                                  SelectedItem="{Binding Theme}"
+                                  Width="200"
+                                  Background="{StaticResource SurfaceBrush}"
+                                  BorderBrush="{StaticResource BorderBrush}"
+                                  Foreground="{StaticResource TextPrimaryBrush}" />
+                        
+                        <TextBlock Grid.Row="3" Grid.Column="0" Text="Accent Color" Classes="SettingsLabel" />
+                        <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="8">
+                            <ColorPicker Color="{Binding AccentColor}" />
+                            <ToggleSwitch IsChecked="{Binding UseSystemAccent}" OnContent="System" OffContent="Custom" VerticalAlignment="Center" />
+                        </StackPanel>
+                    </Grid>
+                    
+                    <Separator Classes="Divider" Margin="0,16" />
+                    
+                    <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto" Margin="0,0,0,0">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="Autorun" Classes="SettingsLabel" />
+                        <ToggleSwitch Grid.Row="0" Grid.Column="1" IsChecked="{Binding AutorunEnabled}" OnContent="Enabled" OffContent="Disabled" />
+                        
+                        <TextBlock Grid.Row="1" Grid.Column="0" Text="Minimize to Tray" Classes="SettingsLabel" />
+                        <ToggleSwitch Grid.Row="1" Grid.Column="1" IsChecked="{Binding MinimizeToTray}" OnContent="Yes" OffContent="No" />
+                    </Grid>
+                </StackPanel>
+            </Border>
+            
+            <!-- Device Integration -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Device Integration" Classes="SectionHeader" />
+                    
+                    <StackPanel Spacing="12" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="Disable Vantage Integration" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding VantageDisabled}" OnContent="Disabled" OffContent="Enabled" />
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="Disable LegionZone Integration" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding LegionZoneDisabled}" OnContent="Disabled" OffContent="Enabled" />
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="Disable Fn Keys Interception" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding FnKeysDisabled}" OnContent="Disabled" OffContent="Enabled" />
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="Smart FnLock" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding SmartFnLockEnabled}" OnContent="Enabled" OffContent="Disabled" />
+                        </StackPanel>
+                        
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                            <TextBlock Grid.Column="0" Text="Smart FnLock Modifier Key" Classes="SettingsLabel" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding SmartFnLockKeys}"
+                                      SelectedIndex="{Binding SmartFnLockModifierKey}"
+                                      Width="150"
+                                      Background="{StaticResource SurfaceBrush}"
+                                      BorderBrush="{StaticResource BorderBrush}"
+                                      Foreground="{StaticResource TextPrimaryBrush}" />
+                        </Grid>
+                        
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                            <TextBlock Grid.Column="0" Text="Smart Key Single Press" Classes="SettingsLabel" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding SmartKeyActions}"
+                                      SelectedItem="{Binding SmartKeySinglePressAction}"
+                                      Width="200"
+                                      Background="{StaticResource SurfaceBrush}"
+                                      BorderBrush="{StaticResource BorderBrush}"
+                                      Foreground="{StaticResource TextPrimaryBrush}" />
+                        </Grid>
+                        
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                            <TextBlock Grid.Column="0" Text="Smart Key Double Press" Classes="SettingsLabel" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" ItemsSource="{Binding SmartKeyActions}"
+                                      SelectedItem="{Binding SmartKeyDoublePressAction}"
+                                      Width="200"
+                                      Background="{StaticResource SurfaceBrush}"
+                                      BorderBrush="{StaticResource BorderBrush}"
+                                      Foreground="{StaticResource TextPrimaryBrush}" />
+                        </Grid>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
+                            <TextBlock Text="GodMode Fn+Q Switchable" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding GodModeFnQSwitchable}" OnContent="Enabled" OffContent="Disabled" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Notifications -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="16">
+                        <TextBlock Text="Notifications" Classes="SectionHeader" />
+                        <Button Classes="GhostButton" Content="Advanced Settings" Command="{Binding OpenNotificationsSettingsCommand}" />
+                    </StackPanel>
+                    
+                    <StackPanel Spacing="12" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="Enable Notifications" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding NotificationsEnabled}" OnContent="On" OffContent="Off" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- Integrations -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Integrations" Classes="SectionHeader" />
+                    
+                    <StackPanel Spacing="12" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="CLI (Named Pipe IPC)" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding CliEnabled}" OnContent="Enabled" OffContent="Disabled" />
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="HWiNFO Integration" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding HwInfoEnabled}" OnContent="Enabled" OffContent="Disabled" />
+                        </StackPanel>
+                        
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,8,0,0">
+                            <TextBlock Grid.Column="0" Text="HWiNFO Shared Memory Path" Classes="SettingsLabel" VerticalAlignment="Center" />
+                            <TextBox Grid.Column="1" Text="{Binding HwInfoSharedMemoryPath}" Width="400" Margin="8,0,0,0"
+                                     Background="{StaticResource SurfaceBrush}"
+                                     BorderBrush="{StaticResource BorderBrush}"
+                                     Foreground="{StaticResource TextPrimaryBrush}" />
+                        </Grid>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+            
+            <!-- System -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="System" Classes="SectionHeader" />
+                    
+                    <StackPanel Spacing="12" Margin="0,16,0,0">
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="Sync Brightness to All Power Plans" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding SyncBrightnessToAllPowerPlans}" OnContent="Yes" OffContent="No" />
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="16">
+                            <TextBlock Text="Reset Battery On-Since on Reboot" Classes="SettingsLabel" VerticalAlignment="Center" Width="280" />
+                            <ToggleSwitch IsChecked="{Binding ResetBatteryOnSinceOnReboot}" OnContent="Yes" OffContent="No" />
+                        </StackPanel>
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+                            <Button Classes="GhostButton" Content="Boot Logo" Command="{Binding OpenBootLogoCommand}" />
+                            <Button Classes="GhostButton" Content="Windows Power Modes" Command="{Binding OpenWindowsPowerModesCommand}" />
+                            <Button Classes="GhostButton" Content="Windows Power Plans" Command="{Binding OpenWindowsPowerPlansCommand}" />
+                            <Button Classes="GhostButton" Content="Exclude Refresh Rates" Command="{Binding OpenExcludeRefreshRatesCommand}" />
+                        </StackPanel>
+                        
+                        <Separator Classes="Divider" Margin="0,16" />
+                        
+                        <StackPanel Orientation="Horizontal" Spacing="8">
+                            <Button Classes="PrimaryButton" Content="Check for Updates" Command="{Binding CheckForUpdatesCommand}" />
+                            <Button Classes="GhostButton" Content="Open Log Folder" Command="{Binding OpenLogFolderCommand}" />
+                        </StackPanel>
+                    </StackPanel>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>
