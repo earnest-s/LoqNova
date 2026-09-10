@@ -18,7 +18,7 @@ public class MockSettingsService : ISettingsService
     public bool LegionZoneDisabled { get; set; } = false;
     public bool FnKeysDisabled { get; set; } = false;
     public bool SmartFnLockEnabled { get; set; } = true;
-    public int SmartFnLockModifierKey { get; set; } = 0; // 0 = Fn, 1 = LeftCtrl, etc.
+    public int SmartFnLockModifierKey { get; set; } = 0;
     public string SmartKeySinglePressAction { get; set; } = "OpenDashboard";
     public string SmartKeyDoublePressAction { get; set; } = "TogglePerformanceMode";
     public bool GodModeFnQSwitchable { get; set; } = true;
@@ -31,10 +31,7 @@ public class MockSettingsService : ISettingsService
     
     public event Action? SettingsChanged;
     
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
     
     public Task SaveAsync()
     {
