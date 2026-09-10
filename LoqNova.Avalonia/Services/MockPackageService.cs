@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.ObjectCollection;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 
@@ -17,94 +17,14 @@ public class MockPackageService : IPackageService
     
     public ObservableCollection<PackageInfo> Packages { get; } = new()
     {
-        new PackageInfo
-        {
-            Name = "Lenovo System Interface Foundation",
-            Category = "System",
-            Version = "1.1.29.0",
-            Date = new DateTime(2024, 12, 15),
-            SizeBytes = 45_000_000,
-            Description = "Provides system interface foundation for Lenovo devices",
-            IsUpdate = true,
-            DownloadUrl = "https://download.lenovo.com/..."
-        },
-        new PackageInfo
-        {
-            Name = "NVIDIA Graphics Driver",
-            Category = "Graphics",
-            Version = "566.36",
-            Date = new DateTime(2024, 11, 20),
-            SizeBytes = 650_000_000,
-            Description = "NVIDIA GeForce Game Ready Driver",
-            IsUpdate = true,
-            DownloadUrl = "https://download.nvidia.com/..."
-        },
-        new PackageInfo
-        {
-            Name = "Realtek Audio Driver",
-            Category = "Audio",
-            Version = "6.0.9740.1",
-            Date = new DateTime(2024, 10, 10),
-            SizeBytes = 180_000_000,
-            Description = "Realtek High Definition Audio Driver",
-            IsUpdate = false,
-            DownloadUrl = "https://download.lenovo.com/..."
-        },
-        new PackageInfo
-        {
-            Name = "Intel Bluetooth Driver",
-            Category = "Bluetooth",
-            Version = "23.40.0",
-            Date = new DateTime(2024, 9, 5),
-            SizeBytes = 35_000_000,
-            Description = "Intel Wireless Bluetooth Driver",
-            IsUpdate = false,
-            DownloadUrl = "https://download.lenovo.com/..."
-        },
-        new PackageInfo
-        {
-            Name = "Intel WiFi Driver",
-            Category = "Network",
-            Version = "23.70.0",
-            Date = new DateTime(2024, 11, 1),
-            SizeBytes = 420_000_000,
-            Description = "Intel Wi-Fi 6E AX211 Driver",
-            IsUpdate = true,
-            DownloadUrl = "https://download.lenovo.com/..."
-        },
-        new PackageInfo
-        {
-            Name = "Lenovo Vantage Service",
-            Category = "System",
-            Version = "4.12.108",
-            Date = new DateTime(2024, 12, 1),
-            SizeBytes = 120_000_000,
-            Description = "Lenovo Vantage device management service",
-            IsUpdate = false,
-            DownloadUrl = "https://download.lenovo.com/..."
-        },
-        new PackageInfo
-        {
-            Name = "BIOS Update - 2.14",
-            Category = "BIOS",
-            Version = "2.14",
-            Date = new DateTime(2024, 11, 28),
-            SizeBytes = 28_000_000,
-            Description = "System BIOS update with security improvements",
-            IsUpdate = true,
-            DownloadUrl = "https://download.lenovo.com/..."
-        },
-        new PackageInfo
-        {
-            Name = "EC Firmware Update - 1.08",
-            Category = "Firmware",
-            Version = "1.08",
-            Date = new DateTime(2024, 10, 20),
-            SizeBytes = 15_000_000,
-            Description = "Embedded Controller firmware update",
-            IsUpdate = true,
-            DownloadUrl = "https://download.lenovo.com/..."
-        }
+        new PackageInfo { Name = "Lenovo System Interface Foundation", Category = "System", Version = "1.1.29.0", Date = new DateTime(2024, 12, 15), SizeBytes = 45_000_000, Description = "Provides system interface foundation for Lenovo devices", IsUpdate = true, DownloadUrl = "https://download.lenovo.com/..." },
+        new PackageInfo { Name = "NVIDIA Graphics Driver", Category = "Graphics", Version = "566.36", Date = new DateTime(2024, 11, 20), SizeBytes = 650_000_000, Description = "NVIDIA GeForce Game Ready Driver", IsUpdate = true, DownloadUrl = "https://download.nvidia.com/..." },
+        new PackageInfo { Name = "Realtek Audio Driver", Category = "Audio", Version = "6.0.9740.1", Date = new DateTime(2024, 10, 10), SizeBytes = 180_000_000, Description = "Realtek High Definition Audio Driver", IsUpdate = false, DownloadUrl = "https://download.lenovo.com/..." },
+        new PackageInfo { Name = "Intel Bluetooth Driver", Category = "Bluetooth", Version = "23.40.0", Date = new DateTime(2024, 9, 5), SizeBytes = 35_000_000, Description = "Intel Wireless Bluetooth Driver", IsUpdate = false, DownloadUrl = "https://download.lenovo.com/..." },
+        new PackageInfo { Name = "Intel WiFi Driver", Category = "Network", Version = "23.70.0", Date = new DateTime(2024, 11, 1), SizeBytes = 420_000_000, Description = "Intel Wi-Fi 6E AX211 Driver", IsUpdate = true, DownloadUrl = "https://download.lenovo.com/..." },
+        new PackageInfo { Name = "Lenovo Vantage Service", Category = "System", Version = "4.12.108", Date = new DateTime(2024, 12, 1), SizeBytes = 120_000_000, Description = "Lenovo Vantage device management service", IsUpdate = false, DownloadUrl = "https://download.lenovo.com/..." },
+        new PackageInfo { Name = "BIOS Update - 2.14", Category = "BIOS", Version = "2.14", Date = new DateTime(2024, 11, 28), SizeBytes = 28_000_000, Description = "System BIOS update with security improvements", IsUpdate = true, DownloadUrl = "https://download.lenovo.com/..." },
+        new PackageInfo { Name = "EC Firmware Update - 1.08", Category = "Firmware", Version = "1.08", Date = new DateTime(2024, 10, 20), SizeBytes = 15_000_000, Description = "Embedded Controller firmware update", IsUpdate = true, DownloadUrl = "https://download.lenovo.com/..." }
     };
     
     public bool IsDownloading { get; private set; } = false;
@@ -117,16 +37,9 @@ public class MockPackageService : IPackageService
     
     private readonly Random _random = new();
     
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
     
-    public Task SearchAsync()
-    {
-        // Simulate search delay
-        return Task.Delay(1000);
-    }
+    public Task SearchAsync() => Task.Delay(1000);
     
     public async Task DownloadSelectedAsync()
     {
@@ -174,18 +87,13 @@ public class MockPackageService : IPackageService
     
     public Task ToggleHideAllAsync(bool hide)
     {
-        foreach (var pkg in Packages)
-        {
-            pkg.IsHidden = hide;
-        }
+        foreach (var pkg in Packages) pkg.IsHidden = hide;
         PackagesChanged?.Invoke();
         return Task.CompletedTask;
     }
     
     public async Task<string?> BrowseDownloadPathAsync()
     {
-        // In a real implementation, this would show a folder browser dialog
-        // For mock, just return a path
         await Task.Delay(100);
         return DownloadPath;
     }

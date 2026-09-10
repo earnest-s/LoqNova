@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.ObjectCollection;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 
@@ -46,10 +46,7 @@ public class MockMacroService : IMacroService
     public event Action<MacroKey>? MacroKeyChanged;
     public event Action<bool>? RecordingStateChanged;
     
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
     
     public Task StartRecordingAsync(int keyNumber)
     {
@@ -57,12 +54,10 @@ public class MockMacroService : IMacroService
         IsRecording = true;
         RecordingStateChanged?.Invoke(true);
         
-        // Simulate recording by adding some events
         var key = MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
         if (key != null)
         {
             key.Events.Clear();
-            RecordingStateChanged?.Invoke(true);
         }
         return Task.CompletedTask;
     }
@@ -84,8 +79,5 @@ public class MockMacroService : IMacroService
         return Task.CompletedTask;
     }
     
-    public Task SaveAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task SaveAsync() => Task.CompletedTask;
 }
