@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.ObjectCollection;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 
@@ -69,10 +69,7 @@ public class MockAutomationService : IAutomationService
     
     public event Action? PipelinesChanged;
     
-    public Task InitializeAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task InitializeAsync() => Task.CompletedTask;
     
     public Task AddPipelineAsync(AutomationPipeline pipeline, bool isManual)
     {
@@ -87,12 +84,10 @@ public class MockAutomationService : IAutomationService
     public Task RemovePipelineAsync(Guid id)
     {
         var auto = AutomaticPipelines.FirstOrDefault(p => p.Id == id);
-        if (auto != null)
-            AutomaticPipelines.Remove(auto);
+        if (auto != null) AutomaticPipelines.Remove(auto);
         
         var manual = ManualPipelines.FirstOrDefault(p => p.Id == id);
-        if (manual != null)
-            ManualPipelines.Remove(manual);
+        if (manual != null) ManualPipelines.Remove(manual);
         
         PipelinesChanged?.Invoke();
         return Task.CompletedTask;
@@ -134,8 +129,5 @@ public class MockAutomationService : IAutomationService
         return Task.CompletedTask;
     }
     
-    public Task SaveAsync()
-    {
-        return Task.CompletedTask;
-    }
+    public Task SaveAsync() => Task.CompletedTask;
 }
