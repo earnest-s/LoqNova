@@ -54,7 +54,7 @@
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
-                                            </ItemsControl>
+                                            </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </StackPanel>
                                 </Border>
@@ -95,7 +95,7 @@
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
-                                            </ItemsControl>
+                                            </ItemsControl.ItemTemplate>
                                         </ItemsControl>
                                     </StackPanel>
                                 </Border>
