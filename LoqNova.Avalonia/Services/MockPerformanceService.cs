@@ -1,6 +1,5 @@
 using System;
 using System.Threading.Tasks;
-using LoqNova.Lib.Features.PowerMode;
 using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Services;
@@ -46,7 +45,6 @@ public class MockPerformanceService : IPerformanceService
     
     public Task InitializeAsync()
     {
-        // Simulate some initial state
         CurrentMode = PowerModeState.Balance;
         return Task.CompletedTask;
     }
