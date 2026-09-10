@@ -91,7 +91,8 @@ public class WidgetTemplateSelector : Avalonia.Controls.DataTemplates.IDataTempl
                     OnContent = "On",
                     OffContent = "Off"
                 }
-            };
+            }
+        };
     }
     
     private Control CreateComboBoxWidget(DashboardWidgetViewModel widget)
