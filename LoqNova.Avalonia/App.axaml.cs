@@ -14,7 +14,6 @@ namespace LoqNova.Avalonia;
 public partial class App : Application
 {
     public static IContainer? Container { get; private set; }
-    public static IServiceProvider? ServiceProvider { get; private set; }
 
     public override void Initialize()
     {
@@ -117,7 +116,7 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
     
-    public override async void OnExit(ExitEventArgs e)
+    public override async void OnExit(EventArgs e)
     {
         // Cleanup services
         if (Container != null)
