@@ -127,11 +127,10 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
     
     partial void OnSelectedPresetChanged(RgbPreset value)
     {
-        if (!IsCustomEffectType(value))
-        {
-            _ = _rgbService.SetPresetAsync(value);
-            IsCustomEffect = false;
-        }
+        // When a preset is selected, it's not a custom effect
+        // unless it's "Off" which means no effect
+        _ = _rgbService.SetPresetAsync(value);
+        IsCustomEffect = false;
     }
     
     partial void OnSelectedEffectChanged(RgbEffect value)
