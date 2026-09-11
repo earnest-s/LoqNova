@@ -7,10 +7,7 @@ using LoqNova.Avalonia.Converters;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels;
 using LoqNova.Avalonia.Views;
-using Microsoft.Extensions.DependencyInjection;
 using Autofac;
-using Autofac.Extensions.DependencyInjection;
-using ExitEventArgs = Avalonia.Controls.ApplicationLifetimes.ExitEventArgs;
 
 namespace LoqNova.Avalonia;
 
@@ -90,10 +87,6 @@ public partial class App : Application
         builder.RegisterType<SpectrumEditEffectViewModel>().InstancePerDependency();
         
         Container = builder.Build();
-        
-        // Create service provider for Microsoft.Extensions.DependencyInjection compatibility
-        ServiceProvider = new AutofacServiceProvider(Container);
-        AppHost.Initialize(ServiceProvider);
         
         // Initialize localization
         LocalizationHelper.Initialize();

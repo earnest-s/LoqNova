@@ -50,6 +50,8 @@
 		<PackageReference Include="Ben.Demystifier" Version="0.4.1" />
 		<PackageReference Include="Markdig" Version="0.40.0" />
 		<PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+		<PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
 		<ProjectReference Include="..\LoqNova.Lib\LoqNova.Lib.csproj" />
