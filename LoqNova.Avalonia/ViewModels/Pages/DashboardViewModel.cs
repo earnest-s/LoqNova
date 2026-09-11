@@ -7,14 +7,6 @@ using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
-public enum PowerModeState
-{
-    Quiet,
-    Balance,
-    Performance,
-    GodMode
-}
-
 public partial class DashboardViewModel : ViewModelBase
 {
     private readonly IPerformanceService _performanceService;

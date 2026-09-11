@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectCollection;
+using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -33,7 +33,6 @@ public partial class UpdateViewModel : ViewModelBase
     [RelayCommand]
     private async Task DownloadAsync()
     {
-        // Open download page
     }
     
     [RelayCommand]

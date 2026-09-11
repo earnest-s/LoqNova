@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectCollection;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
@@ -75,7 +75,6 @@ public class MockMacroService : IMacroService
         var key = MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
         if (key != null)
         {
-            // Simulate playback
         }
         return Task.CompletedTask;
     }

@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:local="clr-namespace:LoqNova.Avalonia.Converters">
     
     <ResourceDictionary.MergedDictionaries>
         <ResourceInclude Source="Styles/Colors.axaml" />
@@ -11,9 +12,9 @@
     </ResourceDictionary.MergedDictionaries>
     
     <!-- Global Converters -->
-    <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" xmlns:local="clr-namespace:LoqNova.Avalonia.Converters" />
-    <local:EnumToDisplayConverter x:Key="EnumToDisplayConverter" xmlns:local="clr-namespace:LoqNova.Avalonia.Converters" />
-    <local:RgbZoneColorToBrushConverter x:Key="RgbZoneColorToBrushConverter" xmlns:local="clr-namespace:LoqNova.Avalonia.Converters" />
+    <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
+    <local:EnumToDisplayConverter x:Key="EnumToDisplayConverter" />
+    <local:RgbZoneColorToBrushConverter x:Key="RgbZoneColorToBrushConverter" />
     
     <!-- Common Styles -->
     <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource Heading3}">

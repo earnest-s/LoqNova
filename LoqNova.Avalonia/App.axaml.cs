@@ -10,6 +10,7 @@ using LoqNova.Avalonia.Views;
 using Microsoft.Extensions.DependencyInjection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using ExitEventArgs = Avalonia.Controls.ApplicationLifetimes.ExitEventArgs;
 
 namespace LoqNova.Avalonia;
 

@@ -1,5 +1,5 @@
 using System;
-using System.Collections.ObjectCollection;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
@@ -22,7 +22,7 @@ public class MockPackageService : IPackageService
         new PackageInfo { Name = "NVIDIA Graphics Driver", Category = "Graphics", Version = "566.36", Date = new DateTime(2024, 11, 20), SizeBytes = 650_000_000, Description = "NVIDIA GeForce Game Ready Driver", IsUpdate = true, DownloadUrl = "https://download.nvidia.com/..." },
         new PackageInfo { Name = "Realtek Audio Driver", Category = "Audio", Version = "6.0.9740.1", Date = new DateTime(2024, 10, 10), SizeBytes = 180_000_000, Description = "Realtek High Definition Audio Driver", IsUpdate = false, DownloadUrl = "https://download.lenovo.com/..." },
         new PackageInfo { Name = "Intel Bluetooth Driver", Category = "Bluetooth", Version = "23.40.0", Date = new DateTime(2024, 9, 5), SizeBytes = 35_000_000, Description = "Intel Wireless Bluetooth Driver", IsUpdate = false, DownloadUrl = "https://download.lenovo.com/..." },
-        new PackageInfo { Name = "Intel WiFi Driver", Category = "Network", Version = "23.70.0", Date = new DateTime(2024, 11, 1), SizeBytes = 420_000_000, Description = "Intel Wi-Fi 6E AX211 Driver", IsUpdate = true, DownloadUrl = "https://download.lenovo.com/..." },
+        new PackageInfo { Name = "Intel WiFi Driver", Category = "Network", Version = "23.70.0", Date = new DateTime(2024, 11, 1), SizeBytes = 420_000_000, Description = "Intel Wi-Fi 6E AX211 Driver", IsUpdate = true, DownloadUrl = "https://download.nvidia.com/..." },
         new PackageInfo { Name = "Lenovo Vantage Service", Category = "System", Version = "4.12.108", Date = new DateTime(2024, 12, 1), SizeBytes = 120_000_000, Description = "Lenovo Vantage device management service", IsUpdate = false, DownloadUrl = "https://download.lenovo.com/..." },
         new PackageInfo { Name = "BIOS Update - 2.14", Category = "BIOS", Version = "2.14", Date = new DateTime(2024, 11, 28), SizeBytes = 28_000_000, Description = "System BIOS update with security improvements", IsUpdate = true, DownloadUrl = "https://download.lenovo.com/..." },
         new PackageInfo { Name = "EC Firmware Update - 1.08", Category = "Firmware", Version = "1.08", Date = new DateTime(2024, 10, 20), SizeBytes = 15_000_000, Description = "Embedded Controller firmware update", IsUpdate = true, DownloadUrl = "https://download.lenovo.com/..." }
