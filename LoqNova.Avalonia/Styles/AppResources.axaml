@@ -2,12 +2,122 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:local="clr-namespace:LoqNova.Avalonia.Converters">
     
-    <ResourceDictionary.MergedDictionaries>
-        <ResourceInclude Source="Styles/Colors.axaml" />
-    </ResourceDictionary.MergedDictionaries>
+    <!-- Color Definitions -->
+    <Color x:Key="PrimaryColor">#0078D4</Color>
+    <Color x:Key="SecondaryColor">#00B294</Color>
+    <Color x:Key="AccentColor">#E81123</Color>
+    <Color x:Key="WarningColor">#FF8C00</Color>
+    <Color x:Key="SuccessColor">#107C10</Color>
+    <Color x:Key="BackgroundColor">#1E1E1E</Color>
+    <Color x:Key="SurfaceColor">#2D2D2D</Color>
+    <Color x:Key="CardBackgroundColor">#252525</Color>
+    <Color x:Key="BorderColor">#3E3E42</Color>
+    <Color x:Key="TextPrimaryColor">#FFFFFF</Color>
+    <Color x:Key="TextSecondaryColor">#CCCCCC</Color>
+    <Color x:Key="TextMutedColor">#888888</Color>
+    <Color x:Key="DividerColor">#333333</Color>
+    <Color x:Key="HoverColor">#3A3A3A</Color>
+    <Color x:Key="PressedColor">#404040</Color>
+    <Color x:Key="FocusColor">#0078D4</Color>
+    <Color x:Key="DisabledColor">#444444</Color>
+    <Color x:Key="DisabledTextColor">#666666</Color>
+    
+    <!-- Power Mode Colors -->
+    <Color x:Key="QuietModeColor">#0078D4</Color>
+    <Color x:Key="BalanceModeColor">#FFFFFF</Color>
+    <Color x:Key="PerformanceModeColor">#E81123</Color>
+    <Color x:Key="GodModeColor">#B400FF</Color>
+    
+    <!-- Solid Color Brushes -->
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
+    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
+    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}" />
+    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+    <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
+    <SolidColorBrush x:Key="PressedBrush" Color="{StaticResource PressedColor}" />
+    <SolidColorBrush x:Key="FocusBrush" Color="{StaticResource FocusColor}" />
+    <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}" />
+    <SolidColorBrush x:Key="DisabledTextBrush" Color="{StaticResource DisabledTextColor}" />
+    
+    <!-- Power Mode Brushes -->
+    <SolidColorBrush x:Key="QuietModeBrush" Color="{StaticResource QuietModeColor}" />
+    <SolidColorBrush x:Key="BalanceModeBrush" Color="{StaticResource BalanceModeColor}" />
+    <SolidColorBrush x:Key="PerformanceModeBrush" Color="{StaticResource PerformanceModeColor}" />
+    <SolidColorBrush x:Key="GodModeBrush" Color="{StaticResource GodModeColor}" />
     
     <!-- Global Converters -->
     <local:BoolToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     <local:EnumToDisplayConverter x:Key="EnumToDisplayConverter" />
     <local:RgbZoneColorToBrushConverter x:Key="RgbZoneColorToBrushConverter" />
+    
+    <!-- Common Styles -->
+    <Style x:Key="SectionHeader" TargetType="TextBlock" BasedOn="{StaticResource Heading3}">
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+    
+    <Style x:Key="SubSectionHeader" TargetType="TextBlock" BasedOn="{StaticResource Heading4}">
+        <Setter Property="Margin" Value="0,16,0,8" />
+    </Style>
+    
+    <Style x:Key="PageTitle" TargetType="TextBlock" BasedOn="{StaticResource Heading2}">
+        <Setter Property="Margin" Value="0,0,0,24" />
+    </Style>
+    
+    <Style x:Key="PageContainer" TargetType="ScrollViewer">
+        <Setter Property="Padding" Value="24" />
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
+    
+    <Style x:Key="ContentCard" TargetType="Border" BasedOn="{StaticResource FeatureCard}">
+        <Setter Property="Margin" Value="0,0,0,16" />
+    </Style>
+    
+    <Style x:Key="SettingsRow" TargetType="Grid">
+        <Setter Property="ColumnDefinitions" Value="*,Auto" />
+        <Setter Property="Margin" Value="0,8,0,8" />
+    </Style>
+    
+    <Style x:Key="SettingsLabel" TargetType="TextBlock" BasedOn="{StaticResource Body}">
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    
+    <Style x:Key="SettingsControl" TargetType="Control">
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="MinWidth" Value="150" />
+    </Style>
+    
+    <Style x:Key="Divider" TargetType="Separator">
+        <Setter Property="Margin" Value="0,16" />
+        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="0,1,0,0" />
+    </Style>
+    
+    <Style x:Key="Icon" TargetType="PathIcon">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="SmallIcon" TargetType="PathIcon">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+    </Style>
+    
+    <Style x:Key="LargeIcon" TargetType="PathIcon">
+        <Setter Property="Width" Value="32" />
+        <Setter Property="Height" Value="32" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
 </ResourceDictionary>
