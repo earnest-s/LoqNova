@@ -116,7 +116,7 @@ public partial class App : Application
         base.OnFrameworkInitializationCompleted();
     }
     
-    public override async void OnExit(EventArgs e)
+    public override async void OnExit()
     {
         // Cleanup services
         if (Container != null)
@@ -132,6 +132,6 @@ public partial class App : Application
             Container.Dispose();
         }
         
-        base.OnExit(e);
+        base.OnExit();
     }
 }
