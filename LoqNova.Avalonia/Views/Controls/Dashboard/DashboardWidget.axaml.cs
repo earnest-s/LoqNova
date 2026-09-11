@@ -1,5 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
+using Avalonia.Layout;
 using LoqNova.Avalonia.ViewModels.Pages;
 
 namespace LoqNova.Avalonia.Views.Controls.Dashboard;
@@ -52,15 +54,15 @@ public class WidgetTemplateSelector : Avalonia.Controls.DataTemplates.IDataTempl
                     {
                         Text = widget.Value,
                         Classes = { "CardValue" },
-                        Foreground = Avalonia.Media.Brush.Parse(widget.Color),
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-                        VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+                        Foreground = Brush.Parse(widget.Color),
+                        HorizontalAlignment = HorizontalAlignment.Center,
+                        VerticalAlignment = VerticalAlignment.Center
                     },
                     new TextBlock
                     {
                         Text = widget.Unit,
                         Classes = { "CardUnit" },
-                        HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center
+                        HorizontalAlignment = HorizontalAlignment.Center
                     }
                 }
             },
@@ -73,9 +75,9 @@ public class WidgetTemplateSelector : Avalonia.Controls.DataTemplates.IDataTempl
     {
         return new StackPanel
         {
-            Orientation = Avalonia.Layout.Orientation.Horizontal,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
             Spacing = 12,
             Children =
             {
@@ -83,7 +85,7 @@ public class WidgetTemplateSelector : Avalonia.Controls.DataTemplates.IDataTempl
                 {
                     Text = widget.Value,
                     Classes = { "CardValue" },
-                    Foreground = Avalonia.Media.Brush.Parse(widget.Color)
+                    Foreground = Brush.Parse(widget.Color)
                 },
                 new ToggleSwitch
                 {
@@ -102,11 +104,11 @@ public class WidgetTemplateSelector : Avalonia.Controls.DataTemplates.IDataTempl
             ItemsSource = widget.Items,
             SelectedItem = widget.SelectedItem,
             Width = 200,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center,
-            Background = Avalonia.Media.Brush.Parse("#2D2D2D"),
-            BorderBrush = Avalonia.Media.Brush.Parse("#3E3E42"),
-            Foreground = Avalonia.Media.Brush.Parse("#FFFFFF")
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center,
+            Background = Brush.Parse("#2D2D2D"),
+            BorderBrush = Brush.Parse("#3E3E42"),
+            Foreground = Brush.Parse("#FFFFFF")
         };
     }
     
@@ -117,8 +119,8 @@ public class WidgetTemplateSelector : Avalonia.Controls.DataTemplates.IDataTempl
             Content = widget.Value,
             Classes = { "PrimaryButton" },
             Width = 120,
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
         };
     }
     
@@ -128,8 +130,8 @@ public class WidgetTemplateSelector : Avalonia.Controls.DataTemplates.IDataTempl
         {
             Text = "Custom Widget",
             Classes = { "Body" },
-            HorizontalAlignment = Avalonia.Layout.HorizontalAlignment.Center,
-            VerticalAlignment = Avalonia.Layout.VerticalAlignment.Center
+            HorizontalAlignment = HorizontalAlignment.Center,
+            VerticalAlignment = VerticalAlignment.Center
         };
     }
 }
