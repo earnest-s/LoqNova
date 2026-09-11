@@ -1,6 +1,6 @@
 using System;
 using Avalonia.Data.Converters;
-using global::Avalonia.Controls;
+using Avalonia.Controls;
 
 namespace LoqNova.Avalonia.Converters;
 
