@@ -8,7 +8,7 @@ public class MacroKey
 {
     public int KeyNumber { get; set; }
     public string Name { get; set; } = "";
-    public ObservableCollection<MacroEvent> Events { get; } = new();
+    public ObservableCollection<MacroEvent> Events { get; init; } = new();
     public bool Enabled { get; set; }
 }
 

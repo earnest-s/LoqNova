@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
-using Avalonia.Controls;
+using Avalonia;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
 using LoqNova.Avalonia.Services;
 

@@ -1,6 +1,6 @@
 using System;
 using System.Threading.Tasks;
-using Avalonia;
+using Avalonia.Threading;
 using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Services;

@@ -36,7 +36,7 @@ public class NavigationService : INavigationService
     {
         CurrentPage = page;
         
-        var viewModel = page switch
+        object? viewModel = page switch
         {
             NavigationPage.Dashboard => _serviceProvider.GetRequiredService<DashboardViewModel>(),
             NavigationPage.KeyboardBacklight => _serviceProvider.GetRequiredService<KeyboardBacklightViewModel>(),

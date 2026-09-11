@@ -25,7 +25,7 @@ public class AutomationPipeline
     public bool Enabled { get; set; } = true;
     public AutomationTriggerType TriggerType { get; set; }
     public object? TriggerConfig { get; set; }
-    public ObservableCollection<AutomationStep> Steps { get; } = new();
+    public ObservableCollection<AutomationStep> Steps { get; init; } = new();
 }
 
 public class AutomationStep

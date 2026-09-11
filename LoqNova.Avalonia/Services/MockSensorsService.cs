@@ -58,7 +58,7 @@ public class MockSensorsService : ISensorsService
         _gpuTemp = Math.Clamp(_gpuTemp, 30, 85);
         GpuTemperatureChanged?.Invoke(_gpuTemp);
         
-        _fanRpm += (_random.NextDouble() - 0.5) * 300;
+        _fanRpm += (int)((_random.NextDouble() - 0.5) * 300);
         _fanRpm = Math.Clamp(_fanRpm, 1000, 6000);
         FanSpeedChanged?.Invoke(_fanRpm);
     }

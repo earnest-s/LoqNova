@@ -47,7 +47,7 @@ public class MockThermalService : IThermalService
         _gpuTemp = Math.Clamp(_gpuTemp, 35, 85);
         GpuTemperatureChanged?.Invoke(_gpuTemp);
         
-        _fanRpm += (_random.NextDouble() - 0.5) * 200;
+        _fanRpm += (int)((_random.NextDouble() - 0.5) * 200);
         _fanRpm = Math.Clamp(_fanRpm, 1000, 5000);
         _fanPercent = (int)(_fanRpm / 5000.0 * 100);
         FanSpeedChanged?.Invoke(_fanRpm);
