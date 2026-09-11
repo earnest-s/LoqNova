@@ -31,8 +31,12 @@ public partial class SnackbarHost : UserControl
             Message = message,
             Icon = icon,
             IconColor = iconColor,
-            CloseCommand = new RelayCommand(() => Messages.Remove(msg))
+            CloseCommand = new RelayCommand(() => { }) // Initialize first
         };
+        
+        // Update the close command to remove the message
+        msg.CloseCommand = new RelayCommand(() => Messages.Remove(msg));
+        
         Messages.Add(msg);
         
         // Auto-remove after 5 seconds
