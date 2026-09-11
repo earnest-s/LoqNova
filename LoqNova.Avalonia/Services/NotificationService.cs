@@ -45,7 +45,7 @@ public class NotificationService : INotificationService
         
         _notificationManager?.Show(new Notification(message.Title, message.Message ?? "", notificationType)
         {
-            Duration = message.Duration ?? TimeSpan.FromSeconds(5)
+            Expiration = message.Duration ?? TimeSpan.FromSeconds(5)
         });
         
         NotificationRequested?.Invoke(message);

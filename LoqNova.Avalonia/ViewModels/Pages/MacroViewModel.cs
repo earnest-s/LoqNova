@@ -1,5 +1,6 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.ObjectCollection;
+using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -112,8 +113,18 @@ public partial class MacroKeyViewModel : ViewModelBase
         
         foreach (var evt in model.Events)
         {
-            Events.Add(new MacroEventViewModel(evt));
+            Events.Add(CreateEventViewModel(evt));
         }
+    }
+    
+    private MacroEventViewModel CreateEventViewModel(MacroEvent model)
+    {
+        return model switch
+        {
+            MacroKeyEvent keyEvent => new MacroKeyEventViewModel(keyEvent),
+            MacroMouseEvent mouseEvent => new MacroMouseEventViewModel(mouseEvent),
+            _ => throw new ArgumentException($"Unknown macro event type: {model.GetType()}")
+        };
     }
     
     public void UpdateFromModel(MacroKey model)
@@ -123,7 +134,7 @@ public partial class MacroKeyViewModel : ViewModelBase
         Events.Clear();
         foreach (var evt in model.Events)
         {
-            Events.Add(new MacroEventViewModel(evt));
+            Events.Add(CreateEventViewModel(evt));
         }
     }
     
@@ -131,14 +142,14 @@ public partial class MacroKeyViewModel : ViewModelBase
     private void AddKeyEvent(string key)
     {
         var evt = new MacroKeyEvent { Key = key, IsPress = true, DelayMs = 0 };
-        Events.Add(new MacroEventViewModel(evt));
+        Events.Add(new MacroKeyEventViewModel(evt));
     }
     
     [RelayCommand]
     private void AddMouseEvent(string button)
     {
         var evt = new MacroMouseEvent { Button = button, IsPress = true, DelayMs = 0 };
-        Events.Add(new MacroEventViewModel(evt));
+        Events.Add(new MacroMouseEventViewModel(evt));
     }
     
     [RelayCommand]
@@ -157,7 +168,7 @@ public abstract partial class MacroEventViewModel : ViewModelBase
     public abstract string DisplayText { get; }
     
     [ObservableProperty]
-    private double _delayMs = 0;
+    protected double _delayMs = 0;
 }
 
 public partial class MacroKeyEventViewModel : MacroEventViewModel

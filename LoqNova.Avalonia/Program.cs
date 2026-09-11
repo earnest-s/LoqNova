@@ -2,10 +2,10 @@ using System;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
+using Avalonia.ReactiveUI;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels;
 using LoqNova.Avalonia.Views;
-using Microsoft.Extensions.DependencyInjection;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 

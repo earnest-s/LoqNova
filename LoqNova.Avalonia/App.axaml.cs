@@ -4,8 +4,11 @@ using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using LoqNova.Avalonia.Converters;
+using LoqNova.Avalonia.Localization;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels;
+using LoqNova.Avalonia.ViewModels.Pages;
+using LoqNova.Avalonia.ViewModels.Dialogs;
 using LoqNova.Avalonia.Views;
 using Autofac;
 
