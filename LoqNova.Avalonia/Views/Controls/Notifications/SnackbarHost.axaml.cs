@@ -1,6 +1,10 @@
 using Avalonia.Controls;
+using Avalonia.Input;
 using Avalonia.Markup.Xaml;
+using Avalonia.Threading;
+using CommunityToolkit.Mvvm.Input;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
 
 namespace LoqNova.Avalonia.Views.Controls.Notifications;
 
@@ -26,15 +30,15 @@ public partial class SnackbarHost : UserControl
             Message = message,
             Icon = icon,
             IconColor = iconColor,
-            CloseCommand = new Avalonia.Input.RelayCommand(() => Messages.Remove(msg))
+            CloseCommand = new RelayCommand(() => Messages.Remove(msg))
         };
         Messages.Add(msg);
         
         // Auto-remove after 5 seconds
-        _ = System.Threading.Tasks.Task.Run(async () =>
+        _ = Task.Run(async () =>
         {
-            await System.Threading.Tasks.Task.Delay(5000);
-            Avalonia.Threading.Dispatcher.UIThread.Post(() => Messages.Remove(msg));
+            await Task.Delay(5000);
+            Dispatcher.UIThread.Post(() => Messages.Remove(msg));
         });
     }
 }
@@ -45,5 +49,5 @@ public class SnackbarMessage
     public string Message { get; set; } = "";
     public string Icon { get; set; } = "";
     public string IconColor { get; set; } = "";
-    public System.Windows.Input.ICommand CloseCommand { get; set; } = null!;
+    public ICommand CloseCommand { get; set; } = null!;
 }
