@@ -37,10 +37,10 @@ public class NotificationService : INotificationService
         
         var notificationType = message.Type switch
         {
-            NotificationType.Success => Avalonia.Controls.Notifications.NotificationType.Success,
-            NotificationType.Warning => Avalonia.Controls.Notifications.NotificationType.Warning,
-            NotificationType.Error => Avalonia.Controls.Notifications.NotificationType.Error,
-            _ => Avalonia.Controls.Notifications.NotificationType.Info
+            NotificationType.Success => global::Avalonia.Controls.Notifications.NotificationType.Success,
+            NotificationType.Warning => global::Avalonia.Controls.Notifications.NotificationType.Warning,
+            NotificationType.Error => global::Avalonia.Controls.Notifications.NotificationType.Error,
+            _ => global::Avalonia.Controls.Notifications.NotificationType.Info
         };
         
         _notificationManager?.Show(new Notification(message.Title, message.Message ?? "", notificationType)
