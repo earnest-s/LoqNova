@@ -115,23 +115,4 @@ public partial class App : Application
         
         base.OnFrameworkInitializationCompleted();
     }
-    
-    public override async void OnExit()
-    {
-        // Cleanup services
-        if (Container != null)
-        {
-            var trayService = Container.ResolveOptional<ITrayService>();
-            if (trayService != null)
-                await trayService.ShutdownAsync();
-            
-            var notificationService = Container.ResolveOptional<INotificationService>();
-            if (notificationService != null)
-                await notificationService.ShutdownAsync();
-            
-            Container.Dispose();
-        }
-        
-        base.OnExit();
-    }
 }
