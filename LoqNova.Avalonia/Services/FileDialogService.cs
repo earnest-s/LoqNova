@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using LoqNova.Avalonia.Services;
@@ -17,10 +18,11 @@ public class FileDialogService : IFileDialogService
         
         if (!string.IsNullOrEmpty(initialPath))
         {
-            try { dialog.InitialDirectory = initialPath; } catch { }
+            try { dialog.Directory = initialPath; } catch { }
         }
         
-        return await dialog.ShowAsync(null);
+        var result = await dialog.ShowAsync(null);
+        return result;
     }
     
     public async Task<string?> ShowOpenFileDialogAsync(string title, string filter, string? initialPath = null)
@@ -33,7 +35,7 @@ public class FileDialogService : IFileDialogService
         
         if (!string.IsNullOrEmpty(initialPath))
         {
-            try { dialog.InitialDirectory = initialPath; } catch { }
+            try { dialog.Directory = initialPath; } catch { }
         }
         
         var result = await dialog.ShowAsync(null);
@@ -51,7 +53,7 @@ public class FileDialogService : IFileDialogService
         
         if (!string.IsNullOrEmpty(initialPath))
         {
-            try { dialog.InitialDirectory = initialPath; } catch { }
+            try { dialog.Directory = initialPath; } catch { }
         }
         
         return await dialog.ShowAsync(null);
