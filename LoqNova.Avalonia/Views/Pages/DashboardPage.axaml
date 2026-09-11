@@ -43,19 +43,10 @@
                                    FanSpeedPercent="{Binding FanSpeedPercent}"
                                    PowerModeColor="{Binding PowerModeColor}" />
             
-            <!-- Dashboard Widgets -->
-            <ItemsControl ItemsSource="{Binding Widgets}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel ItemWidth="280" ItemHeight="140" Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate>
-                        <controls:DashboardWidget Widget="{Binding}" />
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
+            <!-- Dashboard Widgets Placeholder -->
+            <Border Classes="ContentCard">
+                <TextBlock Text="Dashboard Widgets (Placeholder)" Classes="Body" HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>
