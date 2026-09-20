@@ -11,9 +11,9 @@ public class BoolToVisibilityConverter : IValueConverter
         if (value is bool boolValue)
         {
             var inverted = parameter is string str && str.Equals("invert", StringComparison.OrdinalIgnoreCase);
-            return (boolValue ^ inverted) ? global::Avalonia.Controls.Visibility.Visible : global::Avalonia.Controls.Visibility.Collapsed;
+            return (boolValue ^ inverted) ? Visibility.Visible : Visibility.Collapsed;
         }
-        return global::Avalonia.Controls.Visibility.Collapsed;
+        return Visibility.Collapsed;
     }
     
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
