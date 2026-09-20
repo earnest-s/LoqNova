@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Notifications;
-using LoqNova.Avalonia.Services;
+using LocalNs = LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Services;
 
@@ -35,15 +35,15 @@ public class NotificationService : INotificationService
     {
         if (!_settings.NotificationsEnabled) return Task.CompletedTask;
         
-        var notificationType = message.Type switch
+        var avaloniaNotificationType = message.Type switch
         {
-            NotificationType.Success => global::Avalonia.Controls.Notifications.NotificationType.Success,
-            NotificationType.Warning => global::Avalonia.Controls.Notifications.NotificationType.Warning,
-            NotificationType.Error => global::Avalonia.Controls.Notifications.NotificationType.Error,
+            LocalNs.NotificationType.Success => global::Avalonia.Controls.Notifications.NotificationType.Success,
+            LocalNs.NotificationType.Warning => global::Avalonia.Controls.Notifications.NotificationType.Warning,
+            LocalNs.NotificationType.Error => global::Avalonia.Controls.Notifications.NotificationType.Error,
             _ => global::Avalonia.Controls.Notifications.NotificationType.Info
         };
         
-        _notificationManager?.Show(new Notification(message.Title, message.Message ?? "", notificationType)
+        _notificationManager?.Show(new Notification(message.Title, message.Message ?? "", avaloniaNotificationType)
         {
             Expiration = message.Duration ?? TimeSpan.FromSeconds(5)
         });
