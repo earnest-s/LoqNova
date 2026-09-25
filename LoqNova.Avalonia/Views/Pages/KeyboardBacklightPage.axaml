@@ -1,7 +1,8 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
-             xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
+             xmlns:services="clr-namespace:LoqNova.Avalonia.Services"
+             xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls.RGB"
              x:Class="LoqNova.Avalonia.Views.Pages.KeyboardBacklightPage"
              x:DataType="vm:KeyboardBacklightViewModel">
 
@@ -32,15 +33,15 @@
                     <TextBlock Text="Presets" Classes="SectionHeader" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
                         <Button Classes="PresetButton" Content="Off" 
-                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Off}" />
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static services:RgbPreset.Off}" />
                         <Button Classes="PresetButton" Content="Preset 1" 
-                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset1}" />
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static services:RgbPreset.Preset1}" />
                         <Button Classes="PresetButton" Content="Preset 2" 
-                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset2}" />
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static services:RgbPreset.Preset2}" />
                         <Button Classes="PresetButton" Content="Preset 3" 
-                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset3}" />
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static services:RgbPreset.Preset3}" />
                         <Button Classes="PresetButton" Content="Preset 4" 
-                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static vm:RgbPreset.Preset4}" />
+                                Command="{Binding SetPresetCommand}" CommandParameter="{x:Static services:RgbPreset.Preset4}" />
                     </StackPanel>
                 </StackPanel>
             </Border>
