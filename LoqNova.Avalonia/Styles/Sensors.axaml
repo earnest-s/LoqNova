@@ -77,7 +77,5 @@
     <Style Selector="TextBlock.SensorCardUnit" />
     
     <!-- Sensor Grid -->
-    <Style Selector="Grid.SensorGrid">
-        <Setter Property="ColumnDefinitions" Value="Auto,Auto,*" />
-    </Style>
+    <Style Selector="Grid.SensorGrid" />
 </Styles>
