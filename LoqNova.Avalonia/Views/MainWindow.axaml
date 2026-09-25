@@ -96,13 +96,13 @@
                                                     Command="{Binding $parent[Window].DataContext.Navigate}"
                                                     CommandParameter="{Binding Page}"
                                                     IsVisible="{Binding IsVisible}"
-                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:Transparent,default:CardBackgroundBrush}"
-                                                    Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:TextPrimaryBrush,default:TextSecondaryBrush}">
+                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=Transparent|CardBackgroundBrush}"
+                                                    Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=TextPrimaryBrush|TextSecondaryBrush}">
                                                 <StackPanel Orientation="Horizontal" Spacing="12">
 <PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
-                                                               Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
-                                                     <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
-                                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextPrimaryBrush}" />
+                                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=White|TextSecondaryBrush}" />
+                                                      <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
+                                                                 Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=White|TextPrimaryBrush}" />
                                                 </StackPanel>
                                             </Button>
                                         </DataTemplate>
@@ -123,13 +123,13 @@
                                                 Command="{Binding $parent[Window].DataContext.Navigate}"
                                                 CommandParameter="{Binding Page}"
                                                 IsVisible="{Binding IsVisible}"
-                                                Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:Transparent,default:{StaticResource CardBackgroundBrush}}"
-                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:{StaticResource TextPrimaryBrush},default:{StaticResource TextSecondaryBrush}}">
+                                                Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=Transparent|CardBackgroundBrush}"
+                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=TextPrimaryBrush|TextSecondaryBrush}">
                                             <StackPanel Orientation="Horizontal" Spacing="12">
 <PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
-                                                           Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
-                                                 <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
-                                                            Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextPrimaryBrush}" />
+                                                            Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=White|TextSecondaryBrush}" />
+                                                  <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
+                                                             Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=White|TextPrimaryBrush}" />
                                             </StackPanel>
                                         </Button>
                                     </DataTemplate>

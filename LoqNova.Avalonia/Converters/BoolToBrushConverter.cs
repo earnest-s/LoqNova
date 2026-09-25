@@ -1,5 +1,4 @@
 using System;
-using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
@@ -11,14 +10,14 @@ public class BoolToBrushConverter : IValueConverter
     {
         if (value is bool boolValue && parameter is string paramStr)
         {
-            var parts = paramStr.Split(',');
+            var parts = paramStr.Split('|');
             if (parts.Length == 2)
             {
                 var truePart = parts[0].Trim();
                 var falsePart = parts[1].Trim();
                 
-                var trueBrush = ParseBrushPart(truePart);
-                var falseBrush = ParseBrushPart(falsePart);
+                var trueBrush = ParseColor(truePart);
+                var falseBrush = ParseColor(falsePart);
                 
                 return boolValue ? trueBrush : falseBrush;
             }
@@ -26,37 +25,13 @@ public class BoolToBrushConverter : IValueConverter
         return Brushes.Transparent;
     }
     
-    private static IBrush? ParseBrushPart(string part)
+    private static IBrush? ParseColor(string name)
     {
-        if (part.StartsWith("selected:"))
+        name = name.Trim();
+        if (name.StartsWith("#") || byte.TryParse(name, out _))
         {
-            var resourceKey = part["selected:".Length..].Trim();
-            return ResolveBrush(resourceKey);
+            return Color.TryParse(name, out var color) ? new SolidColorBrush(color) : null;
         }
-        else if (part.StartsWith("default:"))
-        {
-            var resourceKey = part["default:".Length..].Trim();
-            return ResolveBrush(resourceKey);
-        }
-        return ResolveBrush(part);
-    }
-    
-    private static IBrush? ResolveBrush(string key)
-    {
-        key = key.Trim();
-        
-        // Handle direct color values
-        if (key.StartsWith("#") || byte.TryParse(key, out _))
-        {
-            return Color.TryParse(key, out var color) ? new SolidColorBrush(color) : null;
-        }
-        
-        // Handle resource key directly
-        if (Application.Current?.TryGetResource(key, out var resource) == true && resource is IBrush brush)
-        {
-            return brush;
-        }
-        
         return Brushes.Transparent;
     }
     
