@@ -68,10 +68,10 @@
 		<None Remove="Assets\Donate\paypal_qr.png" />
 	</ItemGroup>
 	<ItemGroup>
-		<Resource Include="Assets\icon.ico" />
-		<Resource Include="Assets\default_exe.png" />
-		<Resource Include="Assets\Donate\paypal_logo.png" />
-		<Resource Include="Assets\Donate\paypal_qr.png" />
+		<AvaloniaResource Include="Assets\icon.ico" />
+		<AvaloniaResource Include="Assets\default_exe.png" />
+		<AvaloniaResource Include="Assets\Donate\paypal_logo.png" />
+		<AvaloniaResource Include="Assets\Donate\paypal_qr.png" />
 	</ItemGroup>
 	<ItemGroup>
 		<Compile Update="Assets\AssetResources.Designer.cs">
