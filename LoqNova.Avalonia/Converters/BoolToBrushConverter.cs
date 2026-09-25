@@ -1,7 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Data.Converters;
-using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 
 namespace LoqNova.Avalonia.Converters;
@@ -46,17 +45,6 @@ public class BoolToBrushConverter : IValueConverter
     {
         key = key.Trim();
         
-        // Handle {StaticResource Key} syntax
-        if (key.StartsWith("{StaticResource") && key.EndsWith("}"))
-        {
-            var resourceKey = key["{StaticResource".Length..].TrimEnd('}').Trim();
-            if (Application.Current?.TryFindResource(resourceKey, out var resource) == true && resource is IBrush brush)
-            {
-                return brush;
-            }
-            return Brushes.Transparent;
-        }
-        
         // Handle direct color values
         if (key.StartsWith("#") || byte.TryParse(key, out _))
         {
@@ -64,7 +52,7 @@ public class BoolToBrushConverter : IValueConverter
         }
         
         // Handle resource key directly
-        if (Application.Current?.TryFindResource(key, out var resource) == true && resource is IBrush brush)
+        if (Application.Current?.TryGetResource(key, out var resource) == true && resource is IBrush brush)
         {
             return brush;
         }
