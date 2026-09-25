@@ -7,16 +7,29 @@ public class IntNotEqualConverter : IValueConverter
 {
     public object? Convert(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
     {
-        int intValue;
+        int intValue = 0;
+        bool hasValue = false;
+        
         if (value is int iv)
         {
             intValue = iv;
-        }
-        else if (value is Nullable<int> niv && niv.HasValue)
-        {
-            intValue = niv.Value;
+            hasValue = true;
         }
         else
+        {
+            var nullableType = typeof(Nullable<int>);
+            if (value?.GetType() == nullableType)
+            {
+                var niv = (System.Nullable<int>)value;
+                if (niv.HasValue)
+                {
+                    intValue = niv.Value;
+                    hasValue = true;
+                }
+            }
+        }
+        
+        if (!hasValue)
         {
             return true;
         }

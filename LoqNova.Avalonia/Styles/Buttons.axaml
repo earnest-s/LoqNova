@@ -1,5 +1,6 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:styling="clr-namespace:Avalonia.Styling;assembly=Avalonia">
     
     <!-- Primary Button -->
     <Style x:Key="PrimaryButton" TargetType="Button">
@@ -14,16 +15,16 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
         <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
+            <styling:Trigger Property="IsPointerOver" Value="True">
                 <Setter Property="Background" Value="#005A9E" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
+            </styling:Trigger>
+            <styling:Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="#004578" />
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
+            </styling:Trigger>
+            <styling:Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
                 <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
-            </Trigger>
+            </styling:Trigger>
         </Style.Triggers>
     </Style>
     
@@ -41,18 +42,18 @@
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
         <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
+            <styling:Trigger Property="IsPointerOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource HoverBrush}" />
                 <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
+            </styling:Trigger>
+            <styling:Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </Trigger>
-            <Trigger Property="IsEnabled" Value="False">
+            </styling:Trigger>
+            <styling:Trigger Property="IsEnabled" Value="False">
                 <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
                 <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
                 <Setter Property="BorderBrush" Value="{StaticResource DisabledBrush}" />
-            </Trigger>
+            </styling:Trigger>
         </Style.Triggers>
     </Style>
     
@@ -67,13 +68,13 @@
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
         <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
+            <styling:Trigger Property="IsPointerOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource HoverBrush}" />
                 <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
+            </styling:Trigger>
+            <styling:Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </Trigger>
+            </styling:Trigger>
         </Style.Triggers>
     </Style>
     
@@ -87,13 +88,13 @@
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
         <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
+            <styling:Trigger Property="IsPointerOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource HoverBrush}" />
                 <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
+            </styling:Trigger>
+            <styling:Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </Trigger>
+            </styling:Trigger>
         </Style.Triggers>
     </Style>
     
@@ -108,13 +109,13 @@
         <Setter Property="Height" Value="36" />
         <Setter Property="Cursor" Value="Hand" />
         <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
+            <styling:Trigger Property="IsPointerOver" Value="True">
                 <Setter Property="Background" Value="{StaticResource HoverBrush}" />
                 <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
+            </styling:Trigger>
+            <styling:Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </Trigger>
+            </styling:Trigger>
         </Style.Triggers>
     </Style>
     
@@ -131,12 +132,12 @@
         <Setter Property="MinWidth" Value="80" />
         <Setter Property="Cursor" Value="Hand" />
         <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
+            <styling:Trigger Property="IsPointerOver" Value="True">
                 <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
+            </styling:Trigger>
+            <styling:Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </Trigger>
+            </styling:Trigger>
         </Style.Triggers>
     </Style>
     
@@ -157,12 +158,12 @@
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
         <Setter Property="Cursor" Value="Hand" />
         <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
+            <styling:Trigger Property="IsPointerOver" Value="True">
                 <Setter Property="Background" Value="#C5001B" />
-            </Trigger>
-            <Trigger Property="IsPressed" Value="True">
+            </styling:Trigger>
+            <styling:Trigger Property="IsPressed" Value="True">
                 <Setter Property="Background" Value="#A00017" />
-            </Trigger>
+            </styling:Trigger>
         </Style.Triggers>
     </Style>
 </ResourceDictionary>
