@@ -1,8 +1,8 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
     <!-- Primary Button -->
-    <Style x:Key="PrimaryButton" TargetType="Button">
+    <Style Selector="Button.PrimaryButton">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="White" />
         <Setter Property="BorderThickness" Value="0" />
@@ -15,21 +15,21 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     
-    <Style Selector="Button.PrimaryButton:pointerover /template/ Border#PART_Border">
+    <Style Selector="Button.PrimaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#005A9E" />
     </Style>
     
-    <Style Selector="Button.PrimaryButton:pressed /template/ Border#PART_Border">
+    <Style Selector="Button.PrimaryButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#004578" />
     </Style>
     
-    <Style Selector="Button.PrimaryButton:disabled">
+    <Style Selector="Button.PrimaryButton:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
         <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
     </Style>
     
     <!-- Secondary Button -->
-    <Style x:Key="SecondaryButton" TargetType="Button">
+    <Style Selector="Button.SecondaryButton">
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -43,23 +43,23 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     
-    <Style Selector="Button.SecondaryButton:pointerover /template/ Border#PART_Border">
+    <Style Selector="Button.SecondaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
     </Style>
     
-    <Style Selector="Button.SecondaryButton:pressed /template/ Border#PART_Border">
+    <Style Selector="Button.SecondaryButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
-    <Style Selector="Button.SecondaryButton:disabled">
+    <Style Selector="Button.SecondaryButton:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
         <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource DisabledBrush}" />
     </Style>
     
     <!-- Outline Button -->
-    <Style x:Key="OutlineButton" TargetType="Button">
+    <Style Selector="Button.OutlineButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -70,17 +70,17 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     
-    <Style Selector="Button.OutlineButton:pointerover /template/ Border#PART_Border">
+    <Style Selector="Button.OutlineButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
     </Style>
     
-    <Style Selector="Button.OutlineButton:pressed /template/ Border#PART_Border">
+    <Style Selector="Button.OutlineButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
     <!-- Ghost Button -->
-    <Style x:Key="GhostButton" TargetType="Button">
+    <Style Selector="Button.GhostButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
@@ -90,17 +90,17 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     
-    <Style Selector="Button.GhostButton:pointerover /template/ Border#PART_Border">
+    <Style Selector="Button.GhostButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
     
-    <Style Selector="Button.GhostButton:pressed /template/ Border#PART_Border">
+    <Style Selector="Button.GhostButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
     <!-- Icon Button -->
-    <Style x:Key="IconButton" TargetType="Button">
+    <Style Selector="Button.IconButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
@@ -111,17 +111,17 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     
-    <Style Selector="Button.IconButton:pointerover /template/ Border#PART_Border">
+    <Style Selector="Button.IconButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
     
-    <Style Selector="Button.IconButton:pressed /template/ Border#PART_Border">
+    <Style Selector="Button.IconButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
     <!-- Preset Button (for RGB keyboard) -->
-    <Style x:Key="PresetButton" TargetType="Button">
+    <Style Selector="Button.PresetButton">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
@@ -134,22 +134,28 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     
-    <Style Selector="Button.PresetButton:pointerover /template/ Border#PART_Border">
+    <Style Selector="Button.PresetButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
     </Style>
     
-    <Style Selector="Button.PresetButton:pressed /template/ Border#PART_Border">
+    <Style Selector="Button.PresetButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
-    <Style x:Key="PresetButtonSelected" TargetType="Button" BasedOn="{StaticResource PresetButton}">
+    <Style Selector="Button.PresetButtonSelected">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="White" />
+        <Setter Property="Padding" Value="12,8" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
+        <Setter Property="MinWidth" Value="80" />
+        <Setter Property="Cursor" Value="Hand" />
     </Style>
     
     <!-- Danger Button -->
-    <Style x:Key="DangerButton" TargetType="Button">
+    <Style Selector="Button.DangerButton">
         <Setter Property="Background" Value="{StaticResource AccentBrush}" />
         <Setter Property="Foreground" Value="White" />
         <Setter Property="BorderThickness" Value="0" />
@@ -160,11 +166,11 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
     
-    <Style Selector="Button.DangerButton:pointerover /template/ Border#PART_Border">
+    <Style Selector="Button.DangerButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#C5001B" />
     </Style>
     
-    <Style Selector="Button.DangerButton:pressed /template/ Border#PART_Border">
+    <Style Selector="Button.DangerButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="#A00017" />
     </Style>
-</ResourceDictionary>
+</Styles>
