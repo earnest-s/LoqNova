@@ -30,7 +30,7 @@ public partial class App : Application
         var builder = new ContainerBuilder();
         
         // Register IServiceProvider adapter
-        builder.Register<IServiceProvider>(c => new AutofacServiceProvider(c.Resolve<IComponentContext>())).SingleInstance();
+        builder.Register<IServiceProvider>(c => new AutofacServiceProvider(c.Resolve<ILifetimeScope>())).SingleInstance();
         
         // Register converters
         builder.RegisterType<BoolToVisibilityConverter>().SingleInstance();
@@ -93,6 +93,7 @@ public partial class App : Application
         builder.RegisterType<SpectrumEditEffectViewModel>().InstancePerDependency();
         
         Container = builder.Build();
+        AppHost.Initialize(new AutofacServiceProvider(Container));
         
         // Initialize localization
         LocalizationHelper.Initialize();
