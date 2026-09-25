@@ -16,11 +16,9 @@
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
 		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
+		<!-- Satellite languages -->
 		<NeutralLanguage>en</NeutralLanguage>
 		<SatelliteResourceLanguages>ar;bg;cs;de;en;el;es;fr;hu;it;ja;lv;nl;nl-nl;pl;pt;pt-br;ro;ru;sk;uk;tr;vi;zh;zh-hans;zh-hant</SatelliteResourceLanguages>
-		<!-- Workaround for AXN0002 bug in Avalonia 11.x -->
-		<AvaloniaXamlCompilerOptimization>false</AvaloniaXamlCompilerOptimization>
-		<AvaloniaXamlIlSupport>false</AvaloniaXamlIlSupport>
 	</PropertyGroup>
 	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
 		<DebugType>portable</DebugType>
@@ -35,6 +33,7 @@
 		<PackageReference Include="Avalonia.Fonts.Inter" Version="11.2.6" />
 		<PackageReference Include="Avalonia.Svg.Skia" Version="11.2.6" />
 		<PackageReference Include="Avalonia.ReactiveUI" Version="11.2.6" />
+		<PackageReference Include="Avalonia.Controls.ColorPicker" Version="11.2.6" />
 		<PackageReference Include="SkiaSharp" Version="3.116.0" />
 		<PackageReference Include="HarfBuzzSharp" Version="8.2.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />

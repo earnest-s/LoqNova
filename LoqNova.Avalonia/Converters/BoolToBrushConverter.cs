@@ -1,4 +1,6 @@
 using System;
+using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Data.Converters;
 using Avalonia.Media;
 
@@ -16,8 +18,8 @@ public class BoolToBrushConverter : IValueConverter
                 var truePart = parts[0].Trim();
                 var falsePart = parts[1].Trim();
                 
-                var trueBrush = ParseColor(truePart);
-                var falseBrush = ParseColor(falsePart);
+                var trueBrush = GetBrush(truePart);
+                var falseBrush = GetBrush(falsePart);
                 
                 return boolValue ? trueBrush : falseBrush;
             }
@@ -25,13 +27,22 @@ public class BoolToBrushConverter : IValueConverter
         return Brushes.Transparent;
     }
     
-    private static IBrush? ParseColor(string name)
+    private static IBrush GetBrush(string name)
     {
         name = name.Trim();
-        if (name.StartsWith("#") || byte.TryParse(name, out _))
+        if (string.IsNullOrEmpty(name)) return Brushes.Transparent;
+
+        if (Application.Current != null && Application.Current.TryGetResource(name, null, out var resource))
         {
-            return Color.TryParse(name, out var color) ? new SolidColorBrush(color) : null;
+            if (resource is IBrush brush) return brush;
+            if (resource is Color colorRes) return new SolidColorBrush(colorRes);
         }
+
+        if (Color.TryParse(name, out var color))
+        {
+            return new SolidColorBrush(color);
+        }
+
         return Brushes.Transparent;
     }
     
