@@ -10,9 +10,4 @@ public partial class ViewModelBase : ObservableObject
     public ViewModelBase()
     {
     }
-    
-    protected virtual void OnPropertyChanged([CallerMemberName] string? propertyName = null)
-    {
-        OnPropertyChanged(new PropertyChangedEventArgs(propertyName));
-    }
 }

@@ -9,6 +9,9 @@ namespace LoqNova.Avalonia.Services;
 
 public class FileDialogService : IFileDialogService
 {
+    private static Window? GetWindow() =>
+        (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
     public async Task<string?> ShowFolderBrowserDialogAsync(string title, string? initialPath = null)
     {
         var dialog = new OpenFolderDialog
@@ -21,7 +24,9 @@ public class FileDialogService : IFileDialogService
             try { dialog.Directory = initialPath; } catch { }
         }
         
-        var result = await dialog.ShowAsync(null);
+        var window = GetWindow();
+        if (window == null) return null;
+        var result = await dialog.ShowAsync(window);
         return result;
     }
     
@@ -38,7 +43,9 @@ public class FileDialogService : IFileDialogService
             try { dialog.Directory = initialPath; } catch { }
         }
         
-        var result = await dialog.ShowAsync(null);
+        var window = GetWindow();
+        if (window == null) return null;
+        var result = await dialog.ShowAsync(window);
         return result?.FirstOrDefault();
     }
     
@@ -56,7 +63,9 @@ public class FileDialogService : IFileDialogService
             try { dialog.Directory = initialPath; } catch { }
         }
         
-        return await dialog.ShowAsync(null);
+        var window = GetWindow();
+        if (window == null) return null;
+        return await dialog.ShowAsync(window);
     }
     
     private static List<FileDialogFilter> ParseFilters(string filter)
