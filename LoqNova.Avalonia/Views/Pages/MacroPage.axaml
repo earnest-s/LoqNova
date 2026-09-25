@@ -24,7 +24,7 @@
                 <StackPanel>
                     <TextBlock Text="Select Key" Classes="SectionHeader" />
                     
-                    <UniformGrid Rows="3" Columns="4" Margin="0,16,0,0" Spacing="8">
+                    <UniformGrid Rows="3" Columns="4" Margin="0,16,0,0">
                         <Button Classes="SecondaryButton" Content="1" Command="{Binding SelectKeyCommand}" CommandParameter="1" 
                                 IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=1}" />
                         <Button Classes="SecondaryButton" Content="2" Command="{Binding SelectKeyCommand}" CommandParameter="2"
