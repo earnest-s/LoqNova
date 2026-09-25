@@ -1,6 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:styling="clr-namespace:Avalonia.Styling;assembly=Avalonia">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
     <!-- Primary Button -->
     <Style x:Key="PrimaryButton" TargetType="Button">
@@ -14,18 +13,19 @@
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
-        <Style.Triggers>
-            <styling:Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="Background" Value="#005A9E" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#004578" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
-                <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
-            </styling:Trigger>
-        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="PrimaryButton:pointerover" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Background" Value="#005A9E" />
+    </Style>
+    
+    <Style x:Key="PrimaryButton:pressed" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Background" Value="#004578" />
+    </Style>
+    
+    <Style x:Key="PrimaryButton:disabled" TargetType="Button" BasedOn="{StaticResource PrimaryButton}">
+        <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
     </Style>
     
     <!-- Secondary Button -->
@@ -41,20 +41,21 @@
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
-        <Style.Triggers>
-            <styling:Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsEnabled" Value="False">
-                <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
-                <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource DisabledBrush}" />
-            </styling:Trigger>
-        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="SecondaryButton:pointerover" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="SecondaryButton:pressed" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+        <Setter Property="Background" Value="{StaticResource PressedBrush}" />
+    </Style>
+    
+    <Style x:Key="SecondaryButton:disabled" TargetType="Button" BasedOn="{StaticResource SecondaryButton}">
+        <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource DisabledBrush}" />
     </Style>
     
     <!-- Outline Button -->
@@ -67,15 +68,15 @@
         <Setter Property="CornerRadius" Value="4" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
-        <Style.Triggers>
-            <styling:Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </styling:Trigger>
-        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="OutlineButton:pointerover" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="OutlineButton:pressed" TargetType="Button" BasedOn="{StaticResource OutlineButton}">
+        <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
     <!-- Ghost Button -->
@@ -87,15 +88,15 @@
         <Setter Property="CornerRadius" Value="4" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
-        <Style.Triggers>
-            <styling:Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </styling:Trigger>
-        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="GhostButton:pointerover" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="GhostButton:pressed" TargetType="Button" BasedOn="{StaticResource GhostButton}">
+        <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
     <!-- Icon Button -->
@@ -108,15 +109,15 @@
         <Setter Property="Width" Value="36" />
         <Setter Property="Height" Value="36" />
         <Setter Property="Cursor" Value="Hand" />
-        <Style.Triggers>
-            <styling:Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-                <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </styling:Trigger>
-        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="IconButton:pointerover" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="IconButton:pressed" TargetType="Button" BasedOn="{StaticResource IconButton}">
+        <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
     <!-- Preset Button (for RGB keyboard) -->
@@ -131,14 +132,14 @@
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
         <Setter Property="MinWidth" Value="80" />
         <Setter Property="Cursor" Value="Hand" />
-        <Style.Triggers>
-            <styling:Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="{StaticResource PressedBrush}" />
-            </styling:Trigger>
-        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="PresetButton:pointerover" TargetType="Button" BasedOn="{StaticResource PresetButton}">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+    
+    <Style x:Key="PresetButton:pressed" TargetType="Button" BasedOn="{StaticResource PresetButton}">
+        <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
     
     <Style x:Key="PresetButtonSelected" TargetType="Button" BasedOn="{StaticResource PresetButton}">
@@ -157,13 +158,13 @@
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
         <Setter Property="Cursor" Value="Hand" />
-        <Style.Triggers>
-            <styling:Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="Background" Value="#C5001B" />
-            </styling:Trigger>
-            <styling:Trigger Property="IsPressed" Value="True">
-                <Setter Property="Background" Value="#A00017" />
-            </styling:Trigger>
-        </Style.Triggers>
+    </Style>
+    
+    <Style x:Key="DangerButton:pointerover" TargetType="Button" BasedOn="{StaticResource DangerButton}">
+        <Setter Property="Background" Value="#C5001B" />
+    </Style>
+    
+    <Style x:Key="DangerButton:pressed" TargetType="Button" BasedOn="{StaticResource DangerButton}">
+        <Setter Property="Background" Value="#A00017" />
     </Style>
 </ResourceDictionary>
