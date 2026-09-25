@@ -12,7 +12,7 @@
         MinWidth="1000"
         MinHeight="700"
         WindowStartupLocation="CenterScreen"
-        Icon="avares://LoqNova.Avalonia/Assets/icon.ico"
+        Icon="avares://LOQ Nova/Assets/icon.ico"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1"
@@ -29,7 +29,7 @@
             <Border Grid.Row="0" Grid.ColumnSpan="2" Height="32" Background="{StaticResource SurfaceBrush}" BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1">
                 <Grid ColumnDefinitions="Auto,*,Auto">
                     <!-- Window Icon -->
-                    <Image Source="avares://LoqNova.Avalonia/Assets/icon.ico" Width="16" Height="16" Margin="12,0,8,0" VerticalAlignment="Center" />
+                    <Image Source="avares://LOQ Nova/Assets/icon.ico" Width="16" Height="16" Margin="12,0,8,0" VerticalAlignment="Center" />
                     
                     <!-- Title -->
                     <TextBlock Grid.Column="1" Text="{Binding Title}" FontSize="12" FontWeight="Medium" Foreground="{StaticResource TextPrimaryBrush}" VerticalAlignment="Center" Margin="0,0,0,0" />
