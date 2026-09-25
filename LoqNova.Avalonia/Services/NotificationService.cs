@@ -40,7 +40,7 @@ public class NotificationService : INotificationService
             LocalNs.NotificationType.Success => global::Avalonia.Controls.Notifications.NotificationType.Success,
             LocalNs.NotificationType.Warning => global::Avalonia.Controls.Notifications.NotificationType.Warning,
             LocalNs.NotificationType.Error => global::Avalonia.Controls.Notifications.NotificationType.Error,
-            _ => global::Avalonia.Controls.Notifications.NotificationType.Info
+            _ => global::Avalonia.Controls.Notifications.NotificationType.Information
         };
         
         _notificationManager?.Show(new Notification(message.Title, message.Message ?? "", avaloniaNotificationType)
