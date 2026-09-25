@@ -96,8 +96,8 @@
                                                     Command="{Binding $parent[Window].DataContext.Navigate}"
                                                     CommandParameter="{Binding Page}"
                                                     IsVisible="{Binding IsVisible}"
-                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}"
-                                                    Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                    Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:Transparent,default:{StaticResource CardBackgroundBrush}}"
+                                                    Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:{StaticResource TextPrimaryBrush},default:{StaticResource TextSecondaryBrush}}">
                                                 <StackPanel Orientation="Horizontal" Spacing="12">
 <PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
                                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
@@ -122,9 +122,9 @@
                                         <Button Classes="FooterNavigationItem"
                                                 Command="{Binding $parent[Window].DataContext.Navigate}"
                                                 CommandParameter="{Binding Page}"
-                                                IsVisible="{Binding IsVisible, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=footer}"
-                                                Background="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}"
-                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
+                                                IsVisible="{Binding IsVisible}"
+                                                Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:Transparent,default:{StaticResource CardBackgroundBrush}}"
+                                                Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:{StaticResource TextPrimaryBrush},default:{StaticResource TextSecondaryBrush}}">
                                             <StackPanel Orientation="Horizontal" Spacing="12">
 <PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
                                                            Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
