@@ -1,7 +1,7 @@
 using System;
+using Avalonia;
 using Avalonia.Data.Converters;
 using Avalonia.Markup.Xaml;
-using Avalonia.Markup.Xaml.MarkupExtensions;
 using Avalonia.Media;
 
 namespace LoqNova.Avalonia.Converters;
@@ -31,24 +31,45 @@ public class BoolToBrushConverter : IValueConverter
     {
         if (part.StartsWith("selected:"))
         {
-            var colorName = part["selected:".Length..].Trim();
-            return ParseColorOrResource(colorName);
+            var resourceKey = part["selected:".Length..].Trim();
+            return ResolveBrush(resourceKey);
         }
         else if (part.StartsWith("default:"))
         {
-            var colorName = part["default:".Length..].Trim();
-            return ParseColorOrResource(colorName);
+            var resourceKey = part["default:".Length..].Trim();
+            return ResolveBrush(resourceKey);
         }
-        return ParseColorOrResource(part);
+        return ResolveBrush(part);
     }
     
-    private static IBrush? ParseColorOrResource(string name)
+    private static IBrush? ResolveBrush(string key)
     {
-        if (name.StartsWith("#") || byte.TryParse(name, out _))
+        key = key.Trim();
+        
+        // Handle {StaticResource Key} syntax
+        if (key.StartsWith("{StaticResource") && key.EndsWith("}"))
         {
-            return Color.TryParse(name, out var color) ? new SolidColorBrush(color) : null;
+            var resourceKey = key["{StaticResource".Length..].TrimEnd('}').Trim();
+            if (Application.Current?.TryFindResource(resourceKey, out var resource) == true && resource is IBrush brush)
+            {
+                return brush;
+            }
+            return Brushes.Transparent;
         }
-        return new DynamicResourceExtension(name);
+        
+        // Handle direct color values
+        if (key.StartsWith("#") || byte.TryParse(key, out _))
+        {
+            return Color.TryParse(key, out var color) ? new SolidColorBrush(color) : null;
+        }
+        
+        // Handle resource key directly
+        if (Application.Current?.TryFindResource(key, out var resource) == true && resource is IBrush brush)
+        {
+            return brush;
+        }
+        
+        return Brushes.Transparent;
     }
     
     public object? ConvertBack(object? value, Type targetType, object? parameter, System.Globalization.CultureInfo culture)
