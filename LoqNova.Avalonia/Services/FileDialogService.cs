@@ -10,7 +10,7 @@ namespace LoqNova.Avalonia.Services;
 public class FileDialogService : IFileDialogService
 {
     private static Window? GetWindow() =>
-        (Avalonia.Application.Current?.ApplicationLifetime as Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        (global::Avalonia.Application.Current?.ApplicationLifetime as global::Avalonia.Controls.ApplicationLifetimes.IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
     public async Task<string?> ShowFolderBrowserDialogAsync(string title, string? initialPath = null)
     {
