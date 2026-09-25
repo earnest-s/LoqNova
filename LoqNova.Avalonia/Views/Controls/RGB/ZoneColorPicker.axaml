@@ -4,14 +4,9 @@
 
     <StackPanel Spacing="8">
         <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Text="{Binding ZoneNumber, StringFormat='Zone {0}'}" Classes="Label" VerticalAlignment="Center" Width="80" />
-            <Border Width="32" Height="32" CornerRadius="4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
-                <Border.Background>
-                    <SolidColorBrush Color="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
-                </Border.Background>
-            </Border>
+            <TextBlock Text="{Binding $parent[UserControl].ZoneNumber, StringFormat='Zone {0}'}" Classes="Label" VerticalAlignment="Center" Width="80" />
+            <Border Width="32" Height="32" CornerRadius="4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    Background="{Binding $parent[UserControl].Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
         </StackPanel>
-        
-        <ColorPicker Color="{Binding Color, Mode=TwoWay}" />
     </StackPanel>
 </UserControl>
