@@ -59,4 +59,6 @@
     <local:BoolToBrushConverter x:Key="BoolToBrushConverter" />
     <local:EnumToDisplayConverter x:Key="EnumToDisplayConverter" />
     <local:RgbZoneColorToBrushConverter x:Key="RgbZoneColorToBrushConverter" />
+    <local:IntNotEqualConverter x:Key="IntNotEqualConverter" />
+    <local:StringEqualityConverter x:Key="StringEqualityConverter" />
 </ResourceDictionary>

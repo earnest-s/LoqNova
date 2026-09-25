@@ -62,9 +62,10 @@
                                     <TextBlock Text="{Binding DeviceModel}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" />
                                 </StackPanel>
                             </StackPanel>
-                        </Border>
-                        
+</Border>
+                         
                         <!-- Status Indicators -->
+                        <!--
                         <StackPanel Grid.Row="1" Margin="16,0,16,8" Spacing="6" IsVisible="{Binding IsTracing}">
                             <Border Padding="8,4" Background="{StaticResource AccentBrush}" CornerRadius="4">
                                 <TextBlock Text="TRACING" FontSize="10" FontWeight="Bold" Foreground="White" />
@@ -85,6 +86,7 @@
                                 <TextBlock Text="FN KEYS ACTIVE" FontSize="10" FontWeight="Bold" Foreground="White" />
                             </Border>
                         </StackPanel>
+                        -->
                         
                         <!-- Navigation Items -->
                         <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
