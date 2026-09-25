@@ -1,9 +1,16 @@
-<ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls">
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
     
     <!-- Base Card Style -->
-    <Style x:Key="BaseCard" TargetType="Border">
+    <Style Selector="Border.BaseCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+
+    <Style Selector="Border.ContentCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -12,45 +19,59 @@
     </Style>
     
     <!-- Card with Hover Effect -->
-    <Style x:Key="HoverCard" TargetType="Border" BasedOn="{StaticResource BaseCard}">
-        <Style.Triggers>
-            <Trigger Property="IsPointerOver" Value="True">
-                <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-                <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-            </Trigger>
-        </Style.Triggers>
+    <Style Selector="Border.HoverCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+    </Style>
+    
+    <Style Selector="Border.HoverCard:pointerover">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
     </Style>
     
     <!-- Feature Card Style -->
-    <Style x:Key="FeatureCard" TargetType="Border" BasedOn="{StaticResource BaseCard}">
+    <Style Selector="Border.FeatureCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
         <Setter Property="Margin" Value="4" />
     </Style>
     
     <!-- Sensor Card Style -->
-    <Style x:Key="SensorCard" TargetType="Border" BasedOn="{StaticResource BaseCard}">
+    <Style Selector="Border.SensorCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
         <Setter Property="MinWidth" Value="120" />
         <Setter Property="MaxWidth" Value="180" />
     </Style>
     
     <!-- Card Header -->
-    <Style x:Key="CardHeader" TargetType="Grid">
+    <Style Selector="Grid.CardHeader">
         <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
     
-    <Style x:Key="CardTitle" TargetType="TextBlock" BasedOn="{StaticResource Heading4}">
+    <Style Selector="TextBlock.CardTitle">
         <Setter Property="Margin" Value="0,0,8,0" />
     </Style>
     
-    <Style x:Key="CardSubtitle" TargetType="TextBlock" BasedOn="{StaticResource Caption}">
+    <Style Selector="TextBlock.CardSubtitle">
         <Setter Property="Margin" Value="0,2,0,0" />
     </Style>
     
     <!-- Card Value -->
-    <Style x:Key="CardValue" TargetType="TextBlock" BasedOn="{StaticResource Value}" />
-    <Style x:Key="CardUnit" TargetType="TextBlock" BasedOn="{StaticResource Unit}" />
+    <Style Selector="TextBlock.CardValue" />
+    <Style Selector="TextBlock.CardUnit" />
     
     <!-- Card Actions -->
-    <Style x:Key="CardActionButton" TargetType="Button">
+    <Style Selector="Button.CardActionButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
@@ -61,14 +82,42 @@
     </Style>
     
     <!-- Toggle Card -->
-    <Style x:Key="ToggleCard" TargetType="Border" BasedOn="{StaticResource FeatureCard}" />
+    <Style Selector="Border.ToggleCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="4" />
+    </Style>
     
     <!-- ComboBox Card -->
-    <Style x:Key="ComboBoxCard" TargetType="Border" BasedOn="{StaticResource FeatureCard}" />
+    <Style Selector="Border.ComboBoxCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="4" />
+    </Style>
     
     <!-- Button Card -->
-    <Style x:Key="ButtonCard" TargetType="Border" BasedOn="{StaticResource FeatureCard}" />
+    <Style Selector="Border.ButtonCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="4" />
+    </Style>
     
     <!-- Custom Card -->
-    <Style x:Key="CustomCard" TargetType="Border" BasedOn="{StaticResource FeatureCard}" />
-</ResourceDictionary>
+    <Style Selector="Border.CustomCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="8" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="Margin" Value="4" />
+    </Style>
+</Styles>
