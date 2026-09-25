@@ -1,5 +1,6 @@
 using System;
 using Avalonia.Data.Converters;
+using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 
 namespace LoqNova.Avalonia.Converters;
