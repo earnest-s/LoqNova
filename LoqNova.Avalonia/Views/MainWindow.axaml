@@ -3,6 +3,7 @@
         xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels"
         xmlns:views="clr-namespace:LoqNova.Avalonia.Views"
         xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
+        xmlns:notifications="clr-namespace:LoqNova.Avalonia.Views.Controls.Notifications"
         x:Class="LoqNova.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Title="LOQ Nova"
@@ -147,6 +148,6 @@
         </Grid>
         
         <!-- Snackbar Host -->
-        <controls:SnackbarHost x:Name="SnackbarHost" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="24" />
+        <notifications:SnackbarHost x:Name="SnackbarHost" VerticalAlignment="Bottom" HorizontalAlignment="Right" Margin="24" />
     </Panel>
 </Window>
