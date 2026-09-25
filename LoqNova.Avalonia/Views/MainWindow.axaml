@@ -126,10 +126,10 @@
                                                 Background="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=invert}"
                                                 Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}}">
                                             <StackPanel Orientation="Horizontal" Spacing="12">
-                                                <PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
-                                                          Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
-                                                <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
-                                                           Foreground="{Binding IsSelected, Converter={StaticResource BoolToVisibilityConverter}, ConverterParameter=selected:White,default:TextPrimaryBrush}" />
+<PathIcon Data="{Binding Icon, Converter={StaticResource EnumToDisplayConverter}}" Classes="NavigationItemIcon"
+                                                           Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextSecondaryBrush}" />
+                                                 <TextBlock Text="{Binding Label}" Classes="NavigationItemLabel"
+                                                            Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=selected:White,default:TextPrimaryBrush}" />
                                             </StackPanel>
                                         </Button>
                                     </DataTemplate>
