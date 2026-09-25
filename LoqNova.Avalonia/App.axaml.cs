@@ -11,6 +11,7 @@ using LoqNova.Avalonia.ViewModels.Pages;
 using LoqNova.Avalonia.ViewModels.Dialogs;
 using LoqNova.Avalonia.Views;
 using Autofac;
+using Autofac.Extensions.DependencyInjection;
 
 namespace LoqNova.Avalonia;
 
@@ -27,6 +28,9 @@ public partial class App : Application
     {
         // Build DI container
         var builder = new ContainerBuilder();
+        
+        // Register IServiceProvider adapter
+        builder.Register<IServiceProvider>(c => new AutofacServiceProvider(c.Resolve<IComponentContext>())).SingleInstance();
         
         // Register converters
         builder.RegisterType<BoolToVisibilityConverter>().SingleInstance();
