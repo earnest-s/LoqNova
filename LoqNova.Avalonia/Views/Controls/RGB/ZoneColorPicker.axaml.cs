@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Data;
 using Avalonia.Markup.Xaml;
 using LoqNova.Avalonia.Services;
 
@@ -11,7 +12,7 @@ public partial class ZoneColorPicker : UserControl
         AvaloniaProperty.Register<ZoneColorPicker, int>(nameof(ZoneNumber));
 
     public static readonly StyledProperty<RgbZoneColor> ColorProperty =
-        AvaloniaProperty.Register<ZoneColorPicker, RgbZoneColor>(nameof(Color), defaultBindingMode: Avalonia.Data.BindingMode.TwoWay);
+        AvaloniaProperty.Register<ZoneColorPicker, RgbZoneColor>(nameof(Color), defaultBindingMode: BindingMode.TwoWay);
 
     public int ZoneNumber
     {
