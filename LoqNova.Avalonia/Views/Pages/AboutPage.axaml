@@ -16,7 +16,7 @@
             <!-- App Info -->
             <Border Classes="ContentCard" HorizontalAlignment="Center">
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
-                    <Image Source="avares://LoqNova.Avalonia/Assets/icon.ico" Width="128" Height="128" />
+                    <Image Source="avares://LOQ Nova/Assets/icon.ico" Width="128" Height="128" />
                     <TextBlock Text="{Binding AppName}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
                     <TextBlock Text="{Binding Version, StringFormat='Version {0}'}" Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
                     <TextBlock Text="{Binding BuildDate, StringFormat='Build Date: {0}'}" Classes="Caption" />

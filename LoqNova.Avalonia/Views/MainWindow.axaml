@@ -57,7 +57,7 @@
                         <!-- App Logo -->
                         <Border Margin="16,16,16,8">
                             <StackPanel Orientation="Horizontal" Spacing="10">
-                                <Image Source="avares://LoqNova.Avalonia/Assets/icon.ico" Width="32" Height="32" />
+                                <Image Source="avares://LOQ Nova/Assets/icon.ico" Width="32" Height="32" />
                                 <StackPanel>
                                     <TextBlock Text="LOQ Nova" FontSize="16" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
                                     <TextBlock Text="{Binding DeviceModel}" FontSize="11" Foreground="{StaticResource TextMutedBrush}" />
