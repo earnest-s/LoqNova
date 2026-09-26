@@ -190,7 +190,7 @@ public class RgbService : IRgbService
 
         try
         {
-            var libColor = new LoqNova.Lib.Structs.RGBColor(color.R, color.G, color.B);
+            var libColor = new LoqNova.Lib.RGBColor(color.R, color.G, color.B);
             var state = _settings.Store.State;
             var presets = state.Presets;
             var currentPreset = state.SelectedPreset;
