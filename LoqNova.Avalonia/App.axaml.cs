@@ -1,4 +1,5 @@
 using System;
+using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -10,8 +11,13 @@ using LoqNova.Avalonia.ViewModels;
 using LoqNova.Avalonia.ViewModels.Pages;
 using LoqNova.Avalonia.ViewModels.Dialogs;
 using LoqNova.Avalonia.Views;
+using LoqNova.Lib.Controllers;
+using LoqNova.Lib.Controllers.Sensors;
+using LoqNova.Lib.Settings;
+using LoqNova.Lib.Utils;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace LoqNova.Avalonia;
 
