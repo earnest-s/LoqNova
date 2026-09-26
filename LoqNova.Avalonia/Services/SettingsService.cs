@@ -43,7 +43,7 @@ public class SettingsService : ISettingsService
         get => _settings.Store.AccentColorSource == LoqNova.Lib.Enums.AccentColorSource.System;
         set
         {
-            _settings.Store.AccentColorSource = value ? LoqNova.Lib.Enums.AccentColorSource.System : LoqNova.Lib.Enums.AccentColorSource.Custom;
+            _settings.Store.AccentColorSource = value ? LoqNova.Lib.AccentColorSource.System : LoqNova.Lib.AccentColorSource.Custom;
             _settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
