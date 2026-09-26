@@ -162,7 +162,7 @@ public class SettingsService : ISettingsService
         }
     }
 
-    private static AppTheme MapFromLibTheme(LoqNova.Lib.Enums.Theme theme) => theme switch
+    private static AppTheme MapFromLibTheme(LoqNova.Lib.Theme theme) => theme switch
     {
         LoqNova.Lib.Enums.Theme.System => AppTheme.System,
         LoqNova.Lib.Enums.Theme.Light => AppTheme.Light,
