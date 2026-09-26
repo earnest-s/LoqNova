@@ -140,7 +140,7 @@ public class SettingsService : ISettingsService
     {
         try
         {
-            await Task.Run(() => _settings.Load()).ConfigureAwait(false);
+            await Task.Run(() => _settings.LoadStore()).ConfigureAwait(false);
             _logger.LogInformation("Settings service initialized");
         }
         catch (Exception ex)
@@ -153,7 +153,7 @@ public class SettingsService : ISettingsService
     {
         try
         {
-            await Task.Run(() => _settings.Save()).ConfigureAwait(false);
+            await Task.Run(() => _settings.SynchronizeStore()).ConfigureAwait(false);
             _logger.LogInformation("Settings saved");
         }
         catch (Exception ex)
@@ -164,17 +164,17 @@ public class SettingsService : ISettingsService
 
     private static AppTheme MapFromLibTheme(LoqNova.Lib.Theme theme) => theme switch
     {
-        LoqNova.Lib.Enums.Theme.System => AppTheme.System,
-        LoqNova.Lib.Enums.Theme.Light => AppTheme.Light,
-        LoqNova.Lib.Enums.Theme.Dark => AppTheme.Dark,
+        LoqNova.Lib.Theme.System => AppTheme.System,
+        LoqNova.Lib.Theme.Light => AppTheme.Light,
+        LoqNova.Lib.Theme.Dark => AppTheme.Dark,
         _ => AppTheme.System
     };
 
     private static LoqNova.Lib.Theme MapToLibTheme(AppTheme theme) => theme switch
     {
-        AppTheme.System => LoqNova.Lib.Enums.Theme.System,
-        AppTheme.Light => LoqNova.Lib.Enums.Theme.Light,
-        AppTheme.Dark => LoqNova.Lib.Enums.Theme.Dark,
-        _ => LoqNova.Lib.Enums.Theme.System
+        AppTheme.System => LoqNova.Lib.Theme.System,
+        AppTheme.Light => LoqNova.Lib.Theme.Light,
+        AppTheme.Dark => LoqNova.Lib.Theme.Dark,
+        _ => LoqNova.Lib.Theme.System
     };
 }
