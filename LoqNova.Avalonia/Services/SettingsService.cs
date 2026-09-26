@@ -55,7 +55,7 @@ public class SettingsService : ISettingsService
         get => _settings.Store.TemperatureUnit == LoqNova.Lib.Enums.TemperatureUnit.F;
         set
         {
-            _settings.Store.TemperatureUnit = value ? LoqNova.Lib.Enums.TemperatureUnit.F : LoqNova.Lib.Enums.TemperatureUnit.C;
+            _settings.Store.TemperatureUnit = value ? LoqNova.Lib.TemperatureUnit.F : LoqNova.Lib.TemperatureUnit.C;
             _settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
