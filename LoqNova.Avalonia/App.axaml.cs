@@ -74,7 +74,6 @@ public partial class App : Application
         builder.RegisterType<ISensorsController, SensorsControllerV1>().SingleInstance();
         builder.RegisterType<WindowsPowerModeController>().SingleInstance();
         builder.RegisterType<RGBKeyboardBacklightController>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.Controllers.CustomRGBEffects.CustomRGBEffectController>().SingleInstance();
         builder.RegisterType<RgbFrameDispatcher>().SingleInstance();
         builder.RegisterType<LoqNova.Lib.SoftwareDisabler.VantageDisabler>().SingleInstance();
         
@@ -82,11 +81,11 @@ public partial class App : Application
         builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
         builder.RegisterType<PerformanceService>().As<IPerformanceService>().SingleInstance();
         builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
-        builder.RegisterType<RgbService>().As<IRgbService>().SingleInstance();
         builder.RegisterType<BatteryService>().As<IBatteryService>().SingleInstance();
         builder.RegisterType<SettingsService>().As<ISettingsService>().SingleInstance();
         
-        // Register mock services only where real implementation doesn't exist yet
+        // Register mock services where real implementation is complex
+        builder.RegisterType<MockRgbService>().As<IRgbService>().SingleInstance();
         builder.RegisterType<MockAutomationService>().As<IAutomationService>().SingleInstance();
         builder.RegisterType<MockMacroService>().As<IMacroService>().SingleInstance();
         builder.RegisterType<MockPackageService>().As<IPackageService>().SingleInstance();
