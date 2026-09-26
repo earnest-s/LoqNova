@@ -295,7 +295,7 @@ public class RgbService : IRgbService
         _ => RgbPreset.Off
     };
 
-    private static LoqNova.Lib.Enums.RGBKeyboardBacklightPreset MapToLibPreset(RgbPreset preset) => preset switch
+    private static LoqNova.Lib.RGBKeyboardBacklightPreset MapToLibPreset(RgbPreset preset) => preset switch
     {
         RgbPreset.Off => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Off,
         RgbPreset.Preset1 => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.One,
@@ -305,7 +305,7 @@ public class RgbService : IRgbService
         _ => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Off
     };
 
-    private static RgbEffect MapFromLibEffect(LoqNova.Lib.Enums.RGBKeyboardBacklightEffect effect) => effect switch
+    private static RgbEffect MapFromLibEffect(LoqNova.Lib.RGBKeyboardBacklightEffect effect) => effect switch
     {
         LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Static => RgbEffect.Static,
         LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Breath => RgbEffect.Breath,
@@ -327,7 +327,7 @@ public class RgbService : IRgbService
         _ => RgbEffect.Static
     };
 
-    private static LoqNova.Lib.Enums.RGBKeyboardBacklightEffect MapToLibEffect(RgbEffect effect) => effect switch
+    private static LoqNova.Lib.RGBKeyboardBacklightEffect MapToLibEffect(RgbEffect effect) => effect switch
     {
         RgbEffect.Static => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Static,
         RgbEffect.Breath => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Breath,
