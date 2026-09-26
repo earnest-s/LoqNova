@@ -49,7 +49,9 @@ public class MockBatteryService : IBatteryService
     public bool IsPowerAdapterConnected => _isPowerAdapterConnected;
     
     public event Action<int>? PercentageChanged;
+#pragma warning disable CS0067
     public event Action<bool>? ChargingChanged;
+#pragma warning restore CS0067
     public event Action<BatteryState>? ModeChanged;
     
     private readonly Random _random = new();

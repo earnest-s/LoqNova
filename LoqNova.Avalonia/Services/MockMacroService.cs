@@ -44,7 +44,9 @@ public class MockMacroService : IMacroService
     public int SelectedKeyNumber { get; set; } = 1;
     public bool IsRecording { get; private set; } = false;
     
+    #pragma warning disable CS0067
     public event Action<MacroKey>? MacroKeyChanged;
+#pragma warning restore CS0067
     public event Action<bool>? RecordingStateChanged;
     
     public Task InitializeAsync() => Task.CompletedTask;
