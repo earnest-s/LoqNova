@@ -78,8 +78,8 @@ public class PerformanceService : IPerformanceService
     {
         try
         {
-            _currentMode = MapFromLibPowerMode(_settings.Store.PowerModeState);
-            _isGodModeEnabled = _settings.Store.GodModeEnabled;
+            _currentMode = PowerModeState.Balance;
+            _isGodModeEnabled = false;
             _logger.LogInformation("Performance service initialized. Current mode: {Mode}, GodMode: {GodMode}", _currentMode, _isGodModeEnabled);
         }
         catch (Exception ex)
@@ -96,8 +96,6 @@ public class PerformanceService : IPerformanceService
             if (_currentMode != mode)
             {
                 _currentMode = mode;
-                _settings.Store.PowerModeState = MapToLibPowerMode(mode);
-                _settings.SynchronizeStore();
                 
                 await _powerModeController.SetPowerModeAsync(MapToLibPowerMode(mode)).ConfigureAwait(false);
                 ModeChanged?.Invoke(mode);
@@ -116,9 +114,6 @@ public class PerformanceService : IPerformanceService
         try
         {
             _isGodModeEnabled = !_isGodModeEnabled;
-            _settings.Store.GodModeEnabled = _isGodModeEnabled;
-            _settings.SynchronizeStore();
-            
             _logger.LogInformation("GodMode {Status}", _isGodModeEnabled ? "enabled" : "disabled");
         }
         catch (Exception ex)
