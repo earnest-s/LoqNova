@@ -375,7 +375,7 @@ public class RgbService : IRgbService
         _ => RgbBrightness.High
     };
 
-    private static LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness MapToLibBrightness(RgbBrightness brightness) => brightness switch
+    private static LoqNova.Lib.RGBKeyboardBacklightBrightness MapToLibBrightness(RgbBrightness brightness) => brightness switch
     {
         RgbBrightness.Off => LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Off,
         RgbBrightness.Low => LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Low,
