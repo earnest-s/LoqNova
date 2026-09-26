@@ -266,7 +266,7 @@ public class RgbService : IRgbService
         }
     }
 
-    private void UpdateFromState(LoqNova.Lib.Structs.RGBKeyboardBacklightState state)
+    private void UpdateFromState(LoqNova.Lib.RGBKeyboardBacklightState state)
     {
         CurrentPreset = MapFromLibPreset(state.SelectedPreset);
         

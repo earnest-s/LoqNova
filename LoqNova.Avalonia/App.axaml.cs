@@ -49,7 +49,7 @@ public partial class App : Application
         builder.RegisterType<NotificationService>().As<INotificationService>().SingleInstance();
         builder.RegisterType<TrayService>().As<ITrayService>().SingleInstance();
         builder.RegisterType<FileDialogService>().As<IFileDialogService>().SingleInstance();
-        builder.RegisterType<MainThreadDispatcher>().As<IMainThreadDispatcher>().SingleInstance();
+        builder.RegisterType<MainThreadDispatcher>().As<LoqNova.Avalonia.Services.IMainThreadDispatcher>().SingleInstance();
         
         // Register logging
         builder.Register(c => 

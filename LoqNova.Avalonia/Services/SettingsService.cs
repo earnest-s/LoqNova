@@ -31,7 +31,7 @@ public class SettingsService : ISettingsService
         {
             if (System.Drawing.ColorTranslator.FromHtml(value) is { } color)
             {
-                _settings.Store.AccentColor = new LoqNova.Lib.Structs.RGBColor(color.R, color.G, color.B);
+                _settings.Store.AccentColor = new LoqNova.Lib.RGBColor(color.R, color.G, color.B);
                 _settings.SynchronizeStore();
                 SettingsChanged?.Invoke();
             }
@@ -40,7 +40,7 @@ public class SettingsService : ISettingsService
 
     public bool UseSystemAccent
     {
-        get => _settings.Store.AccentColorSource == LoqNova.Lib.Enums.AccentColorSource.System;
+        get => _settings.Store.AccentColorSource == LoqNova.Lib.AccentColorSource.System;
         set
         {
             _settings.Store.AccentColorSource = value ? LoqNova.Lib.AccentColorSource.System : LoqNova.Lib.AccentColorSource.Custom;
@@ -52,7 +52,7 @@ public class SettingsService : ISettingsService
     public string Language { get; set; } = "en";
     public bool TemperatureUnitFahrenheit
     {
-        get => _settings.Store.TemperatureUnit == LoqNova.Lib.Enums.TemperatureUnit.F;
+        get => _settings.Store.TemperatureUnit == LoqNova.Lib.TemperatureUnit.F;
         set
         {
             _settings.Store.TemperatureUnit = value ? LoqNova.Lib.TemperatureUnit.F : LoqNova.Lib.TemperatureUnit.C;
