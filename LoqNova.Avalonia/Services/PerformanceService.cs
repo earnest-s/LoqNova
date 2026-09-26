@@ -5,6 +5,7 @@ using LoqNova.Lib.Controllers;
 using LoqNova.Lib.Settings;
 using LoqNova.Lib.Utils;
 using Microsoft.Extensions.Logging;
+using LibPowerModeState = LoqNova.Lib.PowerModeState;
 
 namespace LoqNova.Avalonia.Services;
 
@@ -77,7 +78,7 @@ public class PerformanceService : IPerformanceService
     {
         try
         {
-            _currentMode = _settings.Store.PowerModeState;
+            _currentMode = MapFromLibPowerMode(_settings.Store.PowerModeState);
             _isGodModeEnabled = _settings.Store.GodModeEnabled;
             _logger.LogInformation("Performance service initialized. Current mode: {Mode}, GodMode: {GodMode}", _currentMode, _isGodModeEnabled);
         }
@@ -95,10 +96,10 @@ public class PerformanceService : IPerformanceService
             if (_currentMode != mode)
             {
                 _currentMode = mode;
-                _settings.Store.PowerModeState = mode;
+                _settings.Store.PowerModeState = MapToLibPowerMode(mode);
                 _settings.SynchronizeStore();
                 
-                await _powerModeController.SetPowerModeAsync(mode).ConfigureAwait(false);
+                await _powerModeController.SetPowerModeAsync(MapToLibPowerMode(mode)).ConfigureAwait(false);
                 ModeChanged?.Invoke(mode);
                 
                 _logger.LogInformation("Power mode changed to {Mode}", mode);
@@ -125,4 +126,22 @@ public class PerformanceService : IPerformanceService
             _logger.LogError(ex, "Failed to toggle GodMode");
         }
     }
+
+    private static PowerModeState MapFromLibPowerMode(LibPowerModeState mode) => mode switch
+    {
+        LibPowerModeState.Quiet => PowerModeState.Quiet,
+        LibPowerModeState.Balance => PowerModeState.Balance,
+        LibPowerModeState.Performance => PowerModeState.Performance,
+        LibPowerModeState.GodMode => PowerModeState.GodMode,
+        _ => PowerModeState.Balance
+    };
+
+    private static LibPowerModeState MapToLibPowerMode(PowerModeState mode) => mode switch
+    {
+        PowerModeState.Quiet => LibPowerModeState.Quiet,
+        PowerModeState.Balance => LibPowerModeState.Balance,
+        PowerModeState.Performance => LibPowerModeState.Performance,
+        PowerModeState.GodMode => LibPowerModeState.GodMode,
+        _ => LibPowerModeState.Balance
+    };
 }
