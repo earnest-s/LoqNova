@@ -51,13 +51,42 @@ public partial class App : Application
         builder.RegisterType<FileDialogService>().As<IFileDialogService>().SingleInstance();
         builder.RegisterType<MainThreadDispatcher>().As<IMainThreadDispatcher>().SingleInstance();
         
-        // Register mock services (replace with real services in backend integration phase)
-        builder.RegisterType<MockPerformanceService>().As<IPerformanceService>().SingleInstance();
-        builder.RegisterType<MockRgbService>().As<IRgbService>().SingleInstance();
-        builder.RegisterType<MockThermalService>().As<IThermalService>().SingleInstance();
-        builder.RegisterType<MockBatteryService>().As<IBatteryService>().SingleInstance();
-        builder.RegisterType<MockSensorsService>().As<ISensorsService>().SingleInstance();
-        builder.RegisterType<MockSettingsService>().As<ISettingsService>().SingleInstance();
+        // Register logging
+        builder.Register(c => 
+        {
+            using var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder => 
+            {
+                builder.AddDebug();
+                builder.AddConsole();
+                builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug);
+            });
+            return loggerFactory.CreateLogger<Program>();
+        }).SingleInstance();
+        
+        builder.RegisterGeneric(typeof(Microsoft.Extensions.Logging.Logger<>))
+               .As(typeof(Microsoft.Extensions.Logging.ILogger<>))
+               .SingleInstance();
+
+        // Register LoqNova.Lib services
+        builder.RegisterType<ApplicationSettings>().SingleInstance();
+        builder.RegisterType<RGBKeyboardSettings>().SingleInstance();
+        builder.RegisterType<GPUController>().SingleInstance();
+        builder.RegisterType<ISensorsController, SensorsControllerV1>().SingleInstance();
+        builder.RegisterType<WindowsPowerModeController>().SingleInstance();
+        builder.RegisterType<RGBKeyboardBacklightController>().SingleInstance();
+        builder.RegisterType<CustomRGBEffectController>().SingleInstance();
+        builder.RegisterType<RgbFrameDispatcher>().SingleInstance();
+        builder.RegisterType<VantageDisabler>().SingleInstance();
+        
+        // Register real Avalonia services
+        builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
+        builder.RegisterType<PerformanceService>().As<IPerformanceService>().SingleInstance();
+        builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
+        builder.RegisterType<RgbService>().As<IRgbService>().SingleInstance();
+        builder.RegisterType<BatteryService>().As<IBatteryService>().SingleInstance();
+        builder.RegisterType<SettingsService>().As<ISettingsService>().SingleInstance();
+        
+        // Register mock services only where real implementation doesn't exist yet
         builder.RegisterType<MockAutomationService>().As<IAutomationService>().SingleInstance();
         builder.RegisterType<MockMacroService>().As<IMacroService>().SingleInstance();
         builder.RegisterType<MockPackageService>().As<IPackageService>().SingleInstance();
