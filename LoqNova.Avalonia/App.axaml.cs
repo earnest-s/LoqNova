@@ -74,9 +74,9 @@ public partial class App : Application
         builder.RegisterType<ISensorsController, SensorsControllerV1>().SingleInstance();
         builder.RegisterType<WindowsPowerModeController>().SingleInstance();
         builder.RegisterType<RGBKeyboardBacklightController>().SingleInstance();
-        builder.RegisterType<CustomRGBEffectController>().SingleInstance();
+        builder.RegisterType<LoqNova.Lib.Controllers.CustomRGBEffects.CustomRGBEffectController>().SingleInstance();
         builder.RegisterType<RgbFrameDispatcher>().SingleInstance();
-        builder.RegisterType<VantageDisabler>().SingleInstance();
+        builder.RegisterType<LoqNova.Lib.SoftwareDisabler.VantageDisabler>().SingleInstance();
         
         // Register real Avalonia services
         builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
