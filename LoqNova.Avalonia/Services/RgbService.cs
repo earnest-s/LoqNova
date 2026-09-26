@@ -285,7 +285,7 @@ public class RgbService : IRgbService
         }
     }
 
-    private static RgbPreset MapFromLibPreset(LoqNova.Lib.Enums.RGBKeyboardBacklightPreset preset) => preset switch
+    private static RgbPreset MapFromLibPreset(LoqNova.Lib.RGBKeyboardBacklightPreset preset) => preset switch
     {
         LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Off => RgbPreset.Off,
         LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.One => RgbPreset.Preset1,
