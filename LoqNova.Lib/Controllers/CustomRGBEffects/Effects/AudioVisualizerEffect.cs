@@ -80,7 +80,7 @@ public class AudioVisualizerEffect : ICustomRGBEffect, IDisposable
     // ========================================================================
     // Set to non-negative value to bypass audio analysis and force progression
     // 0.5 = Z1 half, 1.5 = Z1 full + Z2 half, 2.5 = Z1,Z2 full + Z3 half, 3.5 = Z1,Z2,Z3 full + Z4 half
-    private const float DebugForcedProgression = -1f; // -1 = disabled, >=0 = forced value
+    private static readonly float DebugForcedProgression = -1f; // -1 = disabled, >=0 = forced value
 
     // ========================================================================
     // RUNTIME STATE
