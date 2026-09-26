@@ -358,7 +358,7 @@ public class RgbService : IRgbService
         _ => RgbSpeed.Fast
     };
 
-    private static LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed MapToLibSpeed(RgbSpeed speed) => speed switch
+    private static LoqNova.Lib.RGBKeyboardBacklightSpeed MapToLibSpeed(RgbSpeed speed) => speed switch
     {
         RgbSpeed.Slowest => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Slowest,
         RgbSpeed.Slow => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Slow,
@@ -367,7 +367,7 @@ public class RgbService : IRgbService
         _ => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Fast
     };
 
-    private static RgbBrightness MapFromLibBrightness(LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness brightness) => brightness switch
+    private static RgbBrightness MapFromLibBrightness(LoqNova.Lib.RGBKeyboardBacklightBrightness brightness) => brightness switch
     {
         LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Off => RgbBrightness.Off,
         LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Low => RgbBrightness.Low,
