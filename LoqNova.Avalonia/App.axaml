@@ -14,6 +14,7 @@
         <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Typography.axaml" />
+        <StyleInclude Source="avares://LOQ Nova/Styles/Layout.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Buttons.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Cards.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Navigation.axaml" />
