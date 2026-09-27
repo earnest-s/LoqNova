@@ -15,7 +15,6 @@ using LoqNova.Lib.Controllers;
 using LoqNova.Lib.Controllers.Sensors;
 using LoqNova.Lib.Settings;
 using Autofac;
-using Autofac.Registration;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 
