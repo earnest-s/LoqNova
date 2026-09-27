@@ -38,7 +38,8 @@
 		<PackageReference Include="SkiaSharp" Version="3.116.0" />
 		<PackageReference Include="HarfBuzzSharp" Version="8.2.1" />
 		<PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-		<PackageReference Include="Autofac" Version="8.2.0" />
+<PackageReference Include="Autofac" Version="8.2.0" />
+		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="10.0.0" />
 		<PackageReference Include="Humanizer" Version="2.14.1" />
 		<PackageReference Include="PubSub" Version="4.0.2" />
 		<PackageReference Include="NAudio.Wasapi" Version="2.2.1" />
@@ -57,11 +58,8 @@
 		<PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="8.0.0" />
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
-		<PackageReference Include="Autofac.Extensions.DependencyInjection" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\LoqNova.Lib\LoqNova.Lib.csproj" />
-		<ProjectReference Include="..\LoqNova.Lib.Automation\LoqNova.Lib.Automation.csproj" />
 		<ProjectReference Include="..\LoqNova.Lib.Macro\LoqNova.Lib.Macro.csproj" />
 		<ProjectReference Include="..\LoqNova.CLI.Lib\LoqNova.CLI.Lib.csproj" />
 	</ItemGroup>

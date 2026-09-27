@@ -11,19 +11,15 @@ using LoqNova.Avalonia.ViewModels;
 using LoqNova.Avalonia.ViewModels.Pages;
 using LoqNova.Avalonia.ViewModels.Dialogs;
 using LoqNova.Avalonia.Views;
-using LoqNova.Lib.Controllers;
-using LoqNova.Lib.Controllers.Sensors;
-using LoqNova.Lib.Settings;
-using Microsoft.Extensions.Logging;
 using Autofac;
-using AutofacContainerBuilder = Autofac.ContainerBuilder;
-using AutofacContainer = Autofac.IContainer;
+using Autofac.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace LoqNova.Avalonia;
 
 public partial class App : Application
 {
-    public static AutofacContainer? Container { get; private set; }
+    public static IContainer? Container { get; private set; }
 
     public override void Initialize()
     {
@@ -33,7 +29,7 @@ public partial class App : Application
     public override async void OnFrameworkInitializationCompleted()
     {
         // Build DI container
-        var builder = new AutofacContainerBuilder();
+        var builder = new ContainerBuilder();
         
         // Register IServiceProvider adapter
         builder.Register<IServiceProvider>(c => new AutofacServiceProvider(c.Resolve<ILifetimeScope>())).SingleInstance();
@@ -49,7 +45,7 @@ public partial class App : Application
         builder.RegisterType<NotificationService>().As<INotificationService>().SingleInstance();
         builder.RegisterType<TrayService>().As<ITrayService>().SingleInstance();
         builder.RegisterType<FileDialogService>().As<IFileDialogService>().SingleInstance();
-        builder.RegisterType<MainThreadDispatcher>().As<LoqNova.Avalonia.Services.IMainThreadDispatcher>().SingleInstance();
+        builder.RegisterType<MainThreadDispatcher>().As<IMainThreadDispatcher>().SingleInstance();
         
         // Register logging
         builder.Register(c => 
@@ -67,25 +63,13 @@ public partial class App : Application
                .As(typeof(Microsoft.Extensions.Logging.ILogger<>))
                .SingleInstance();
 
-        // Register LoqNova.Lib services
-        builder.RegisterType<ApplicationSettings>().SingleInstance();
-        builder.RegisterType<RGBKeyboardSettings>().SingleInstance();
-        builder.RegisterType<GPUController>().SingleInstance();
-        builder.RegisterType<ISensorsController, SensorsControllerV1>().SingleInstance();
-        builder.RegisterType<WindowsPowerModeController>().SingleInstance();
-        builder.RegisterType<RGBKeyboardBacklightController>().SingleInstance();
-        builder.RegisterType<RgbFrameDispatcher>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.SoftwareDisabler.VantageDisabler>().SingleInstance();
-        
-        // Register real Avalonia services
-        builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
-        builder.RegisterType<PerformanceService>().As<IPerformanceService>().SingleInstance();
-        builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
-        builder.RegisterType<BatteryService>().As<IBatteryService>().SingleInstance();
-        builder.RegisterType<SettingsService>().As<ISettingsService>().SingleInstance();
-        
-        // Register mock services where real implementation is complex
+        // Register mock services
+        builder.RegisterType<MockPerformanceService>().As<IPerformanceService>().SingleInstance();
         builder.RegisterType<MockRgbService>().As<IRgbService>().SingleInstance();
+        builder.RegisterType<MockThermalService>().As<IThermalService>().SingleInstance();
+        builder.RegisterType<MockBatteryService>().As<IBatteryService>().SingleInstance();
+        builder.RegisterType<MockSensorsService>().As<ISensorsService>().SingleInstance();
+        builder.RegisterType<MockSettingsService>().As<ISettingsService>().SingleInstance();
         builder.RegisterType<MockAutomationService>().As<IAutomationService>().SingleInstance();
         builder.RegisterType<MockMacroService>().As<IMacroService>().SingleInstance();
         builder.RegisterType<MockPackageService>().As<IPackageService>().SingleInstance();
@@ -126,7 +110,7 @@ public partial class App : Application
         builder.RegisterType<MacroRecordingViewModel>().InstancePerDependency();
         builder.RegisterType<SpectrumEditEffectViewModel>().InstancePerDependency();
         
-        Container = builder.Build() as AutofacContainer;
+        Container = builder.Build();
         AppHost.Initialize(new AutofacServiceProvider(Container));
         
         // Initialize localization
