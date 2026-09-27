@@ -1,0 +1,133 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================ Page scaffolding ============================
+         PageContainer / PageBody / PageHeader are the shared page frame used by
+         every page so vertical rhythm and gutters are identical everywhere. -->
+
+    <Style Selector="ScrollViewer.PageContainer">
+        <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
+        <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
+
+    <Style Selector="ScrollViewer.PageContainer /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Margin" Value="24,20,24,24" />
+    </Style>
+
+    <Style Selector="StackPanel.PageBody">
+        <Setter Property="Spacing" Value="{StaticResource SpaceXl}" />
+    </Style>
+
+    <Style Selector="Grid.PageHeader">
+        <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <!-- ============================ Section labels ============================ -->
+
+    <Style Selector="TextBlock.SectionLabel">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="LetterSpacing" Value="1.1" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+    <!-- ============================ Selectors ============================ -->
+
+    <Style Selector="ComboBox.Control">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+        <Setter Property="MinHeight" Value="{StaticResource ControlHeightMd}" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="ComboBox.Control:pointerover /template/ ToggleButton#ToggleButton">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="ComboBox.Control:disabled /template/ ToggleButton#ToggleButton">
+        <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
+    </Style>
+
+    <Style Selector="ComboBoxItem.Control">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="MinHeight" Value="{StaticResource ControlHeightSm}" />
+        <Setter Property="Padding" Value="10,0" />
+    </Style>
+
+    <Style Selector="ComboBoxItem.Control:pointerover /template/ ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="TextBlock.Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- ============================ Toggles ============================ -->
+
+    <Style Selector="CheckBox.Control">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="ToggleSwitch.Control">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="ToggleSwitch.Control:pointerover /template/ Border#PART_OffBackground">
+        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+    </Style>
+
+    <!-- ============================ Inputs ============================ -->
+
+    <Style Selector="TextBox.Control">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+        <Setter Property="MinHeight" Value="{StaticResource ControlHeightMd}" />
+        <Setter Property="Padding" Value="10,0" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="VerticalContentAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBox.Control:focus /template/ Border#PART_BorderElement">
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <!-- ============================ Progress ============================ -->
+
+    <Style Selector="ProgressBar.Metric">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Height" Value="4" />
+        <Setter Property="MinHeight" Value="4" />
+        <Setter Property="Minimum" Value="0" />
+        <Setter Property="Maximum" Value="100" />
+    </Style>
+
+    <!-- ============================ Dividers ============================ -->
+
+    <Style Selector="Separator.Hairline">
+        <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+</Styles>
