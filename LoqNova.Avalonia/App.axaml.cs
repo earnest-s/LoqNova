@@ -32,7 +32,7 @@ public partial class App : Application
     public override async void OnFrameworkInitializationCompleted()
     {
         // Build DI container
-        var builder = new ContainerBuilder();
+        var builder = new Autofac.ContainerBuilder();
         
         // Register IServiceProvider adapter
         builder.Register<IServiceProvider>(c => new AutofacServiceProvider(c.Resolve<ILifetimeScope>())).SingleInstance();
