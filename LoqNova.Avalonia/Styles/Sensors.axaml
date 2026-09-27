@@ -10,8 +10,10 @@
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="14" />
-        <Setter Property="MinHeight" Value="104" />
+        <Setter Property="Padding" Value="12" />
+        <Setter Property="MinHeight" Value="96" />
+        <!-- Star columns must never let tile content bleed into a neighbour. -->
+        <Setter Property="ClipToBounds" Value="True" />
     </Style>
 
     <Style Selector="Border.SensorCard:pointerover">
