@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
-             xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
              xmlns:sensors="clr-namespace:LoqNova.Avalonia.Views.Controls.Sensors"
              x:Class="LoqNova.Avalonia.Views.Pages.DashboardPage"
              x:DataType="vm:DashboardViewModel">
@@ -10,32 +9,68 @@
         <vm:DashboardViewModel />
     </Design.DataContext>
 
-    <ScrollViewer Classes="PageContainer">
-        <StackPanel Spacing="24">
-            <!-- Page Header -->
-            <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Text="Dashboard" Classes="PageTitle" />
-                <Button Classes="GhostButton" Content="Edit Dashboard" Command="{Binding EditDashboardCommand}" Margin="0,8,0,0" />
-                <Button Classes="PrimaryButton" Content="Refresh" Command="{Binding RefreshCommand}" Margin="0,8,0,0" />
-            </StackPanel>
-            
-            <!-- Power Mode Selector -->
-            <Border Classes="ContentCard">
-                <Grid ColumnDefinitions="Auto,*,Auto" Margin="0,0,0,16">
-                    <TextBlock Text="Power Mode" Classes="CardTitle" VerticalAlignment="Center" />
-                    
-                    <ComboBox Grid.Column="1" HorizontalAlignment="Right" Width="180" Margin="0,0,16,0"
-                              ItemsSource="{Binding PowerModeItems}"
-                              SelectedItem="{Binding CurrentPowerMode}"
-                              Background="{StaticResource SurfaceBrush}"
-                              BorderBrush="{StaticResource BorderBrush}"
-                              Foreground="{StaticResource TextPrimaryBrush}" />
-                    
-                    <Button Grid.Column="2" Classes="GhostButton" Content="GodMode" Command="{Binding OpenGodModeCommand}" Margin="0,0,8,0" />
+    <ScrollViewer Classes="PageContainer" VerticalScrollBarVisibility="Auto">
+        <StackPanel Classes="PageBody">
+
+            <!-- ============================ Page header ============================ -->
+            <Grid Classes="PageHeader" ColumnDefinitions="*,Auto">
+                <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                    <TextBlock Text="Dashboard" Classes="PageTitle" />
+                    <TextBlock Text="System telemetry and control overview"
+                               Classes="PageSubtitle" />
+                </StackPanel>
+
+                <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
+                            VerticalAlignment="Center">
+                    <Button Classes="SecondaryButton"
+                            Content="Edit Dashboard"
+                            Command="{Binding EditDashboardCommand}" />
+                    <Button Classes="PrimaryButton"
+                            Content="Refresh"
+                            Command="{Binding RefreshCommand}" />
+                </StackPanel>
+            </Grid>
+
+            <!-- ============================ Power mode ============================ -->
+            <Border Classes="PowerCard">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+
+                    <!-- Accent rail carries the active mode colour -->
+                    <Border Grid.Column="0" Classes="PowerAccent" Background="{Binding PowerModeColor}" />
+
+                    <!-- Current mode readout -->
+                    <StackPanel Grid.Column="1"
+                                Margin="{StaticResource SpaceLg}"
+                                VerticalAlignment="Center">
+                        <TextBlock Text="Power mode" Classes="SectionLabel" Margin="0" />
+                        <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceMd}">
+                            <Border Width="10" Height="10" CornerRadius="5"
+                                    Background="{Binding PowerModeColor}"
+                                    VerticalAlignment="Center" />
+                            <TextBlock Text="{Binding CurrentPowerMode}"
+                                       Classes="PowerModeValue"
+                                       Foreground="{Binding PowerModeColor}" />
+                        </StackPanel>
+                    </StackPanel>
+
+                    <!-- Mode selector + God Mode -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
+                                VerticalAlignment="Center">
+                        <ComboBox Classes="Control"
+                                  Width="200"
+                                  ItemsSource="{Binding PowerModeItems}"
+                                  SelectedItem="{Binding CurrentPowerMode}" />
+                        <Button Classes="SecondaryButton"
+                                Content="God Mode"
+                                Command="{Binding OpenGodModeCommand}"
+                                IsVisible="{Binding IsGodModeSupported}" />
+                    </StackPanel>
                 </Grid>
             </Border>
-            
-            <!-- Sensors Panel -->
+
+            <!-- ============================ Monitoring ============================ -->
+            <TextBlock Text="Monitoring" Classes="SectionLabel" />
+
             <sensors:SensorsPanel CpuUsage="{Binding CpuUsage}"
                                    GpuUsage="{Binding GpuUsage}"
                                    CpuTemperature="{Binding CpuTemperature}"
@@ -43,11 +78,44 @@
                                    FanSpeedRpm="{Binding FanSpeedRpm}"
                                    FanSpeedPercent="{Binding FanSpeedPercent}"
                                    PowerModeColor="{Binding PowerModeColor}" />
-            
-            <!-- Dashboard Widgets Placeholder -->
-            <Border Classes="ContentCard">
-                <TextBlock Text="Dashboard Widgets (Placeholder)" Classes="Body" HorizontalAlignment="Center" VerticalAlignment="Center" />
-            </Border>
+
+            <!-- ============================ Quick controls ============================ -->
+            <TextBlock Text="Quick controls" Classes="SectionLabel" Margin="0,4,0,0" />
+
+            <ItemsControl ItemsSource="{Binding ControlWidgets}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <!-- WrapPanel reflows with the window instead of
+                             reserving a fixed width that leaves dead space. -->
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="vm:DashboardWidgetViewModel">
+                        <Border Classes="WidgetCard" Width="212" Margin="0,0,12,12">
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                                <PathIcon Grid.Row="0" Grid.Column="0"
+                                          Classes="SensorIcon"
+                                          VerticalAlignment="Center"
+                                          Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
+                                          Foreground="{StaticResource TextMutedBrush}" />
+
+                                <TextBlock Grid.Row="0" Grid.Column="1"
+                                           Text="{Binding Title}"
+                                           Classes="WidgetTitle"
+                                           Margin="10,0,0,0"
+                                           VerticalAlignment="Center" />
+
+                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2"
+                                           Text="{Binding Value}"
+                                           Classes="WidgetValue"
+                                           Margin="0,10,0,0" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
         </StackPanel>
     </ScrollViewer>
 </UserControl>
