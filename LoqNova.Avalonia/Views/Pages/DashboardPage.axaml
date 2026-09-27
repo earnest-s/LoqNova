@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
              xmlns:sensors="clr-namespace:LoqNova.Avalonia.Views.Controls.Sensors"
              x:Class="LoqNova.Avalonia.Views.Pages.DashboardPage"
              x:DataType="vm:DashboardViewModel">
