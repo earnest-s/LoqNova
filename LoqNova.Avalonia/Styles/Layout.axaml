@@ -130,4 +130,19 @@
         <Setter Property="Height" Value="1" />
         <Setter Property="Margin" Value="0" />
     </Style>
+
+    <Style Selector="Separator.Divider">
+        <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Margin" Value="0" />
+    </Style>
+
+    <!-- Two column settings row: label on the left, control on the right. -->
+    <Style Selector="TextBlock.SettingsLabel">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
 </Styles>
