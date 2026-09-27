@@ -9,7 +9,7 @@
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
         <Setter Property="Padding" Value="14" />
         <Setter Property="MinHeight" Value="104" />
     </Style>
