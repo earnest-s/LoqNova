@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib.Controllers;
 using LoqNova.Lib.Settings;
-using LoqNova.Lib.Utils;
+using LoqNova.Lib;
 using Microsoft.Extensions.Logging;
 
 namespace LoqNova.Avalonia.Services;
@@ -96,15 +96,22 @@ public class RgbService : IRgbService
         {
             var libEffect = MapToLibEffect(effect);
             var state = _settings.Store.State;
-            var presets = state.Presets;
+            var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
             if (presets.TryGetValue(currentPreset, out var description))
             {
-                var newDescription = description with { Effect = libEffect };
+                var newDescription = new RGBKeyboardBacklightBacklightPresetDescription(
+                    libEffect,
+                    description.Speed,
+                    description.Brightness,
+                    description.Zone1,
+                    description.Zone2,
+                    description.Zone3,
+                    description.Zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new(currentPreset, presets);
+                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
                 _settings.SynchronizeStore();
                 
                 await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
@@ -128,15 +135,22 @@ public class RgbService : IRgbService
         {
             var libSpeed = MapToLibSpeed(speed);
             var state = _settings.Store.State;
-            var presets = state.Presets;
+            var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
             if (presets.TryGetValue(currentPreset, out var description))
             {
-                var newDescription = description with { Speed = libSpeed };
+                var newDescription = new RGBKeyboardBacklightBacklightPresetDescription(
+                    description.Effect,
+                    libSpeed,
+                    description.Brightness,
+                    description.Zone1,
+                    description.Zone2,
+                    description.Zone3,
+                    description.Zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new(currentPreset, presets);
+                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
                 _settings.SynchronizeStore();
                 
                 await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
@@ -160,15 +174,22 @@ public class RgbService : IRgbService
         {
             var libBrightness = MapToLibBrightness(brightness);
             var state = _settings.Store.State;
-            var presets = state.Presets;
+            var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
             if (presets.TryGetValue(currentPreset, out var description))
             {
-                var newDescription = description with { Brightness = libBrightness };
+                var newDescription = new RGBKeyboardBacklightBacklightPresetDescription(
+                    description.Effect,
+                    description.Speed,
+                    libBrightness,
+                    description.Zone1,
+                    description.Zone2,
+                    description.Zone3,
+                    description.Zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new(currentPreset, presets);
+                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
                 _settings.SynchronizeStore();
                 
                 await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
@@ -192,7 +213,7 @@ public class RgbService : IRgbService
         {
             var libColor = new LoqNova.Lib.RGBColor(color.R, color.G, color.B);
             var state = _settings.Store.State;
-            var presets = state.Presets;
+            var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
             if (presets.TryGetValue(currentPreset, out var description))
@@ -202,16 +223,14 @@ public class RgbService : IRgbService
                 var zone3 = zone == 3 ? libColor : description.Zone3;
                 var zone4 = zone == 4 ? libColor : description.Zone4;
                 
-                var newDescription = description with 
-                { 
-                    Zone1 = zone1, 
-                    Zone2 = zone2, 
-                    Zone3 = zone3, 
-                    Zone4 = zone4 
-                };
+                var newDescription = new RGBKeyboardBacklightBacklightPresetDescription(
+                    description.Effect,
+                    description.Speed,
+                    description.Brightness,
+                    zone1, zone2, zone3, zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new(currentPreset, presets);
+                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
                 _settings.SynchronizeStore();
                 
                 await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
@@ -235,22 +254,20 @@ public class RgbService : IRgbService
         {
             ZonesSynchronized = synchronized;
             var state = _settings.Store.State;
-            var presets = state.Presets;
+            var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
             if (presets.TryGetValue(currentPreset, out var description))
             {
                 var syncColor = description.Zone1;
-                var newDescription = description with 
-                { 
-                    Zone1 = syncColor, 
-                    Zone2 = syncColor, 
-                    Zone3 = syncColor, 
-                    Zone4 = syncColor 
-                };
+                var newDescription = new RGBKeyboardBacklightBacklightPresetDescription(
+                    description.Effect,
+                    description.Speed,
+                    description.Brightness,
+                    syncColor, syncColor, syncColor, syncColor);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new(currentPreset, presets);
+                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
                 _settings.SynchronizeStore();
                 
                 await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
@@ -266,7 +283,7 @@ public class RgbService : IRgbService
         }
     }
 
-    private void UpdateFromState(LoqNova.Lib.RGBKeyboardBacklightState state)
+    private void UpdateFromState(RGBKeyboardBacklightState state)
     {
         CurrentPreset = MapFromLibPreset(state.SelectedPreset);
         
@@ -285,101 +302,101 @@ public class RgbService : IRgbService
         }
     }
 
-    private static RgbPreset MapFromLibPreset(LoqNova.Lib.RGBKeyboardBacklightPreset preset) => preset switch
+    private static RgbPreset MapFromLibPreset(RGBKeyboardBacklightPreset preset) => preset switch
     {
-        LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Off => RgbPreset.Off,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.One => RgbPreset.Preset1,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Two => RgbPreset.Preset2,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Three => RgbPreset.Preset3,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Four => RgbPreset.Preset4,
+        RGBKeyboardBacklightPreset.Off => RgbPreset.Off,
+        RGBKeyboardBacklightPreset.One => RgbPreset.Preset1,
+        RGBKeyboardBacklightPreset.Two => RgbPreset.Preset2,
+        RGBKeyboardBacklightPreset.Three => RgbPreset.Preset3,
+        RGBKeyboardBacklightPreset.Four => RgbPreset.Preset4,
         _ => RgbPreset.Off
     };
 
-    private static LoqNova.Lib.RGBKeyboardBacklightPreset MapToLibPreset(RgbPreset preset) => preset switch
+    private static RGBKeyboardBacklightPreset MapToLibPreset(RgbPreset preset) => preset switch
     {
-        RgbPreset.Off => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Off,
-        RgbPreset.Preset1 => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.One,
-        RgbPreset.Preset2 => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Two,
-        RgbPreset.Preset3 => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Three,
-        RgbPreset.Preset4 => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Four,
-        _ => LoqNova.Lib.Enums.RGBKeyboardBacklightPreset.Off
+        RgbPreset.Off => RGBKeyboardBacklightPreset.Off,
+        RgbPreset.Preset1 => RGBKeyboardBacklightPreset.One,
+        RgbPreset.Preset2 => RGBKeyboardBacklightPreset.Two,
+        RgbPreset.Preset3 => RGBKeyboardBacklightPreset.Three,
+        RgbPreset.Preset4 => RGBKeyboardBacklightPreset.Four,
+        _ => RGBKeyboardBacklightPreset.Off
     };
 
-    private static RgbEffect MapFromLibEffect(LoqNova.Lib.RGBKeyboardBacklightEffect effect) => effect switch
+    private static RgbEffect MapFromLibEffect(RGBKeyboardBacklightEffect effect) => effect switch
     {
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Static => RgbEffect.Static,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Breath => RgbEffect.Breath,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.WaveRTL => RgbEffect.WaveRightToLeft,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.WaveLTR => RgbEffect.WaveLeftToRight,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Smooth => RgbEffect.Smooth,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Ambient => RgbEffect.Ambient,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.AudioVisualizer => RgbEffect.AudioVisualizer,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.BreathingColorCycle => RgbEffect.BreathingColorCycle,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Christmas => RgbEffect.Christmas,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Disco => RgbEffect.Disco,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Fade => RgbEffect.Fade,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Lightning => RgbEffect.Lightning,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.RainbowWave => RgbEffect.RainbowWave,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Ripple => RgbEffect.Ripple,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Strobe => RgbEffect.Strobe,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Swipe => RgbEffect.Swipe,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Temperature => RgbEffect.Temperature,
+        RGBKeyboardBacklightEffect.Static => RgbEffect.Static,
+        RGBKeyboardBacklightEffect.Breath => RgbEffect.Breath,
+        RGBKeyboardBacklightEffect.WaveRTL => RgbEffect.WaveRightToLeft,
+        RGBKeyboardBacklightEffect.WaveLTR => RgbEffect.WaveLeftToRight,
+        RGBKeyboardBacklightEffect.Smooth => RgbEffect.Smooth,
+        RGBKeyboardBacklightEffect.Ambient => RgbEffect.Ambient,
+        RGBKeyboardBacklightEffect.AudioVisualizer => RgbEffect.AudioVisualizer,
+        RGBKeyboardBacklightEffect.BreathingColorCycle => RgbEffect.BreathingColorCycle,
+        RGBKeyboardBacklightEffect.Christmas => RgbEffect.Christmas,
+        RGBKeyboardBacklightEffect.Disco => RgbEffect.Disco,
+        RGBKeyboardBacklightEffect.Fade => RgbEffect.Fade,
+        RGBKeyboardBacklightEffect.Lightning => RgbEffect.Lightning,
+        RGBKeyboardBacklightEffect.RainbowWave => RgbEffect.RainbowWave,
+        RGBKeyboardBacklightEffect.Ripple => RgbEffect.Ripple,
+        RGBKeyboardBacklightEffect.Strobe => RgbEffect.Strobe,
+        RGBKeyboardBacklightEffect.Swipe => RgbEffect.Swipe,
+        RGBKeyboardBacklightEffect.Temperature => RgbEffect.Temperature,
         _ => RgbEffect.Static
     };
 
-    private static LoqNova.Lib.RGBKeyboardBacklightEffect MapToLibEffect(RgbEffect effect) => effect switch
+    private static RGBKeyboardBacklightEffect MapToLibEffect(RgbEffect effect) => effect switch
     {
-        RgbEffect.Static => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Static,
-        RgbEffect.Breath => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Breath,
-        RgbEffect.WaveRightToLeft => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.WaveRTL,
-        RgbEffect.WaveLeftToRight => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.WaveLTR,
-        RgbEffect.Smooth => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Smooth,
-        RgbEffect.Ambient => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Ambient,
-        RgbEffect.AudioVisualizer => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.AudioVisualizer,
-        RgbEffect.BreathingColorCycle => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.BreathingColorCycle,
-        RgbEffect.Christmas => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Christmas,
-        RgbEffect.Disco => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Disco,
-        RgbEffect.Fade => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Fade,
-        RgbEffect.Lightning => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Lightning,
-        RgbEffect.RainbowWave => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.RainbowWave,
-        RgbEffect.Ripple => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Ripple,
-        RgbEffect.Strobe => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Strobe,
-        RgbEffect.Swipe => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Swipe,
-        RgbEffect.Temperature => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Temperature,
-        _ => LoqNova.Lib.Enums.RGBKeyboardBacklightEffect.Static
+        RgbEffect.Static => RGBKeyboardBacklightEffect.Static,
+        RgbEffect.Breath => RGBKeyboardBacklightEffect.Breath,
+        RgbEffect.WaveRightToLeft => RGBKeyboardBacklightEffect.WaveRTL,
+        RgbEffect.WaveLeftToRight => RGBKeyboardBacklightEffect.WaveLTR,
+        RgbEffect.Smooth => RGBKeyboardBacklightEffect.Smooth,
+        RgbEffect.Ambient => RGBKeyboardBacklightEffect.Ambient,
+        RgbEffect.AudioVisualizer => RGBKeyboardBacklightEffect.AudioVisualizer,
+        RgbEffect.BreathingColorCycle => RGBKeyboardBacklightEffect.BreathingColorCycle,
+        RgbEffect.Christmas => RGBKeyboardBacklightEffect.Christmas,
+        RgbEffect.Disco => RGBKeyboardBacklightEffect.Disco,
+        RgbEffect.Fade => RGBKeyboardBacklightEffect.Fade,
+        RgbEffect.Lightning => RGBKeyboardBacklightEffect.Lightning,
+        RgbEffect.RainbowWave => RGBKeyboardBacklightEffect.RainbowWave,
+        RgbEffect.Ripple => RGBKeyboardBacklightEffect.Ripple,
+        RgbEffect.Strobe => RGBKeyboardBacklightEffect.Strobe,
+        RgbEffect.Swipe => RGBKeyboardBacklightEffect.Swipe,
+        RgbEffect.Temperature => RGBKeyboardBacklightEffect.Temperature,
+        _ => RGBKeyboardBacklightEffect.Static
     };
 
-    private static RgbSpeed MapFromLibSpeed(LoqNova.Lib.RGBKeyboardBacklightSpeed speed) => speed switch
+    private static RgbSpeed MapFromLibSpeed(RGBKeyboardBacklightSpeed speed) => speed switch
     {
-        LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Slowest => RgbSpeed.Slowest,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Slow => RgbSpeed.Slow,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Fast => RgbSpeed.Fast,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Fastest => RgbSpeed.Fastest,
+        RGBKeyboardBacklightSpeed.Slowest => RgbSpeed.Slowest,
+        RGBKeyboardBacklightSpeed.Slow => RgbSpeed.Slow,
+        RGBKeyboardBacklightSpeed.Fast => RgbSpeed.Fast,
+        RGBKeyboardBacklightSpeed.Fastest => RgbSpeed.Fastest,
         _ => RgbSpeed.Fast
     };
 
-    private static LoqNova.Lib.RGBKeyboardBacklightSpeed MapToLibSpeed(RgbSpeed speed) => speed switch
+    private static RGBKeyboardBacklightSpeed MapToLibSpeed(RgbSpeed speed) => speed switch
     {
-        RgbSpeed.Slowest => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Slowest,
-        RgbSpeed.Slow => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Slow,
-        RgbSpeed.Fast => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Fast,
-        RgbSpeed.Fastest => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Fastest,
-        _ => LoqNova.Lib.Enums.RGBKeyboardBacklightSpeed.Fast
+        RgbSpeed.Slowest => RGBKeyboardBacklightSpeed.Slowest,
+        RgbSpeed.Slow => RGBKeyboardBacklightSpeed.Slow,
+        RgbSpeed.Fast => RGBKeyboardBacklightSpeed.Fast,
+        RgbSpeed.Fastest => RGBKeyboardBacklightSpeed.Fastest,
+        _ => RGBKeyboardBacklightSpeed.Fast
     };
 
-    private static RgbBrightness MapFromLibBrightness(LoqNova.Lib.RGBKeyboardBacklightBrightness brightness) => brightness switch
+    private static RgbBrightness MapFromLibBrightness(RGBKeyboardBacklightBrightness brightness) => brightness switch
     {
-        LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Off => RgbBrightness.Off,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Low => RgbBrightness.Low,
-        LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.High => RgbBrightness.High,
+        RGBKeyboardBacklightBrightness.Off => RgbBrightness.Off,
+        RGBKeyboardBacklightBrightness.Low => RgbBrightness.Low,
+        RGBKeyboardBacklightBrightness.High => RgbBrightness.High,
         _ => RgbBrightness.High
     };
 
-    private static LoqNova.Lib.RGBKeyboardBacklightBrightness MapToLibBrightness(RgbBrightness brightness) => brightness switch
+    private static RGBKeyboardBacklightBrightness MapToLibBrightness(RgbBrightness brightness) => brightness switch
     {
-        RgbBrightness.Off => LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Off,
-        RgbBrightness.Low => LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.Low,
-        RgbBrightness.High => LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.High,
-        _ => LoqNova.Lib.Enums.RGBKeyboardBacklightBrightness.High
+        RgbBrightness.Off => RGBKeyboardBacklightBrightness.Off,
+        RgbBrightness.Low => RGBKeyboardBacklightBrightness.Low,
+        RgbBrightness.High => RGBKeyboardBacklightBrightness.High,
+        _ => RGBKeyboardBacklightBrightness.High
     };
 }
