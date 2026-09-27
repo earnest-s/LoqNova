@@ -383,8 +383,8 @@ public partial class DashboardViewModel : ViewModelBase
             _ => "TextSecondaryBrush"
         };
 
-        if (Application.Current is not null &&
-            Application.Current.TryGetResource(key, null, out var resource) &&
+        if (global::Avalonia.Application.Current is { } app &&
+            app.TryGetResource(key, null, out var resource) &&
             resource is IBrush brush)
         {
             return brush;

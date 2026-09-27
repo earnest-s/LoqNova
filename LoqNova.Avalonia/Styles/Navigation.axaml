@@ -50,7 +50,7 @@
         <Setter Property="Width" Value="3" />
         <Setter Property="CornerRadius" Value="2" />
         <Setter Property="HorizontalAlignment" Value="Left" />
-        <Setter Property="VerticalAlignment" Stretch="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style Selector="PathIcon.NavIcon">
