@@ -8,10 +8,9 @@
     <Style Selector="ScrollViewer.PageContainer">
         <Setter Property="HorizontalScrollBarVisibility" Value="Disabled" />
         <Setter Property="VerticalScrollBarVisibility" Value="Auto" />
-    </Style>
-
-    <Style Selector="ScrollViewer.PageContainer /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Margin" Value="24,20,24,24" />
+        <!-- Page gutters. Padding is used rather than a template-part margin
+             so the frame does not depend on ScrollViewer internals. -->
+        <Setter Property="Padding" Value="24,20,24,24" />
     </Style>
 
     <Style Selector="StackPanel.PageBody">
