@@ -1,5 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:icons="clr-namespace:LoqNova.Avalonia.Styles"
              x:Class="LoqNova.Avalonia.Views.Controls.Sensors.SensorsPanel">
 
     <!-- Five equal star columns: the tiles stay aligned with each other and
@@ -13,7 +14,7 @@
 
                 <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
-                        <PathIcon Data="{StaticResource IconCpu}"
+                        <PathIcon Data="{x:Static icons:IconGeometries.Cpu}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorCpuBrush}" />
                         <TextBlock Text="CPU" Classes="SensorCardTitle" />
@@ -38,7 +39,7 @@
 
                 <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
-                        <PathIcon Data="{StaticResource IconGpu}"
+                        <PathIcon Data="{x:Static icons:IconGeometries.Gpu}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorGpuBrush}" />
                         <TextBlock Text="GPU" Classes="SensorCardTitle" />
@@ -63,7 +64,7 @@
 
                 <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
-                        <PathIcon Data="{StaticResource IconThermometer}"
+                        <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorTempBrush}" />
                         <TextBlock Text="CPU TEMP" Classes="SensorCardTitle" />
@@ -88,7 +89,7 @@
 
                 <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
-                        <PathIcon Data="{StaticResource IconThermometer}"
+                        <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorTempBrush}" />
                         <TextBlock Text="GPU TEMP" Classes="SensorCardTitle" />
@@ -113,7 +114,7 @@
 
                 <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
-                        <PathIcon Data="{StaticResource IconFan}"
+                        <PathIcon Data="{x:Static icons:IconGeometries.Fan}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorFanBrush}" />
                         <TextBlock Text="FAN" Classes="SensorCardTitle" />
