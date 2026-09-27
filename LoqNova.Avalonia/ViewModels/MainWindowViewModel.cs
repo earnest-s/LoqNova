@@ -64,71 +64,37 @@ public partial class MainWindowViewModel : ViewModelBase
     
     private void InitializeNavigationItems()
     {
-        NavigationItems.Add(new NavigationItemViewModel
+        Add(NavigationPage.Dashboard, "Home", "Dashboard");
+        Add(NavigationPage.KeyboardBacklight, "Keyboard", "Keyboard");
+        Add(NavigationPage.Battery, "Battery", "Battery");
+        Add(NavigationPage.Automation, "Automation", "Automation");
+        Add(NavigationPage.Macro, "Receipt", "Macros");
+        Add(NavigationPage.Packages, "Box", "Packages");
+        Add(NavigationPage.Settings, "Settings", "Settings", isFooter: true);
+        Add(NavigationPage.About, "Info", "About", isFooter: true);
+    }
+
+    private void Add(NavigationPage page, string icon, string label, bool isFooter = false)
+    {
+        var item = new NavigationItemViewModel
         {
-            Page = NavigationPage.Dashboard,
-            Icon = "Home",
-            Label = "Dashboard",
-            IsVisible = true
-        });
-        
-        NavigationItems.Add(new NavigationItemViewModel
-        {
-            Page = NavigationPage.KeyboardBacklight,
-            Icon = "Keyboard",
-            Label = "Keyboard",
-            IsVisible = true
-        });
-        
-        NavigationItems.Add(new NavigationItemViewModel
-        {
-            Page = NavigationPage.Battery,
-            Icon = "Battery",
-            Label = "Battery",
-            IsVisible = true
-        });
-        
-        NavigationItems.Add(new NavigationItemViewModel
-        {
-            Page = NavigationPage.Automation,
-            Icon = "Rocket",
-            Label = "Automation",
-            IsVisible = true
-        });
-        
-        NavigationItems.Add(new NavigationItemViewModel
-        {
-            Page = NavigationPage.Macro,
-            Icon = "Receipt",
-            Label = "Macros",
-            IsVisible = true
-        });
-        
-        NavigationItems.Add(new NavigationItemViewModel
-        {
-            Page = NavigationPage.Packages,
-            Icon = "Box",
-            Label = "Packages",
-            IsVisible = true
-        });
-        
-        NavigationItems.Add(new NavigationItemViewModel
-        {
-            Page = NavigationPage.Settings,
-            Icon = "Settings",
-            Label = "Settings",
+            Page = page,
+            Icon = icon,
+            Label = label,
             IsVisible = true,
-            IsFooter = true
-        });
-        
-        NavigationItems.Add(new NavigationItemViewModel
+            IsFooter = isFooter
+        };
+
+        NavigationItems.Add(item);
+
+        if (isFooter)
         {
-            Page = NavigationPage.About,
-            Icon = "Info",
-            Label = "About",
-            IsVisible = true,
-            IsFooter = true
-        });
+            FooterNavigationItems.Add(item);
+        }
+        else
+        {
+            PrimaryNavigationItems.Add(item);
+        }
     }
     
     private void OnPageChanged(NavigationPage page)
