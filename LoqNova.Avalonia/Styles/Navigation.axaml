@@ -44,10 +44,17 @@
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
 
-    <!-- Selected plate sits behind the row content. -->
+    <!-- Base row plate: sits on the sidebar colour so unselected rows read flat. -->
     <Style Selector="Border.NavItemPlate">
-        <Setter Property="Background" Value="{StaticResource CardElevatedBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Margin" Value="-1" />
+    </Style>
+
+    <!-- Selected plate: clearly raised against the base plate. -->
+    <Style Selector="Border.NavItemPlateSelected">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Margin" Value="-1" />

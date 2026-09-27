@@ -26,8 +26,12 @@
                     CommandParameter="{Binding Page}"
                     IsVisible="{Binding IsVisible}">
                 <Grid>
+                    <!-- Base plate: the Fluent Button template paints its own
+                         background, so every row gets an explicit plate to keep
+                         the sidebar visually flat and controlled. -->
+                    <Border Classes="NavItemPlate" />
                     <!-- Selected plate -->
-                    <Border Classes="NavItemPlate" IsVisible="{Binding IsSelected}" />
+                    <Border Classes="NavItemPlateSelected" IsVisible="{Binding IsSelected}" />
                     <!-- Selected accent rail -->
                     <Border Classes="NavRail" IsVisible="{Binding IsSelected}" />
 
