@@ -31,7 +31,17 @@ public partial class MainWindowViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isFnKeysActive = true;
     
+    /// <summary>
+    /// Single source of truth for navigation. <see cref="PrimaryNavigationItems"/>
+    /// and <see cref="FooterNavigationItems"/> are views onto the same
+    /// <see cref="NavigationItemViewModel"/> instances, so the sidebar can
+    /// split the list visually without duplicating any navigation state.
+    /// </summary>
     public ObservableCollection<NavigationItemViewModel> NavigationItems { get; } = new();
+
+    public ObservableCollection<NavigationItemViewModel> PrimaryNavigationItems { get; } = new();
+
+    public ObservableCollection<NavigationItemViewModel> FooterNavigationItems { get; } = new();
     
     public MainWindowViewModel(
         INavigationService navigationService,
