@@ -8,21 +8,21 @@
     <Grid ColumnDefinitions="*,*,*,*,*">
 
         <!-- ============================ CPU ============================ -->
-        <Border Grid.Column="0" Classes="SensorCard" Margin="0,0,10,0">
+        <Border Grid.Column="0" Classes="SensorCard" Margin="0,0,8,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentCpu" />
 
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Cpu}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorCpuBrush}" />
-                        <TextBlock Text="CPU" Classes="SensorCardTitle" />
+                        <TextBlock Text="CPU" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
                         <TextBlock Text="{Binding CpuUsage, StringFormat='{}{0:F0}'}"
-                                   Classes="SensorCardValue"
+                                   Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{StaticResource SensorCpuBrush}" />
                         <TextBlock Text="%" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
@@ -33,21 +33,21 @@
         </Border>
 
         <!-- ============================ GPU ============================ -->
-        <Border Grid.Column="1" Classes="SensorCard" Margin="0,0,10,0">
+        <Border Grid.Column="1" Classes="SensorCard" Margin="0,0,8,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentGpu" />
 
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Gpu}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorGpuBrush}" />
-                        <TextBlock Text="GPU" Classes="SensorCardTitle" />
+                        <TextBlock Text="GPU" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
                         <TextBlock Text="{Binding GpuUsage, StringFormat='{}{0:F0}'}"
-                                   Classes="SensorCardValue"
+                                   Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{StaticResource SensorGpuBrush}" />
                         <TextBlock Text="%" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
@@ -58,21 +58,21 @@
         </Border>
 
         <!-- ============================ CPU temperature ============================ -->
-        <Border Grid.Column="2" Classes="SensorCard" Margin="0,0,10,0">
+        <Border Grid.Column="2" Classes="SensorCard" Margin="0,0,8,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentTemp" />
 
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorTempBrush}" />
-                        <TextBlock Text="CPU TEMP" Classes="SensorCardTitle" />
+                        <TextBlock Text="CPU TEMP" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
                         <TextBlock Text="{Binding CpuTemperature, StringFormat='{}{0:F0}'}"
-                                   Classes="SensorCardValue"
+                                   Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{StaticResource SensorTempBrush}" />
                         <TextBlock Text="°C" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
@@ -83,21 +83,21 @@
         </Border>
 
         <!-- ============================ GPU temperature ============================ -->
-        <Border Grid.Column="3" Classes="SensorCard" Margin="0,0,10,0">
+        <Border Grid.Column="3" Classes="SensorCard" Margin="0,0,8,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentTemp" />
 
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorTempBrush}" />
-                        <TextBlock Text="GPU TEMP" Classes="SensorCardTitle" />
+                        <TextBlock Text="GPU TEMP" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
                         <TextBlock Text="{Binding GpuTemperature, StringFormat='{}{0:F0}'}"
-                                   Classes="SensorCardValue"
+                                   Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{StaticResource SensorTempBrush}" />
                         <TextBlock Text="°C" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
@@ -112,17 +112,17 @@
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentFan" />
 
-                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Fan}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorFanBrush}" />
-                        <TextBlock Text="FAN" Classes="SensorCardTitle" />
+                        <TextBlock Text="FAN" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
                         <TextBlock Text="{Binding FanSpeedRpm}"
-                                   Classes="SensorCardValue"
+                                   Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{StaticResource SensorFanBrush}" />
                         <TextBlock Text="RPM" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
