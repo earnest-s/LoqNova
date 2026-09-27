@@ -1,9 +1,13 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
+using Avalonia;
+using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
+using LoqNova.Avalonia.ViewModels.Dialogs;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
@@ -14,6 +18,8 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly IThermalService _thermalService;
     private readonly IBatteryService _batteryService;
     private readonly ISensorsService _sensorsService;
+    private readonly INavigationService _navigationService;
+    private bool _suppressModeWrite;
     
     [ObservableProperty]
     private double _cpuUsage = 12;
@@ -36,26 +42,51 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty]
     private PowerModeState _currentPowerMode = PowerModeState.Balance;
     
+    /// <summary>
+    /// Brush for the active power mode. Typed as <see cref="IBrush"/> because
+    /// SensorsPanel.PowerModeColor is an IBrush styled property; it previously
+    /// exposed a hex string, which could never bind.
+    /// </summary>
     [ObservableProperty]
-    private string _powerModeColor = "#FFFFFF";
-    
+    private IBrush _powerModeColor = Brushes.Transparent;
+
+    /// <summary>God Mode is only offered when the device reports support.</summary>
+    public bool IsGodModeSupported => _performanceService.IsSupported;
+
+    public ObservableCollection<PowerModeState> PowerModeItems { get; } = new()
+    {
+        PowerModeState.Quiet,
+        PowerModeState.Balance,
+        PowerModeState.Performance,
+        PowerModeState.GodMode
+    };
+
     public ObservableCollection<DashboardWidgetViewModel> Widgets { get; } = new();
-    
+
+    /// <summary>
+    /// Non-sensor widgets. Sensor channels are already presented by
+    /// SensorsPanel, so they are excluded here to avoid showing them twice.
+    /// </summary>
+    public ObservableCollection<DashboardWidgetViewModel> ControlWidgets { get; } = new();
+
     public DashboardViewModel(
         IPerformanceService performanceService,
         IRgbService rgbService,
         IThermalService thermalService,
         IBatteryService batteryService,
-        ISensorsService sensorsService)
+        ISensorsService sensorsService,
+        INavigationService navigationService)
     {
         _performanceService = performanceService;
         _rgbService = rgbService;
         _thermalService = thermalService;
         _batteryService = batteryService;
         _sensorsService = sensorsService;
+        _navigationService = navigationService;
         
         InitializeWidgets();
         SubscribeToEvents();
+        SyncFromService();
     }
     
     private void InitializeWidgets()
