@@ -118,7 +118,7 @@ public partial class MainWindowViewModel : ViewModelBase
     }
 
     private static Window? HostWindow =>
-        (Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+        (global::Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
 
     [RelayCommand]
     private void Minimize()
