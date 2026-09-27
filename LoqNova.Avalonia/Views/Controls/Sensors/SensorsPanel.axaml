@@ -1,17 +1,139 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:LoqNova.Avalonia.Views.Controls.Sensors"
-             x:Class="LoqNova.Avalonia.Views.Controls.Sensors.SensorsPanel"
-             x:Name="Root">
+             x:Class="LoqNova.Avalonia.Views.Controls.Sensors.SensorsPanel">
 
-    <ItemsControl x:Name="Tiles">
-        <ItemsControl.ItemsPanel>
-            <ItemsPanelTemplate>
-                <!-- Uniform rows that reflow on resize; no fixed column count
-                     and no MaxWidth, so the dashboard never reserves dead space. -->
-                <WrapPanel Orientation="Horizontal" />
-            </ItemsPanelTemplate>
-        </ItemsControl.ItemsPanel>
-    </ItemsControl>
+    <!-- Five equal star columns: the tiles stay aligned with each other and
+         share the full width at any window size, so no dead space appears. -->
+    <Grid ColumnDefinitions="*,*,*,*,*">
 
+        <!-- ============================ CPU ============================ -->
+        <Border Grid.Column="0" Classes="SensorCard" Margin="0,0,10,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <Border Grid.Column="0" Classes="SensorAccentCpu" />
+
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                        <PathIcon Data="{StaticResource IconCpu}"
+                                  Classes="SensorIcon"
+                                  Foreground="{StaticResource SensorCpuBrush}" />
+                        <TextBlock Text="CPU" Classes="SensorCardTitle" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding CpuUsage, StringFormat='{}{0:F0}'}"
+                                   Classes="SensorCardValue"
+                                   Foreground="{StaticResource SensorCpuBrush}" />
+                        <TextBlock Text="%" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                    </StackPanel>
+
+                    <ProgressBar Value="{Binding CpuUsage}" Classes="CpuUsageBar" Maximum="100" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============================ GPU ============================ -->
+        <Border Grid.Column="1" Classes="SensorCard" Margin="0,0,10,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <Border Grid.Column="0" Classes="SensorAccentGpu" />
+
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                        <PathIcon Data="{StaticResource IconGpu}"
+                                  Classes="SensorIcon"
+                                  Foreground="{StaticResource SensorGpuBrush}" />
+                        <TextBlock Text="GPU" Classes="SensorCardTitle" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding GpuUsage, StringFormat='{}{0:F0}'}"
+                                   Classes="SensorCardValue"
+                                   Foreground="{StaticResource SensorGpuBrush}" />
+                        <TextBlock Text="%" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                    </StackPanel>
+
+                    <ProgressBar Value="{Binding GpuUsage}" Classes="GpuUsageBar" Maximum="100" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============================ CPU temperature ============================ -->
+        <Border Grid.Column="2" Classes="SensorCard" Margin="0,0,10,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <Border Grid.Column="0" Classes="SensorAccentTemp" />
+
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                        <PathIcon Data="{StaticResource IconThermometer}"
+                                  Classes="SensorIcon"
+                                  Foreground="{StaticResource SensorTempBrush}" />
+                        <TextBlock Text="CPU TEMP" Classes="SensorCardTitle" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding CpuTemperature, StringFormat='{}{0:F0}'}"
+                                   Classes="SensorCardValue"
+                                   Foreground="{StaticResource SensorTempBrush}" />
+                        <TextBlock Text="°C" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                    </StackPanel>
+
+                    <ProgressBar Value="{Binding CpuTemperature}" Classes="TemperatureBar" Maximum="100" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============================ GPU temperature ============================ -->
+        <Border Grid.Column="3" Classes="SensorCard" Margin="0,0,10,0">
+            <Grid ColumnDefinitions="Auto,*">
+                <Border Grid.Column="0" Classes="SensorAccentTemp" />
+
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                        <PathIcon Data="{StaticResource IconThermometer}"
+                                  Classes="SensorIcon"
+                                  Foreground="{StaticResource SensorTempBrush}" />
+                        <TextBlock Text="GPU TEMP" Classes="SensorCardTitle" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding GpuTemperature, StringFormat='{}{0:F0}'}"
+                                   Classes="SensorCardValue"
+                                   Foreground="{StaticResource SensorTempBrush}" />
+                        <TextBlock Text="°C" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                    </StackPanel>
+
+                    <ProgressBar Value="{Binding GpuTemperature}" Classes="TemperatureBar" Maximum="100" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <!-- ============================ Fan ============================ -->
+        <Border Grid.Column="4" Classes="SensorCard">
+            <Grid ColumnDefinitions="Auto,*">
+                <Border Grid.Column="0" Classes="SensorAccentFan" />
+
+                <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                        <PathIcon Data="{StaticResource IconFan}"
+                                  Classes="SensorIcon"
+                                  Foreground="{StaticResource SensorFanBrush}" />
+                        <TextBlock Text="FAN" Classes="SensorCardTitle" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding FanSpeedRpm}"
+                                   Classes="SensorCardValue"
+                                   Foreground="{StaticResource SensorFanBrush}" />
+                        <TextBlock Text="RPM" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                    </StackPanel>
+
+                    <!-- Secondary line derived from the same real reading -->
+                    <TextBlock Classes="SensorCardMeta" Margin="0,2,0,0"
+                               Text="{Binding FanSpeedPercent, StringFormat='{}{0}% of maximum'}" />
+
+                    <ProgressBar Value="{Binding FanSpeedPercent}" Classes="FanSpeedBar" Maximum="100" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
+    </Grid>
 </UserControl>
