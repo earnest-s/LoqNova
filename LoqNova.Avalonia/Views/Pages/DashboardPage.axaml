@@ -86,14 +86,14 @@
             <ItemsControl ItemsSource="{Binding ControlWidgets}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <!-- WrapPanel reflows with the window instead of
-                             reserving a fixed width that leaves dead space. -->
-                        <WrapPanel Orientation="Horizontal" />
+                        <!-- Column count follows the available width, so the
+                             grid reflows instead of reserving dead space. -->
+                        <controls:ResponsiveUniformGrid ItemWidth="232" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vm:DashboardWidgetViewModel">
-                        <Border Classes="WidgetCard" Width="212" Margin="0,0,12,12">
+                        <Border Classes="WidgetCard" Margin="0,0,12,12">
                             <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
                                 <PathIcon Grid.Row="0" Grid.Column="0"
                                           Classes="SensorIcon"
