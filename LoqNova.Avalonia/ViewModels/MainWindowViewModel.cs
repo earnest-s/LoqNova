@@ -2,6 +2,8 @@ using System;
 using System.Collections.ObjectModel;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels.Pages;
+using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 
@@ -15,9 +17,13 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IRgbService _rgbService;
     private readonly IThermalService _thermalService;
     private readonly IBatteryService _batteryService;
-    
+
     [ObservableProperty]
     private string _deviceModel = "LOQ 15IRH8";
+
+    /// <summary>Real product version, read from the running assembly.</summary>
+    public string AppVersion { get; } =
+        typeof(MainWindowViewModel).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";
     
     [ObservableProperty]
     private bool _isTracing = false;
