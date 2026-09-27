@@ -32,8 +32,15 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
+    <!-- The Fluent Button template paints its own background across the whole
+         control rect. Force the template part transparent so the row plates
+         are the only thing visible. -->
+    <Style Selector="Button.NavItem /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="Transparent" />
+    </Style>
+
     <Style Selector="Button.NavItem:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="Background" Value="Transparent" />
     </Style>
 
     <Style Selector="Button.NavItem:pointerover /template/ ContentPresenter#PART_ContentPresenter TextBlock">
