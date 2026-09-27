@@ -110,6 +110,35 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         _ = _navigationService.NavigateToAsync(page);
     }
+
+    private static Window? HostWindow =>
+        (Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
+
+    [RelayCommand]
+    private void Minimize()
+    {
+        if (HostWindow is not null)
+        {
+            HostWindow.WindowState = WindowState.Minimized;
+        }
+    }
+
+    [RelayCommand]
+    private void ToggleMaximize()
+    {
+        if (HostWindow is not null)
+        {
+            HostWindow.WindowState = HostWindow.WindowState == WindowState.Maximized
+                ? WindowState.Normal
+                : WindowState.Maximized;
+        }
+    }
+
+    [RelayCommand]
+    private void Close()
+    {
+        HostWindow?.Close();
+    }
 }
 
 public partial class NavigationItemViewModel : ViewModelBase
