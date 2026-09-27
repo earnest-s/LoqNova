@@ -15,7 +15,9 @@ using LoqNova.Lib.Controllers;
 using LoqNova.Lib.Controllers.Sensors;
 using LoqNova.Lib.Settings;
 using Microsoft.Extensions.Logging;
+using Autofac;
 using AutofacContainerBuilder = Autofac.ContainerBuilder;
+using AutofacContainer = Autofac.IContainer;
 
 namespace LoqNova.Avalonia;
 
