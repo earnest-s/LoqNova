@@ -1,176 +1,194 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
-    <!-- Primary Button -->
+
+    <!-- ============================ Button system ============================
+         Every button derives its metrics from design tokens so headers and
+         toolbars stay visually consistent. -->
+
+    <Style Selector="Button">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="MinHeight" Value="{StaticResource ControlHeightMd}" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="Button:pointerover /template/ ContentPresenter#PART_ContentPresenter PathIcon">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- Primary action -->
     <Style Selector="Button.PrimaryButton">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="16,8" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="{StaticResource SpaceLg},0" />
+        <Setter Property="MinWidth" Value="112" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
+
     <Style Selector="Button.PrimaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#005A9E" />
+        <Setter Property="Background" Value="{StaticResource PrimaryHoverBrush}" />
     </Style>
-    
+
     <Style Selector="Button.PrimaryButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#004578" />
+        <Setter Property="Background" Value="{StaticResource PrimaryPressedBrush}" />
     </Style>
-    
+
     <Style Selector="Button.PrimaryButton:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
+        <Setter Property="TextBlock.Foreground" Value="{StaticResource DisabledTextBrush}" />
     </Style>
-    
-    <!-- Secondary Button -->
+
+    <!-- Secondary: filled neutral surface -->
     <Style Selector="Button.SecondaryButton">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="16,8" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="{StaticResource SpaceLg},0" />
+        <Setter Property="MinWidth" Value="112" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
+
     <Style Selector="Button.SecondaryButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
     </Style>
-    
+
     <Style Selector="Button.SecondaryButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
-    
+
     <Style Selector="Button.SecondaryButton:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource DisabledBrush}" />
+        <Setter Property="TextBlock.Foreground" Value="{StaticResource DisabledTextBrush}" />
     </Style>
-    
-    <!-- Outline Button -->
+
+    <!-- Outline -->
     <Style Selector="Button.OutlineButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="12,6" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
+
     <Style Selector="Button.OutlineButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
     </Style>
-    
+
     <Style Selector="Button.OutlineButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
-    
-    <!-- Ghost Button -->
+
+    <!-- Ghost: low emphasis inline action -->
     <Style Selector="Button.GhostButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="12,6" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="MinHeight" Value="{StaticResource ControlHeightSm}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
+
     <Style Selector="Button.GhostButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
-    
+
     <Style Selector="Button.GhostButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
-    
-    <!-- Icon Button -->
+
+    <!-- Icon button inside content areas -->
     <Style Selector="Button.IconButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="8" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Width" Value="36" />
-        <Setter Property="Height" Value="36" />
+        <Setter Property="Padding" Value="{StaticResource SpaceSm}" />
+        <Setter Property="Width" Value="{StaticResource ControlHeightMd}" />
+        <Setter Property="Height" Value="{StaticResource ControlHeightMd}" />
+        <Setter Property="MinHeight" Value="{StaticResource ControlHeightMd}" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
+
     <Style Selector="Button.IconButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
-    
+
     <Style Selector="Button.IconButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
-    
-    <!-- Preset Button (for RGB keyboard) -->
+
+    <!-- RGB preset chips -->
     <Style Selector="Button.PresetButton">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="Padding" Value="12,8" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="MinWidth" Value="84" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
-        <Setter Property="MinWidth" Value="80" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
+
     <Style Selector="Button.PresetButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
     </Style>
-    
+
     <Style Selector="Button.PresetButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
-    
+
     <Style Selector="Button.PresetButtonSelected">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource PrimaryMutedBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="White" />
-        <Setter Property="Padding" Value="12,8" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Padding" Value="12,0" />
+        <Setter Property="MinWidth" Value="84" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMd}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
-        <Setter Property="MinWidth" Value="80" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
-    <!-- Danger Button -->
+
+    <!-- Destructive action -->
     <Style Selector="Button.DangerButton">
-        <Setter Property="Background" Value="{StaticResource AccentBrush}" />
-        <Setter Property="Foreground" Value="White" />
+        <Setter Property="Background" Value="{StaticResource DangerBrush}" />
+        <Setter Property="Foreground" Value="#FFFFFF" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="16,8" />
-        <Setter Property="CornerRadius" Value="4" />
+        <Setter Property="Padding" Value="{StaticResource SpaceLg},0" />
+        <Setter Property="MinWidth" Value="112" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
-    
+
     <Style Selector="Button.DangerButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#C5001B" />
+        <Setter Property="Background" Value="{StaticResource DangerHoverBrush}" />
     </Style>
-    
+
     <Style Selector="Button.DangerButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="#A00017" />
+        <Setter Property="Background" Value="{StaticResource DangerPressedBrush}" />
     </Style>
 </Styles>
