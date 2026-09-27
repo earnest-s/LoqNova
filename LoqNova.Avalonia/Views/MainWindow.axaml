@@ -15,21 +15,39 @@
 
     <Window.Resources>
         <!-- One navigation item template, shared by the primary list and the
-             footer list so both render identically. -->
+             footer list so both render identically.
+             Selection is expressed with IsVisible rather than converter
+             parameters: "|" inside a ConverterParameter is parsed by Avalonia
+             as the multi-binding operator, which silently breaks the binding. -->
         <DataTemplate x:Key="NavigationItemTemplate">
             <Button Classes="NavItem"
+                    Background="Transparent"
                     Command="{Binding $parent[Window].DataContext.Navigate}"
                     CommandParameter="{Binding Page}"
-                    IsVisible="{Binding IsVisible}"
-                    Background="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=CardElevatedBrush|TransparentBrush}"
-                    Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=TextPrimaryBrush|TextSecondaryBrush}">
+                    IsVisible="{Binding IsVisible}">
                 <Grid>
+                    <!-- Selected plate -->
+                    <Border Classes="NavItemPlate" IsVisible="{Binding IsSelected}" />
+                    <!-- Selected accent rail -->
                     <Border Classes="NavRail" IsVisible="{Binding IsSelected}" />
+
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceMd}" Margin="14,0,0,0">
-                        <PathIcon Classes="NavIcon"
-                                  Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
-                                  Foreground="{Binding IsSelected, Converter={StaticResource BoolToBrushConverter}, ConverterParameter=PrimaryBrush|TextSecondaryBrush}" />
-                        <TextBlock Text="{Binding Label}" Classes="NavItemLabel" />
+                        <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
+                            <PathIcon Classes="NavIcon"
+                                      Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
+                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                            <PathIcon Classes="NavIcon NavIconActive"
+                                      IsVisible="{Binding IsSelected}"
+                                      Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
+                                      Foreground="{StaticResource PrimaryBrush}" />
+                        </Grid>
+
+                        <Grid>
+                            <TextBlock Text="{Binding Label}" Classes="NavItemLabel" />
+                            <TextBlock Text="{Binding Label}"
+                                       Classes="NavItemLabel NavItemLabelActive"
+                                       IsVisible="{Binding IsSelected}" />
+                        </Grid>
                     </StackPanel>
                 </Grid>
             </Button>
