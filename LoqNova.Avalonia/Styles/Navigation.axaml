@@ -44,6 +44,15 @@
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
 
+    <!-- Selected plate sits behind the row content. -->
+    <Style Selector="Border.NavItemPlate">
+        <Setter Property="Background" Value="{StaticResource CardElevatedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Margin" Value="-1" />
+    </Style>
+
     <!-- Left accent rail marks the active destination. -->
     <Style Selector="Border.NavRail">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
@@ -60,12 +69,21 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <Style Selector="PathIcon.NavIconActive">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
     <Style Selector="TextBlock.NavItemLabel">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.NavItemLabelActive">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
     </Style>
 
     <!-- ============================ Sidebar chrome ============================ -->
