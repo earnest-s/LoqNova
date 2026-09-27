@@ -40,7 +40,7 @@
 
                     <!-- Current mode readout -->
                     <StackPanel Grid.Column="1"
-                                Margin="{StaticResource SpaceLg}"
+                                Margin="{StaticResource InsetLg}"
                                 VerticalAlignment="Center">
                         <TextBlock Text="Power mode" Classes="SectionLabel" Margin="0" />
                         <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceMd}">
