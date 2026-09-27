@@ -160,8 +160,7 @@ public partial class DashboardViewModel : ViewModelBase
         // Add feature control widgets
         Widgets.Add(new DashboardWidgetViewModel
         {
-            Title = "Power Mode",
-            Value = "Balance",
+            Title = "Power Mode",            Value = "Balance",
             Icon = "Bolt64",
             Type = WidgetType.ComboBox,
             Items = new ObservableCollection<string> { "Quiet", "Balance", "Performance", "GodMode" },
