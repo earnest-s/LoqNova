@@ -4,6 +4,7 @@
 		<RuntimeIdentifier>win-x64</RuntimeIdentifier>
 		<Platforms>x64</Platforms>
 		<Nullable>enable</Nullable>
+		<ImplicitUsings>disable</ImplicitUsings>
 		<Copyright>© 2026 Earnest S</Copyright>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 		<NeutralLanguage>en</NeutralLanguage>
