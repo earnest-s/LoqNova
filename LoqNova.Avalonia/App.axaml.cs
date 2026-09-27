@@ -31,7 +31,7 @@ public partial class App : Application
     public override async void OnFrameworkInitializationCompleted()
     {
         // Build DI container
-        var builder = new Autofac.ContainerBuilder();
+        var builder = new AutofacContainerBuilder();
         
         // Register IServiceProvider adapter
         builder.Register<IServiceProvider>(c => new AutofacServiceProvider(c.Resolve<ILifetimeScope>())).SingleInstance();
