@@ -14,7 +14,6 @@ using LoqNova.Avalonia.Views;
 using LoqNova.Lib.Controllers;
 using LoqNova.Lib.Controllers.Sensors;
 using LoqNova.Lib.Settings;
-using LoqNova.Lib.Utils;
 using Autofac;
 using Autofac.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
