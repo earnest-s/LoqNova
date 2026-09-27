@@ -47,6 +47,7 @@ public static class IconGeometries
             ["Home"] = Home,
             ["Keyboard"] = Keyboard,
             ["Battery"] = Battery,
+            ["Automation"] = Automation,
             ["Rocket"] = Bolt,
             ["Receipt"] = Receipt,
             ["Box"] = Box,
