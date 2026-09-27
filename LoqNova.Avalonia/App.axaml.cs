@@ -23,7 +23,7 @@ namespace LoqNova.Avalonia;
 
 public partial class App : Application
 {
-    public static IContainer? Container { get; private set; }
+    public static AutofacContainer? Container { get; private set; }
 
     public override void Initialize()
     {
@@ -126,7 +126,7 @@ public partial class App : Application
         builder.RegisterType<MacroRecordingViewModel>().InstancePerDependency();
         builder.RegisterType<SpectrumEditEffectViewModel>().InstancePerDependency();
         
-        Container = builder.Build();
+        Container = builder.Build() as AutofacContainer;
         AppHost.Initialize(new AutofacServiceProvider(Container));
         
         // Initialize localization
