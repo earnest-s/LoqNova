@@ -319,6 +319,13 @@ public partial class DashboardViewModel : ViewModelBase
             Type = WidgetType.Button,
             Color = "#E81123"
         });
+
+        // Sensor channels are rendered by SensorsPanel, so only the control
+        // widgets belong on the dashboard's own widget grid.
+        foreach (var widget in Widgets.Where(w => w.Type != WidgetType.Sensor))
+        {
+            ControlWidgets.Add(widget);
+        }
     }
     
     private void SubscribeToEvents()
