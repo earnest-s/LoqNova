@@ -386,7 +386,6 @@ public class RgbService : IRgbService
 
     private static RgbBrightness MapFromLibBrightness(RGBKeyboardBacklightBrightness brightness) => brightness switch
     {
-        RGBKeyboardBacklightBrightness.Off => RgbBrightness.Off,
         RGBKeyboardBacklightBrightness.Low => RgbBrightness.Low,
         RGBKeyboardBacklightBrightness.High => RgbBrightness.High,
         _ => RgbBrightness.High
@@ -394,7 +393,7 @@ public class RgbService : IRgbService
 
     private static RGBKeyboardBacklightBrightness MapToLibBrightness(RgbBrightness brightness) => brightness switch
     {
-        RgbBrightness.Off => RGBKeyboardBacklightBrightness.Off,
+        RgbBrightness.Off => RGBKeyboardBacklightBrightness.Low,
         RgbBrightness.Low => RGBKeyboardBacklightBrightness.Low,
         RgbBrightness.High => RGBKeyboardBacklightBrightness.High,
         _ => RGBKeyboardBacklightBrightness.High
