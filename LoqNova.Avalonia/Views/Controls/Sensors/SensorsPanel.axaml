@@ -8,11 +8,11 @@
     <Grid ColumnDefinitions="*,*,*,*,*">
 
         <!-- ============================ CPU ============================ -->
-        <Border Grid.Column="0" Classes="SensorCard" Margin="0,0,8,0">
+        <Border Grid.Column="0" Classes="SensorCard" Margin="0,0,6,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentCpu" />
 
-                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Cpu}"
                                   Classes="SensorIcon"
@@ -33,11 +33,11 @@
         </Border>
 
         <!-- ============================ GPU ============================ -->
-        <Border Grid.Column="1" Classes="SensorCard" Margin="0,0,8,0">
+        <Border Grid.Column="1" Classes="SensorCard" Margin="0,0,6,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentGpu" />
 
-                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Gpu}"
                                   Classes="SensorIcon"
@@ -58,11 +58,11 @@
         </Border>
 
         <!-- ============================ CPU temperature ============================ -->
-        <Border Grid.Column="2" Classes="SensorCard" Margin="0,0,8,0">
+        <Border Grid.Column="2" Classes="SensorCard" Margin="0,0,6,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentTemp" />
 
-                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
@@ -83,11 +83,11 @@
         </Border>
 
         <!-- ============================ GPU temperature ============================ -->
-        <Border Grid.Column="3" Classes="SensorCard" Margin="0,0,8,0">
+        <Border Grid.Column="3" Classes="SensorCard" Margin="0,0,6,0">
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentTemp" />
 
-                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
@@ -112,7 +112,7 @@
             <Grid ColumnDefinitions="Auto,*">
                 <Border Grid.Column="0" Classes="SensorAccentFan" />
 
-                <StackPanel Grid.Column="1" Margin="10,0,0,0" Spacing="0">
+                <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="0">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <PathIcon Data="{x:Static icons:IconGeometries.Fan}"
                                   Classes="SensorIcon"
@@ -129,7 +129,7 @@
 
                     <!-- Secondary line derived from the same real reading -->
                     <TextBlock Classes="SensorCardMeta" Margin="0,2,0,0"
-                               Text="{Binding FanSpeedPercent, StringFormat='{}{0}% of maximum'}" />
+                               Text="{Binding FanSpeedPercent, StringFormat='{}{0}% max'}" />
 
                     <ProgressBar Value="{Binding FanSpeedPercent}" Classes="FanSpeedBar" Maximum="100" />
                 </StackPanel>
