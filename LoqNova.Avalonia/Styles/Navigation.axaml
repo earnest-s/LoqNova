@@ -27,7 +27,7 @@
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalContentAlignment" Value="Center" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
+        <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Margin" Value="10,1" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>

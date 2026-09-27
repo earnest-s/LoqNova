@@ -9,16 +9,16 @@
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetLg}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16" />
     </Style>
 
     <Style Selector="Border.ContentCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetLg}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16" />
     </Style>
 
     <!-- Recessed panel used for grouped controls inside a card. -->
@@ -26,16 +26,16 @@
         <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusMdBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="Padding" Value="12" />
     </Style>
 
     <Style Selector="Border.HoverCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetLg}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16" />
     </Style>
 
     <Style Selector="Border.HoverCard:pointerover">
@@ -47,40 +47,40 @@
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetLg}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16" />
     </Style>
 
     <Style Selector="Border.ToggleCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
     </Style>
 
     <Style Selector="Border.ComboBoxCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
     </Style>
 
     <Style Selector="Border.ButtonCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
     </Style>
 
     <Style Selector="Border.CustomCard">
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
     </Style>
 
     <!-- ============================ Power card ============================
@@ -91,8 +91,8 @@
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetXl}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="20" />
     </Style>
 
     <Style Selector="Border.PowerAccent">
@@ -115,8 +115,8 @@
         <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
-        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="12" />
         <Setter Property="MinHeight" Value="86" />
     </Style>
 
@@ -172,8 +172,8 @@
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="{StaticResource InsetSm}" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusMdBox}" />
+        <Setter Property="Padding" Value="8" />
+        <Setter Property="CornerRadius" Value="5" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
         <Setter Property="HorizontalAlignment" Value="Right" />
         <Setter Property="VerticalAlignment" Value="Center" />
