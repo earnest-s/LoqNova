@@ -22,7 +22,7 @@
         <DataTemplate x:Key="NavigationItemTemplate">
             <Button Classes="NavItem"
                     Background="Transparent"
-                    Command="{Binding $parent[Window].DataContext.Navigate}"
+                    Command="{Binding $parent[Window].DataContext.NavigateCommand}"
                     CommandParameter="{Binding Page}"
                     IsVisible="{Binding IsVisible}">
                 <Grid>
