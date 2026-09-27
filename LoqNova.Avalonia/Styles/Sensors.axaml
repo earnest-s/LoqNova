@@ -1,81 +1,128 @@
 <Styles xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
-    
-    <!-- Sensor Bar -->
-    <Style Selector="Border.SensorBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="Margin" Value="0,4,0,0" />
+
+    <!-- ============================ Sensor tile ============================
+         One tile shape for all five channels; only the accent differs.
+         No fixed width so the row reflows with the window. -->
+
+    <Style Selector="Border.SensorCard">
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLg}" />
+        <Setter Property="Padding" Value="14" />
+        <Setter Property="MinHeight" Value="104" />
     </Style>
-    
-    <Style Selector="Border.SensorBarFill">
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Height" Value="8" />
+
+    <Style Selector="Border.SensorCard:pointerover">
+        <Setter Property="Background" Value="{StaticResource CardElevatedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
     </Style>
-    
-    <!-- Sensor Progress Bar -->
-    <Style Selector="ProgressBar.SensorProgressBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Minimum" Value="0" />
-        <Setter Property="Maximum" Value="100" />
+
+    <Style Selector="PathIcon.SensorIcon">
+        <Setter Property="Width" Value="{StaticResource IconSizeSm}" />
+        <Setter Property="Height" Value="{StaticResource IconSizeSm}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    
-    <!-- CPU Usage Bar -->
-    <Style Selector="ProgressBar.CpuUsageBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Foreground" Value="#0078D4" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Minimum" Value="0" />
-        <Setter Property="Maximum" Value="100" />
-    </Style>
-    
-    <!-- GPU Usage Bar -->
-    <Style Selector="ProgressBar.GpuUsageBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Foreground" Value="#00B294" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Minimum" Value="0" />
-        <Setter Property="Maximum" Value="100" />
-    </Style>
-    
-    <!-- Temperature Bar -->
-    <Style Selector="ProgressBar.TemperatureBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Foreground" Value="#E81123" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Minimum" Value="0" />
-        <Setter Property="Maximum" Value="100" />
-    </Style>
-    
-    <!-- Fan Speed Bar -->
-    <Style Selector="ProgressBar.FanSpeedBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="Foreground" Value="#744DA9" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="CornerRadius" Value="4" />
-        <Setter Property="Minimum" Value="0" />
-        <Setter Property="Maximum" Value="100" />
-    </Style>
-    
-    <!-- Sensor Card Layout -->
-    <Style Selector="Border.SensorCardLayout">
-        <Setter Property="Margin" Value="4" />
-    </Style>
-    
+
     <Style Selector="TextBlock.SensorCardTitle">
-        <Setter Property="Margin" Value="0,0,0,4" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="LetterSpacing" Value="0.8" />
+        <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
-    
-    <Style Selector="TextBlock.SensorCardValue" />
-    <Style Selector="TextBlock.SensorCardUnit" />
-    
-    <!-- Sensor Grid -->
-    <Style Selector="Grid.SensorGrid" />
+
+    <Style Selector="TextBlock.SensorCardValue">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize3XL}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="LetterSpacing" Value="-0.6" />
+    </Style>
+
+    <Style Selector="TextBlock.SensorCardUnit">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.SensorCardMeta">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+    </Style>
+
+    <!-- Channel accents, referenced by name so tiles never hardcode hex -->
+    <Style Selector="Border.SensorAccentCpu">
+        <Setter Property="Background" Value="{StaticResource SensorCpuBrush}" />
+        <Setter Property="Width" Value="3" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style Selector="Border.SensorAccentGpu">
+        <Setter Property="Background" Value="{StaticResource SensorGpuBrush}" />
+        <Setter Property="Width" Value="3" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style Selector="Border.SensorAccentTemp">
+        <Setter Property="Background" Value="{StaticResource SensorTempBrush}" />
+        <Setter Property="Width" Value="3" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <Style Selector="Border.SensorAccentFan">
+        <Setter Property="Background" Value="{StaticResource SensorFanBrush}" />
+        <Setter Property="Width" Value="3" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="VerticalAlignment" Value="Stretch" />
+    </Style>
+
+    <!-- ============================ Bars ============================ -->
+
+    <Style Selector="ProgressBar.CpuUsageBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource SensorCpuBrush}" />
+    </Style>
+
+    <Style Selector="ProgressBar.GpuUsageBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource SensorGpuBrush}" />
+    </Style>
+
+    <Style Selector="ProgressBar.TemperatureBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource SensorTempBrush}" />
+    </Style>
+
+    <Style Selector="ProgressBar.FanSpeedBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource SensorFanBrush}" />
+    </Style>
+
+    <Style Selector="ProgressBar.SensorProgressBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="ProgressBar.SensorProgressBar, ProgressBar.CpuUsageBar, ProgressBar.GpuUsageBar, ProgressBar.TemperatureBar, ProgressBar.FanSpeedBar">
+        <Setter Property="Height" Value="4" />
+        <Setter Property="MinHeight" Value="4" />
+        <Setter Property="Maximum" Value="100" />
+        <Setter Property="Margin" Value="0,10,0,0" />
+    </Style>
+
+    <Style Selector="Border.SensorBar">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="CornerRadius" Value="2" />
+        <Setter Property="Height" Value="4" />
+    </Style>
 </Styles>
