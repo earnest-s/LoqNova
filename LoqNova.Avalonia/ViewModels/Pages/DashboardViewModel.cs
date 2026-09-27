@@ -326,7 +326,9 @@ public partial class DashboardViewModel : ViewModelBase
     {
         _performanceService.ModeChanged += mode => 
         {
+            _suppressModeWrite = true;
             CurrentPowerMode = mode;
+            _suppressModeWrite = false;
             PowerModeColor = GetPowerModeColor(mode);
         };
         
@@ -338,24 +340,68 @@ public partial class DashboardViewModel : ViewModelBase
             FanSpeedPercent = (int)(rpm / 6000.0 * 100);
         };
     }
-    
-    private string GetPowerModeColor(PowerModeState mode)
+
+    /// <summary>Adopts whatever the performance service already reports.</summary>
+    private void SyncFromService()
     {
-        return mode switch
-        {
-            PowerModeState.Quiet => "#0078D4",      // Blue
-            PowerModeState.Balance => "#FFFFFF",    // White
-            PowerModeState.Performance => "#E81123", // Red
-            PowerModeState.GodMode => "#B400FF",    // Purple
-            _ => "#FFFFFF"
-        };
+        _suppressModeWrite = true;
+        CurrentPowerMode = _performanceService.CurrentMode;
+        _suppressModeWrite = false;
+        PowerModeColor = GetPowerModeColor(CurrentPowerMode);
     }
-    
+
+    partial void OnCurrentPowerModeChanged(PowerModeState value)
+    {
+        PowerModeColor = GetPowerModeColor(value);
+
+        if (_suppressModeWrite)
+        {
+            return;
+        }
+
+        _ = _performanceService.SetModeAsync(value);
+    }
+
+    /// <summary>
+    /// Resolves the mode accent from the design system so the palette stays
+    /// defined in one place.
+    /// </summary>
+    private static IBrush GetPowerModeColor(PowerModeState mode)
+    {
+        var key = mode switch
+        {
+            PowerModeState.Quiet => "QuietModeBrush",
+            PowerModeState.Balance => "BalanceModeBrush",
+            PowerModeState.Performance => "PerformanceModeBrush",
+            PowerModeState.GodMode => "GodModeBrush",
+            _ => "TextSecondaryBrush"
+        };
+
+        if (Application.Current is not null &&
+            Application.Current.TryGetResource(key, null, out var resource) &&
+            resource is IBrush brush)
+        {
+            return brush;
+        }
+
+        return Brushes.Gray;
+    }
+
     [RelayCommand]
     private async Task RefreshAsync()
     {
-        // Trigger sensor refresh
+        await _sensorsService.InitializeAsync();
+        SyncFromService();
     }
+
+    [RelayCommand]
+    private async Task OpenGodModeAsync()
+    {
+        await _performanceService.ApplyGodModeSettingsAsync();
+    }
+
+    [RelayCommand]
+    private Task EditDashboardAsync() => _navigationService.NavigateToDialogAsync<EditDashboardViewModel>();
 }
 
 public partial class DashboardWidgetViewModel : ViewModelBase
