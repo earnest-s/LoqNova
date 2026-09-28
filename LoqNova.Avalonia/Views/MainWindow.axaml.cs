@@ -29,7 +29,7 @@ public partial class MainWindow : Window
         if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed &&
             e.Source is not Interactive)
         {
-            BeginMoveDrag(e.GetPosition(this));
+            BeginMoveDrag(e);
         }
     }
 }
