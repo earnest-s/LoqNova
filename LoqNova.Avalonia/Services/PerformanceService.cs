@@ -18,10 +18,10 @@ public class PerformanceService : IPerformanceService
 {
     private static readonly PowerModeState[] NoStates = [];
 
-    private readonly PowerModeFeature _powerModeFeature;
     private readonly IMainThreadDispatcher _dispatcher;
     private readonly ILogger<PerformanceService> _logger;
 
+    private PowerModeFeature? _powerModeFeature;
     private PowerModeState[] _availableStates = NoStates;
 
     public PowerModeState CurrentMode { get; private set; } = PowerModeState.Balance;
@@ -37,11 +37,9 @@ public class PerformanceService : IPerformanceService
     public event Action<PowerModeState>? ModeChanged;
 
     public PerformanceService(
-        PowerModeFeature powerModeFeature,
         IMainThreadDispatcher dispatcher,
         ILogger<PerformanceService> logger)
     {
-        _powerModeFeature = powerModeFeature;
         _dispatcher = dispatcher;
         _logger = logger;
     }
@@ -49,6 +47,10 @@ public class PerformanceService : IPerformanceService
     public async Task InitializeAsync()
     {
         await LibContainer.Initialization.ConfigureAwait(false);
+
+        // Resolved only once the shared container is up, so constructing this
+        // service never races container initialisation.
+        _powerModeFeature = IoCContainer.Resolve<PowerModeFeature>();
 
         IsSupported = await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false);
 
@@ -68,9 +70,12 @@ public class PerformanceService : IPerformanceService
         await RefreshAsync().ConfigureAwait(false);
     }
 
+    /// <summary>True once the machine has been queried successfully.</summary>
+    private bool IsReady => _powerModeFeature is not null && IsSupported;
+
     public async Task RefreshAsync()
     {
-        if (!IsSupported)
+        if (_powerModeFeature is null || !IsSupported)
             return;
 
         var mode = await _powerModeFeature.GetStateAsync().ConfigureAwait(false);
@@ -79,9 +84,9 @@ public class PerformanceService : IPerformanceService
 
     public async Task SetModeAsync(PowerModeState mode)
     {
-        if (!IsSupported)
+        if (!IsReady)
         {
-            _logger.LogWarning("Ignoring request for {Mode}: power mode is not supported.", mode);
+            _logger.LogWarning("Ignoring request for {Mode}: power mode is not available.", mode);
             return;
         }
 
@@ -93,7 +98,7 @@ public class PerformanceService : IPerformanceService
 
         try
         {
-            await _powerModeFeature.SetStateAsync(mode).ConfigureAwait(false);
+            await _powerModeFeature!.SetStateAsync(mode).ConfigureAwait(false);
 
             if (mode == PowerModeState.GodMode)
                 await _powerModeFeature.EnsureGodModeStateIsAppliedAsync().ConfigureAwait(false);
