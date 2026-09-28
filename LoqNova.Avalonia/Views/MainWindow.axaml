@@ -130,7 +130,7 @@
                 </Border>
 
                 <!-- Page host -->
-                <ContentControl Grid.Column="1" x:Name="ContentHost" Background="#0000FF" />
+                <ContentControl Grid.Column="1" x:Name="ContentHost" />
             </Grid>
         </Grid>
 
