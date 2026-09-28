@@ -87,13 +87,13 @@ public partial class App : Application
         builder.Register(_ => new RgbService(
                 LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Controllers.RGBKeyboardBacklightController>(),
                 LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.RGBKeyboardSettings>(),
-                _loggerFactory.Value!.CreateLogger<RgbService>()))
+                loggerFactory.CreateLogger<RgbService>()))
             .As<IRgbService>()
             .SingleInstance();
 
         builder.Register(_ => new SettingsService(
                 LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.ApplicationSettings>(),
-                _loggerFactory.Value!.CreateLogger<SettingsService>()))
+                loggerFactory.CreateLogger<SettingsService>()))
             .As<ISettingsService>()
             .SingleInstance();
 
