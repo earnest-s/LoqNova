@@ -122,8 +122,9 @@ public class BatteryService : IBatteryService, IDisposable
 
             var oldPercentage = Percentage;
             var oldIsCharging = IsCharging;
-            var oldAdapter = IsPowerAdapterConnected;
-            var oldLowWattage = IsLowWattageCharger;
+            var oldAdapterStatus = IsPowerAdapterConnected
+                ? PowerAdapterStatus.Connected
+                : PowerAdapterStatus.Disconnected;
 
             Percentage = info.BatteryPercentage;
             IsCharging = info.IsCharging;

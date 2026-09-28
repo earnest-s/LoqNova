@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
+using LoqNova.Lib;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
@@ -73,7 +74,7 @@ public partial class BatteryViewModel : ViewModelBase
     private BatteryState _currentMode = BatteryState.Normal;
     
     [ObservableProperty]
-    private BatteryNightChargeState _nightChargeMode = BatteryNightChargeState.Disabled;
+    private BatteryNightChargeState _nightChargeMode = BatteryNightChargeState.Off;
     
     [ObservableProperty]
     private bool _isPowerAdapterConnected = false;
@@ -88,7 +89,7 @@ public partial class BatteryViewModel : ViewModelBase
     
     public ObservableCollection<BatteryNightChargeState> NightChargeModes { get; } = new()
     {
-        BatteryNightChargeState.Disabled, BatteryNightChargeState.Enabled
+        BatteryNightChargeState.Off, BatteryNightChargeState.On
     };
     
     public BatteryViewModel(IBatteryService batteryService, ISettingsService settingsService)
