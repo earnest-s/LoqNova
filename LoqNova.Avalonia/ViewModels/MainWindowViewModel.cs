@@ -19,7 +19,8 @@ public partial class MainWindowViewModel : ViewModelBase
     private readonly IBatteryService _batteryService;
 
     [ObservableProperty]
-    private string _deviceModel = "LOQ 15IRH8";
+    /// <summary>Machine type as reported by the machine information source, or empty until loaded.</summary>
+    private string _deviceModel = "";
 
     /// <summary>Real product version, read from the running assembly.</summary>
     public string AppVersion { get; } =
