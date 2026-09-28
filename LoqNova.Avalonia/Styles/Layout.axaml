@@ -91,6 +91,41 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
+    <!-- Check / radio accents: the Fluent theme paints these with the system
+         accent colour, which clashes with the LOQ Nova palette. -->
+    <Style Selector="CheckBox.Control">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="CheckBox.Control /template/ Border#PART_NormalBackground">
+        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="CheckBox.Control:unchecked /template/ Border#PART_NormalBackground">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    </Style>
+
+    <Style Selector="RadioButton.Control">
+        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="RadioButton.Control /template/ Ellipse#PART_NormalBackground">
+        <Setter Property="Fill" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="RadioButton.Control /template__Ellipse#PART_OuterEllipse">
+        <Setter Property="Stroke" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+
     <Style Selector="ToggleSwitch.Control:pointerover /template/ Border#PART_OffBackground">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
     </Style>
