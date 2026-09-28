@@ -160,10 +160,10 @@
         <Setter Property="Opacity" Value="1" />
     </Style>
 
-
     <Style Selector="ScrollBar:pointerover">
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
     </Style>
+
 
     <Style Selector="ScrollBar /template/ RepeatButton#PART_RepeatButton">
         <Setter Property="Background" Value="Transparent" />
