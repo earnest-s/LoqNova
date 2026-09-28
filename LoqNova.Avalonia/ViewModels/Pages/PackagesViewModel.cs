@@ -18,6 +18,7 @@ using LoqNova.Lib.Settings;
 using LoqNova.Lib.System;
 using LoqNova.Lib.Utils;
 using IMainThreadDispatcher = LoqNova.Avalonia.Services.IMainThreadDispatcher;
+using NotificationType = LoqNova.Avalonia.Services.NotificationType;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
@@ -110,7 +111,7 @@ public partial class PackagesViewModel : ViewModelBase
     public string ShowHiddenDownloadsLabel => "Show hidden downloads";
     public string NoMatchingDownloadsLabel => T("PackagesPage_NoMatchingDownloads");
 
-    private static string T(string key) => LocalizationHelper.GetString(key);
+    internal static string T(string key) => LocalizationHelper.GetString(key);
 
     public ObservableCollection<string> SortOptions { get; } = new()
     {
@@ -541,6 +542,8 @@ public partial class PackageViewModel : ViewModelBase
 
     private CancellationTokenSource? _downloadPackageTokenSource;
 
+    private static string T(string key) => PackagesViewModel.T(key);
+
     public Package Package { get; }
 
     public string Id => Package.Id;
@@ -572,13 +575,13 @@ public partial class PackageViewModel : ViewModelBase
 
     public string ReleaseDateText => Package.ReleaseDate.ToString("d");
 
-    public string DetailText => $"{LocalizationHelper.GetString("PackageControl_Version")} {Package.Version}   |   {Package.FileSize}   |   {Package.FileName}";
+    public string DetailText => $"{T("PackageControl_Version")} {Package.Version}   |   {Package.FileSize}   |   {Package.FileName}";
 
     public string RebootText => Package.Reboot switch
     {
-        RebootType.Delayed or RebootType.Requested => LocalizationHelper.GetString("PackageControl_RebootRecommended"),
-        RebootType.Forced => LocalizationHelper.GetString("PackageControl_RebootRequired"),
-        RebootType.ForcedPowerOff => LocalizationHelper.GetString("PackageControl_ShutdownRequired"),
+        RebootType.Delayed or RebootType.Requested => T("PackageControl_RebootRecommended"),
+        RebootType.Forced => T("PackageControl_RebootRequired"),
+        RebootType.ForcedPowerOff => T("PackageControl_ShutdownRequired"),
         _ => string.Empty
     };
 
@@ -586,12 +589,12 @@ public partial class PackageViewModel : ViewModelBase
         Package.Reboot is RebootType.Delayed or RebootType.Requested
             or RebootType.Forced or RebootType.ForcedPowerOff;
 
-    public string DownloadLabel => LocalizationHelper.GetString("PackageControl_Download");
-    public string CancelLabel => LocalizationHelper.GetString("Cancel");
-    public string ReadmeLabel => LocalizationHelper.GetString("PackageControl_OpenReadme");
-    public string OldPackageWarning => LocalizationHelper.GetString("PackageControl_OldPackageWarning");
-    public string IsUpdateLabel => LocalizationHelper.GetString("PackageControl_IsUpdateInfo");
-    public string HideLabel => LocalizationHelper.GetString("Hide");
+    public string DownloadLabel => T("PackageControl_Download");
+    public string CancelLabel => T("Cancel");
+    public string ReadmeLabel => T("PackageControl_OpenReadme");
+    public string OldPackageWarning => T("PackageControl_OldPackageWarning");
+    public string IsUpdateLabel => T("PackageControl_IsUpdateInfo");
+    public string HideLabel => T("Hide");
 
     [ObservableProperty]
     private bool _isDownloading;
