@@ -149,8 +149,26 @@ public partial class BatteryViewModel : ViewModelBase
     partial void OnUseFahrenheitChanged(bool value)
     {
         _settingsService.TemperatureUnitFahrenheit = value;
-        _ = _settingsService.SaveAsync();
+        OnPropertyChanged(nameof(TemperatureText));
     }
+
+    /// <summary>
+    /// Temperature in the unit the user selected, or "--" when the machine has not
+    /// reported one. -1 is the "unknown" sentinel, so it is never displayed as a
+    /// reading.
+    /// </summary>
+    public string TemperatureText
+    {
+        get
+        {
+            var value = UseFahrenheit ? _temperatureF : _temperatureC;
+            return value < 0 ? "--" : $"{value:F1} °{(UseFahrenheit ? "F" : "C")}";
+        }
+    }
+
+    partial void OnTemperatureCChanged(double value) => OnPropertyChanged(nameof(TemperatureText));
+
+    partial void OnTemperatureFChanged(double value) => OnPropertyChanged(nameof(TemperatureText));
     
     [RelayCommand]
     private async Task RefreshAsync()
