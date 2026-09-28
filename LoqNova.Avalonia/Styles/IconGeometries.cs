@@ -40,10 +40,20 @@ public static class IconGeometries
     public static Geometry UsbC { get; } = P("M7 3 L17 3 L17 21 L7 21 Z M9 5 L9 19 L15 19 L15 5 Z M11 8 L13 8 L13 16 L11 16 Z");
     public static Geometry SpeedHigh { get; } = P("M3 18 L8 18 L8 20 L3 20 Z M9.5 13 L12.5 13 L12.5 20 L9.5 20 Z M14 8 L17 8 L17 20 L14 20 Z M18.5 3 L21 3 L21 20 L18.5 20 Z");
 
+    // ---- Window caption ----
+    // These must be area-filling paths: a bare line such as "M0 10h24" has no
+    // fill area and renders as nothing inside a PathIcon.
+    public static Geometry Minimize { get; } = P("M4 10.5h16v3H4z");
+    public static Geometry Maximize { get; } = P("M4.5 4.5h15v15h-15z");
+    public static Geometry Close { get; } = P("M6.4 5 L12 10.6 L17.6 5 L19 6.4 L13.4 12 L19 17.6 L17.6 19 L12 13.4 L6.4 19 L5 17.6 L10.6 12 L5 6.4 Z");
+
     /// <summary>Name based lookup used by <c>IconNameToGeometryConverter</c>.</summary>
     public static IReadOnlyDictionary<string, Geometry> ByName { get; } =
         new Dictionary<string, Geometry>(StringComparer.OrdinalIgnoreCase)
         {
+            ["Minimize"] = Minimize,
+            ["Maximize"] = Maximize,
+            ["Close"] = Close,
             ["Home"] = Home,
             ["Keyboard"] = Keyboard,
             ["Battery"] = Battery,
