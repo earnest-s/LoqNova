@@ -129,8 +129,16 @@
                     </Grid>
                 </Border>
 
-                <!-- Page host -->
-                <ContentControl Grid.Column="1" x:Name="ContentHost" />
+                <!-- Page host. VerticalContentAlignment must be Stretch:
+                     otherwise the page is sized to its content instead of the
+                     available height, the page ScrollViewer never overflows,
+                     no scrollbar appears and the Window simply clips it. -->
+                <ContentControl Grid.Column="1"
+                                x:Name="ContentHost"
+                                HorizontalAlignment="Stretch"
+                                VerticalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch"
+                                VerticalContentAlignment="Stretch" />
             </Grid>
         </Grid>
 
