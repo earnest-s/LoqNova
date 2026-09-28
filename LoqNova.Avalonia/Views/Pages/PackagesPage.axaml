@@ -10,6 +10,7 @@
 
     <ScrollViewer Classes="PageContainer">
         <StackPanel Classes="PageBody">
+            <TextBlock Classes="Body" Foreground="#FF00FF" Text="TEMP IsLoading={Binding IsLoading} HasLoaded={Binding HasLoadedPackages} IsCancel={Binding IsCancelVisible} Count={Binding Packages.Count} MachineType={Binding MachineType}" />
 
             <!-- ============================ Header ============================ -->
             <Grid Classes="PageHeader" ColumnDefinitions="*,Auto">
