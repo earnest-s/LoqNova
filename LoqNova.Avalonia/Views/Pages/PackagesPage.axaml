@@ -196,7 +196,7 @@
                                             Command="{Binding OpenReadmeCommand}"
                                             IsVisible="{Binding HasReadme}" />
                                     <Button Classes="GhostButton" Content="{Binding HideLabel}"
-                                            Command="{Binding HidePackageCommand}"
+                                            Command="{Binding $parent[UserControl].DataContext.HidePackageCommand}"
                                             CommandParameter="{Binding}" />
                                     <Button Classes="SecondaryButton" Content="{Binding DownloadLabel}"
                                             Command="{Binding DownloadCommand}"
