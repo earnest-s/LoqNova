@@ -192,4 +192,10 @@
     <Style Selector="ScrollBar /template/ Thumb#PART_Thumb"><Setter Property="Background" Value="#FFFF00" /><Setter Property="Opacity" Value="1" /></Style>
     <Style Selector="ScrollBar /template/ Thumb#PART_Thumb /template/ Border#PART_ThumbVisual"><Setter Property="Background" Value="#FF00FF" /><Setter Property="Opacity" Value="1" /></Style>
     <Style Selector="ScrollBar /template/ Thumb#PART_Thumb /template/ Rectangle#PART_ThumbVisual"><Setter Property="Fill" Value="#00FFFF" /><Setter Property="Opacity" Value="1" /></Style>
+    <!-- TEMP DIAGNOSTIC 2 -->
+    <Style Selector="ScrollBar /template/ Panel#PART_Panel"><Setter Property="Background" Value="#FF0000" /></Style>
+    <Style Selector="ScrollBar /template/ Border#PART_Panel"><Setter Property="Background" Value="#00FF00" /></Style>
+    <Style Selector="ScrollBar /template/ Thumb#PART_Thumb"><Setter Property="Background" Value="#FFFF00" /><Setter Property="Opacity" Value="1" /></Style>
+    <Style Selector="ScrollBar /template/ Thumb#PART_Thumb /template/ Border#PART_ThumbVisual"><Setter Property="Background" Value="#FF00FF" /><Setter Property="Opacity" Value="1" /></Style>
+    <Style Selector="ScrollBar"><Setter Property="Background" Value="#00FFFF" /></Style>
 </Styles>
