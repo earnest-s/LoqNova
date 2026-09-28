@@ -371,7 +371,11 @@ public partial class DashboardViewModel : ViewModelBase
         
         _thermalService.CpuTemperatureChanged += temp => CpuTemperature = temp;
         _thermalService.GpuTemperatureChanged += temp => GpuTemperature = temp;
-        _thermalService.FanSpeedChanged += rpm => FanSpeedRpm = rpm;
+        _thermalService.FanSpeedChanged += _ =>
+        {
+            FanSpeedRpm = _thermalService.FanSpeedRpm;
+            FanSpeedPercent = _thermalService.FanSpeedPercent;
+        };
 
         _sensorsService.CpuUsageChanged += usage => CpuUsage = usage;
         _sensorsService.GpuUsageChanged += usage => GpuUsage = usage;
