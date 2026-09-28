@@ -2,16 +2,25 @@ using System;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib.Controllers.Sensors;
-using LoqNova.Lib.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace LoqNova.Avalonia.Services;
 
-public class SensorsService : ISensorsService
+/// <summary>
+/// Adapter over the existing <see cref="ISensorsController"/>. Sampling runs on a
+/// timer thread, so every published change is marshalled onto the UI thread
+/// before it reaches a binding.
+/// </summary>
+public class SensorsService : ISensorsService, IDisposable
 {
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
+
     private readonly ISensorsController _sensorsController;
+    private readonly IMainThreadDispatcher _dispatcher;
     private readonly ILogger<SensorsService> _logger;
+
     private System.Timers.Timer? _timer;
+    private bool _disposed;
 
     public double CpuUsage { get; private set; } = -1;
     public double GpuUsage { get; private set; } = -1;
@@ -25,37 +34,54 @@ public class SensorsService : ISensorsService
     public event Action<double>? GpuTemperatureChanged;
     public event Action<int>? FanSpeedChanged;
 
-    public SensorsService(ISensorsController sensorsController, ILogger<SensorsService> logger)
+    public SensorsService(
+        ISensorsController sensorsController,
+        IMainThreadDispatcher dispatcher,
+        ILogger<SensorsService> logger)
     {
         _sensorsController = sensorsController;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
     public async Task InitializeAsync()
     {
+        if (!await _sensorsController.IsSupportedAsync().ConfigureAwait(false))
+        {
+            _logger.LogWarning("Sensors controller is not supported on this machine.");
+            return;
+        }
+
+        await _sensorsController.PrepareAsync().ConfigureAwait(false);
+        await RefreshAsync().ConfigureAwait(false);
+
+        StartTimer();
+    }
+
+    private void StartTimer()
+    {
+        if (_timer is not null)
+            return;
+
+        _timer = new System.Timers.Timer(PollInterval.TotalMilliseconds)
+        {
+            AutoReset = true
+        };
+        _timer.Elapsed += OnTimerElapsed;
+        _timer.Start();
+
+        _logger.LogInformation("Sensors polling every {Interval}.", PollInterval);
+    }
+
+    private async void OnTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
+    {
         try
         {
-            var supported = await _sensorsController.IsSupportedAsync().ConfigureAwait(false);
-            if (supported)
-            {
-                await _sensorsController.PrepareAsync().ConfigureAwait(false);
-                await RefreshAsync().ConfigureAwait(false);
-                
-                _timer = new System.Timers.Timer(2000);
-                _timer.Elapsed += async (_, _) => await RefreshAsync().ConfigureAwait(false);
-                _timer.AutoReset = true;
-                _timer.Start();
-                
-                _logger.LogInformation("Sensors service initialized successfully");
-            }
-            else
-            {
-                _logger.LogWarning("Sensors controller not supported on this hardware");
-            }
+            await RefreshAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to initialize sensors service");
+            _logger.LogError(ex, "Sensor refresh failed.");
         }
     }
 
@@ -64,40 +90,72 @@ public class SensorsService : ISensorsService
         try
         {
             var data = await _sensorsController.GetDataAsync().ConfigureAwait(false);
-            
+
             if (data.CPU.Utilization >= 0)
-            {
-                CpuUsage = data.CPU.Utilization;
-                CpuUsageChanged?.Invoke(CpuUsage);
-            }
-            
+                await PublishAsync(() =>
+                {
+                    CpuUsage = data.CPU.Utilization;
+                    CpuUsageChanged?.Invoke(CpuUsage);
+                }).ConfigureAwait(false);
+
             if (data.GPU.Utilization >= 0)
-            {
-                GpuUsage = data.GPU.Utilization;
-                GpuUsageChanged?.Invoke(GpuUsage);
-            }
-            
+                await PublishAsync(() =>
+                {
+                    GpuUsage = data.GPU.Utilization;
+                    GpuUsageChanged?.Invoke(GpuUsage);
+                }).ConfigureAwait(false);
+
             if (data.CPU.Temperature >= 0)
-            {
-                CpuTemperature = data.CPU.Temperature;
-                CpuTemperatureChanged?.Invoke(CpuTemperature);
-            }
-            
+                await PublishAsync(() =>
+                {
+                    CpuTemperature = data.CPU.Temperature;
+                    CpuTemperatureChanged?.Invoke(CpuTemperature);
+                }).ConfigureAwait(false);
+
             if (data.GPU.Temperature >= 0)
-            {
-                GpuTemperature = data.GPU.Temperature;
-                GpuTemperatureChanged?.Invoke(GpuTemperature);
-            }
-            
+                await PublishAsync(() =>
+                {
+                    GpuTemperature = data.GPU.Temperature;
+                    GpuTemperatureChanged?.Invoke(GpuTemperature);
+                }).ConfigureAwait(false);
+
             if (data.CPU.FanSpeed >= 0)
-            {
-                FanSpeedRpm = data.CPU.FanSpeed;
-                FanSpeedChanged?.Invoke(FanSpeedRpm);
-            }
+                await PublishAsync(() =>
+                {
+                    FanSpeedRpm = data.CPU.FanSpeed;
+                    FanSpeedChanged?.Invoke(FanSpeedRpm);
+                }).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to refresh sensor data");
+            _logger.LogError(ex, "Failed to read sensor data.");
         }
+    }
+
+    private Task PublishAsync(Action update)
+    {
+        if (_dispatcher.CheckAccess())
+        {
+            update();
+            return Task.CompletedTask;
+        }
+
+        return _dispatcher.InvokeAsync(update);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+
+        if (_timer is null)
+            return;
+
+        _timer.Elapsed -= OnTimerElapsed;
+        _timer.Stop();
+        _timer.Dispose();
+        _timer = null;
     }
 }

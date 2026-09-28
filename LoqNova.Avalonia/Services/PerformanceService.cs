@@ -1,142 +1,149 @@
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
-using LoqNova.Lib.Controllers;
-using LoqNova.Lib.Settings;
-using LoqNova.Lib.Utils;
+using LoqNova.Lib.Features;
 using Microsoft.Extensions.Logging;
-using LibPowerModeState = LoqNova.Lib.PowerModeState;
 
 namespace LoqNova.Avalonia.Services;
 
+/// <summary>
+/// Thin adapter over the existing <see cref="PowerModeFeature"/>. All reads and
+/// writes go through that feature, so availability checks, the AC-adapter guard
+/// and the God Mode application behave exactly as they do in WPF. No power mode
+/// state is invented here.
+/// </summary>
 public class PerformanceService : IPerformanceService
 {
-    private readonly WindowsPowerModeController _powerModeController;
-    private readonly ApplicationSettings _settings;
+    private static readonly PowerModeState[] NoStates = [];
+
+    private readonly PowerModeFeature _powerModeFeature;
+    private readonly IMainThreadDispatcher _dispatcher;
     private readonly ILogger<PerformanceService> _logger;
-    private PowerModeState _currentMode = PowerModeState.Balance;
-    private bool _isGodModeEnabled = false;
-    private double _cpuPowerLimit = 45;
-    private double _gpuPowerLimit = 80;
-    private double _cpuThermalLimit = 85;
-    private double _gpuThermalLimit = 83;
 
-    public PowerModeState CurrentMode => _currentMode;
-    public bool IsSupported => true;
-    public bool IsGodModeEnabled => _isGodModeEnabled;
+    private PowerModeState[] _availableStates = NoStates;
 
-    public double CpuPowerLimit
-    {
-        get => _cpuPowerLimit;
-        set
-        {
-            if (Math.Abs(_cpuPowerLimit - value) > 0.01)
-            {
-                _cpuPowerLimit = value;
-                CpuPowerLimitChanged?.Invoke(value);
-            }
-        }
-    }
+    public PowerModeState CurrentMode { get; private set; } = PowerModeState.Balance;
 
-    public double GpuPowerLimit
-    {
-        get => _gpuPowerLimit;
-        set
-        {
-            if (Math.Abs(_gpuPowerLimit - value) > 0.01)
-            {
-                _gpuPowerLimit = value;
-                GpuPowerLimitChanged?.Invoke(value);
-            }
-        }
-    }
+    public bool IsSupported { get; private set; }
 
-    public double CpuThermalLimit
-    {
-        get => _cpuThermalLimit;
-        set => _cpuThermalLimit = value;
-    }
+    public bool IsGodModeSupported => _availableStates.Contains(PowerModeState.GodMode);
 
-    public double GpuThermalLimit
-    {
-        get => _gpuThermalLimit;
-        set => _gpuThermalLimit = value;
-    }
+    public bool IsGodModeEnabled => IsSupported && CurrentMode == PowerModeState.GodMode;
+
+    public PowerModeState[] AvailableStates => (PowerModeState[])_availableStates.Clone();
 
     public event Action<PowerModeState>? ModeChanged;
-    public event Action<double>? CpuPowerLimitChanged;
-    public event Action<double>? GpuPowerLimitChanged;
 
-    public PerformanceService(WindowsPowerModeController powerModeController, ApplicationSettings settings, ILogger<PerformanceService> logger)
+    public PerformanceService(
+        PowerModeFeature powerModeFeature,
+        IMainThreadDispatcher dispatcher,
+        ILogger<PerformanceService> logger)
     {
-        _powerModeController = powerModeController;
-        _settings = settings;
+        _powerModeFeature = powerModeFeature;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
     public async Task InitializeAsync()
     {
-        try
+        IsSupported = await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false);
+
+        if (!IsSupported)
         {
-            _currentMode = PowerModeState.Balance;
-            _isGodModeEnabled = false;
-            _logger.LogInformation("Performance service initialized. Current mode: {Mode}, GodMode: {GodMode}", _currentMode, _isGodModeEnabled);
+            _availableStates = NoStates;
+            _logger.LogInformation("Power mode feature is not supported on this machine.");
+            return;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to initialize performance service");
-            _currentMode = PowerModeState.Balance;
-        }
+
+        _availableStates = await _powerModeFeature.GetAllStatesAsync().ConfigureAwait(false);
+
+        _logger.LogInformation(
+            "Power mode feature initialized. Available: {Modes}",
+            string.Join(", ", _availableStates));
+
+        await RefreshAsync().ConfigureAwait(false);
+    }
+
+    public async Task RefreshAsync()
+    {
+        if (!IsSupported)
+            return;
+
+        var mode = await _powerModeFeature.GetStateAsync().ConfigureAwait(false);
+        await PublishAsync(mode).ConfigureAwait(false);
     }
 
     public async Task SetModeAsync(PowerModeState mode)
     {
+        if (!IsSupported)
+        {
+            _logger.LogWarning("Ignoring request for {Mode}: power mode is not supported.", mode);
+            return;
+        }
+
+        if (_availableStates.Length > 0 && !_availableStates.Contains(mode))
+        {
+            _logger.LogWarning("Ignoring request for {Mode}: not reported as available.", mode);
+            return;
+        }
+
         try
         {
-            if (_currentMode != mode)
-            {
-                _currentMode = mode;
-                
-                await _powerModeController.SetPowerModeAsync(MapToLibPowerMode(mode)).ConfigureAwait(false);
-                ModeChanged?.Invoke(mode);
-                
-                _logger.LogInformation("Power mode changed to {Mode}", mode);
-            }
+            await _powerModeFeature.SetStateAsync(mode).ConfigureAwait(false);
+
+            if (mode == PowerModeState.GodMode)
+                await _powerModeFeature.EnsureGodModeStateIsAppliedAsync().ConfigureAwait(false);
+
+            // Read back rather than assuming the write landed.
+            var applied = await _powerModeFeature.GetStateAsync().ConfigureAwait(false);
+            await PublishAsync(applied).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to set power mode to {Mode}", mode);
+            _logger.LogError(ex, "Failed to set power mode to {Mode}.", mode);
+
+            // Surface the real machine state again so the UI cannot drift.
+            await RefreshAsync().ConfigureAwait(false);
         }
     }
 
     public async Task ApplyGodModeSettingsAsync()
     {
+        if (!IsGodModeEnabled)
+        {
+            _logger.LogInformation("Machine is not in God Mode; nothing to apply.");
+            return;
+        }
+
         try
         {
-            _isGodModeEnabled = !_isGodModeEnabled;
-            _logger.LogInformation("GodMode {Status}", _isGodModeEnabled ? "enabled" : "disabled");
+            await _powerModeFeature.EnsureGodModeStateIsAppliedAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to toggle GodMode");
+            _logger.LogError(ex, "Failed to apply God Mode settings.");
         }
     }
 
-    private static PowerModeState MapFromLibPowerMode(LibPowerModeState mode) => mode switch
+    private async Task PublishAsync(PowerModeState mode)
     {
-        LibPowerModeState.Quiet => PowerModeState.Quiet,
-        LibPowerModeState.Balance => PowerModeState.Balance,
-        LibPowerModeState.Performance => PowerModeState.Performance,
-        LibPowerModeState.GodMode => PowerModeState.GodMode,
-        _ => PowerModeState.Balance
-    };
+        if (_dispatcher.CheckAccess())
+        {
+            SetMode(mode);
+            return;
+        }
 
-    private static LibPowerModeState MapToLibPowerMode(PowerModeState mode) => mode switch
+        await _dispatcher.InvokeAsync(() => SetMode(mode)).ConfigureAwait(false);
+    }
+
+    private void SetMode(PowerModeState mode)
     {
-        PowerModeState.Quiet => LibPowerModeState.Quiet,
-        PowerModeState.Balance => LibPowerModeState.Balance,
-        PowerModeState.Performance => LibPowerModeState.Performance,
-        PowerModeState.GodMode => LibPowerModeState.GodMode,
-        _ => LibPowerModeState.Balance
-    };
+        if (CurrentMode == mode)
+            return;
+
+        CurrentMode = mode;
+        _logger.LogInformation("Power mode is now {Mode}.", mode);
+        ModeChanged?.Invoke(mode);
+    }
 }
