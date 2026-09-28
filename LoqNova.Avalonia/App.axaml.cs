@@ -28,6 +28,11 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        // TEMP-BISECT-SLICEA
+        const string DiagPath = @"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag.txt";
+        System.IO.File.WriteAllText(DiagPath, "A: entered OnFrameworkInitializationCompleted\n");
+        // END-TEMP-BISECT-SLICEA
+
         // LoqNova.Lib keeps its own Autofac container and is the single source of
         // truth for controllers, features and settings. WPF seeds it with the
         // library modules plus its own front-end module, so the same set is used
@@ -39,6 +44,10 @@ public partial class App : Application
             new LoqNova.Lib.IoCModule(),
             new LoqNova.Lib.Macro.IoCModule(),
             new IoCModule());
+
+        // TEMP-BISECT-SLICEA
+        System.IO.File.AppendAllText(DiagPath, "B: IoCContainer.Initialize completed\n");
+        // END-TEMP-BISECT-SLICEA
 
         // Build DI container
         var builder = new ContainerBuilder();
