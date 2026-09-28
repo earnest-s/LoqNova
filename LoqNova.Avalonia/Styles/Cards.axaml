@@ -92,7 +92,7 @@
         <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="20" />
+        <Setter Property="Padding" Value="16" />
     </Style>
 
     <Style Selector="Border.PowerAccent">
