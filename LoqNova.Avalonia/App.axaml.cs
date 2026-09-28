@@ -156,41 +156,49 @@ public partial class App : Application
         try
         {
             var diagPath = @"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag.txt";
+            System.IO.File.WriteAllText(diagPath, $"machine={Environment.MachineName} utc={DateTime.UtcNow:O}\n");
+            void Say(string s) => System.IO.File.AppendAllText(diagPath, s + "\n");
+
+            Say("resolving services...");
             var perf = Container.Resolve<IPerformanceService>();
             var sensors = Container.Resolve<ISensorsService>();
             var thermal = Container.Resolve<IThermalService>();
-            var lines = new System.Collections.Generic.List<string>
-            {
-                $"machine={Environment.MachineName}",
-                $"utc={DateTime.UtcNow:O}"
-            };
+            Say("resolved all three");
+
+            Say("perf.InitializeAsync()...");
             try
             {
                 await perf.InitializeAsync();
-                lines.Add($"PERF supported={perf.IsSupported} godModeSupported={perf.IsGodModeSupported} godModeEnabled={perf.IsGodModeEnabled}");
-                lines.Add($"PERF available=[{string.Join(",", perf.AvailableStates)}]");
-                lines.Add($"PERF current={perf.CurrentMode}");
+                Say($"PERF supported={perf.IsSupported} godModeSupported={perf.IsGodModeSupported} godModeEnabled={perf.IsGodModeEnabled}");
+                Say($"PERF available=[{string.Join(",", perf.AvailableStates)}]");
+                Say($"PERF current={perf.CurrentMode}");
             }
-            catch (Exception ex) { lines.Add($"PERF THREW {ex.GetType().Name}: {ex.Message}"); }
+            catch (Exception ex) { Say($"PERF THREW {ex.GetType().Name}: {ex.Message}"); }
+
+            Say("sensors.InitializeAsync()...");
             try
             {
                 await sensors.InitializeAsync();
-                lines.Add($"SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} gpuTemp={sensors.GpuTemperature} fan={sensors.FanSpeedRpm}");
+                Say($"SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} gpuTemp={sensors.GpuTemperature} fan={sensors.FanSpeedRpm}");
             }
-            catch (Exception ex) { lines.Add($"SENSORS THREW {ex.GetType().Name}: {ex.Message}"); }
+            catch (Exception ex) { Say($"SENSORS THREW {ex.GetType().Name}: {ex.Message}"); }
+
+            Say("thermal.InitializeAsync()...");
             try
             {
                 await thermal.InitializeAsync();
-                lines.Add($"THERMAL cpuTemp={thermal.CpuTemperature} gpuTemp={thermal.GpuTemperature} fan={thermal.FanSpeedRpm} fanPct={thermal.FanSpeedPercent} fanCtl={thermal.IsFanControlSupported}");
+                Say($"THERMAL cpuTemp={thermal.CpuTemperature} gpuTemp={thermal.GpuTemperature} fan={thermal.FanSpeedRpm} fanPct={thermal.FanSpeedPercent}");
             }
-            catch (Exception ex) { lines.Add($"THERMAL THREW {ex.GetType().Name}: {ex.Message}"); }
-            await Task.Delay(4000);
-            lines.Add($"AFTER-4s SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} fan={sensors.FanSpeedRpm}");
-            System.IO.File.WriteAllLines(diagPath, lines);
+            catch (Exception ex) { Say($"THERMAL THREW {ex.GetType().Name}: {ex.Message}"); }
+
+            await Task.Delay(6000);
+            Say($"AFTER-6s SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} fan={sensors.FanSpeedRpm}");
+            Say($"AFTER-6s THERMAL cpuTemp={thermal.CpuTemperature} fan={thermal.FanSpeedRpm} fanPct={thermal.FanSpeedPercent}");
+            Say("DONE");
         }
         catch (Exception ex)
         {
-            System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag-fatal.txt", ex.ToString());
+            System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag.txt", "FATAL " + ex.ToString());
         }
         // END-TEMP-DIAGNOSTIC-SLICEA
         
