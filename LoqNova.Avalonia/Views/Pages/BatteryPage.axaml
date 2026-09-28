@@ -52,7 +52,7 @@
                     <StackPanel Spacing="4">
                         <TextBlock Text="Temperature" Classes="CardTitle" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
-                            <TextBlock Text="{Binding TemperatureC, StringFormat='{}{0:F1}°C'}" Classes="CardValue" />
+                              <TextBlock Text="{Binding TemperatureText}" Classes="CardValue" />
                             <ToggleSwitch IsChecked="{Binding UseFahrenheit}" OnContent="°F" OffContent="°C" />
                         </StackPanel>
                     </StackPanel>
@@ -109,7 +109,6 @@
                         <TextBlock Text="On Battery Since" Classes="CardTitle" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                             <TextBlock Text="{Binding OnBatteryDuration, StringFormat='{}{0:hh\\:mm\\:ss}'}" Classes="CardValue" />
-                            <ToggleSwitch IsChecked="{Binding UseFahrenheit}" IsVisible="False" /> <!-- Placeholder for alignment -->
                         </StackPanel>
                     </StackPanel>
                 </Border>

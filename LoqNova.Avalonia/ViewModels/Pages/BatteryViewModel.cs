@@ -161,7 +161,7 @@ public partial class BatteryViewModel : ViewModelBase
     {
         get
         {
-            var value = UseFahrenheit ? _temperatureF : _temperatureC;
+            var value = UseFahrenheit ? TemperatureF : TemperatureC;
             return value < 0 ? "--" : $"{value:F1} °{(UseFahrenheit ? "F" : "C")}";
         }
     }
