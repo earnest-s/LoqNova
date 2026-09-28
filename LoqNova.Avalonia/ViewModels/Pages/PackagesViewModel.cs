@@ -163,7 +163,7 @@ public partial class PackagesViewModel : ViewModelBase
         {
             Trace("Failed to retrieve machine information.", ex);
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Error, "Packages", "Could not read machine information.")).ConfigureAwait(true);
+                NotificationType.Error, T("PackagesPage_Title"), T("PackagesPage_Error_CheckInternet_Message"))).ConfigureAwait(true);
         }
 
         OperatingSystem = OSExtensions.GetCurrent();
@@ -203,8 +203,8 @@ public partial class PackagesViewModel : ViewModelBase
         {
             await _notificationService.ShowAsync(new NotificationMessage(
                 NotificationType.Error,
-                "Download failed",
-                "Machine type must be exactly 4 characters, for example 82JQ.")).ConfigureAwait(true);
+                T("PackagesPage_DownloadFailed_Title"),
+                T("PackagesPage_DownloadFailed_Message"))).ConfigureAwait(true);
 
             IsLoading = false;
             return;
@@ -261,8 +261,8 @@ public partial class PackagesViewModel : ViewModelBase
 
             await _notificationService.ShowAsync(new NotificationMessage(
                 NotificationType.Info,
-                "Update catalog not found",
-                "No update catalog exists for this machine type and operating system.")).ConfigureAwait(true);
+                T("PackagesPage_UpdateCatalogNotFound_Title"),
+                T("PackagesPage_UpdateCatalogNotFound_Message"))).ConfigureAwait(true);
 
             errorOccurred = true;
         }
@@ -274,14 +274,12 @@ public partial class PackagesViewModel : ViewModelBase
         {
             Trace("Error occurred when downloading packages.", ex);
 
-            var message = ex.StatusCode switch
-            {
-                null => "Check your internet connection and try again.",
-                _ => $"The package service returned {(int)ex.StatusCode} ({ex.StatusCode})."
-            };
+            var message = ex.StatusCode is null
+                ? T("PackagesPage_Error_CheckInternet_Message")
+                : $"{T("PackagesPage_Error_Title")} ({(int)ex.StatusCode} {ex.StatusCode})";
 
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Error, "Download error", message)).ConfigureAwait(true);
+                NotificationType.Error, T("PackagesPage_Error_Title"), message)).ConfigureAwait(true);
 
             errorOccurred = true;
         }
@@ -290,7 +288,7 @@ public partial class PackagesViewModel : ViewModelBase
             Trace("Error occurred when downloading packages.", ex);
 
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Error, "Download error", ex.Message)).ConfigureAwait(true);
+                NotificationType.Error, T("PackagesPage_Error_Title"), ex.Message)).ConfigureAwait(true);
 
             errorOccurred = true;
         }
@@ -568,20 +566,26 @@ public partial class PackageViewModel : ViewModelBase
 
     public string ReleaseDateText => Package.ReleaseDate.ToString("d");
 
-    public string DetailText => $"Version {Package.Version}   |   {Package.FileSize}   |   {Package.FileName}";
+    public string DetailText => $"{LocalizationHelper.GetString("PackageControl_Version")} {Package.Version}   |   {Package.FileSize}   |   {Package.FileName}";
 
     public string RebootText => Package.Reboot switch
     {
-        RebootType.Delayed => "Reboot recommended",
-        RebootType.Requested => "Reboot recommended",
-        RebootType.Forced => "Reboot required",
-        RebootType.ForcedPowerOff => "Shutdown required",
+        RebootType.Delayed or RebootType.Requested => LocalizationHelper.GetString("PackageControl_RebootRecommended"),
+        RebootType.Forced => LocalizationHelper.GetString("PackageControl_RebootRequired"),
+        RebootType.ForcedPowerOff => LocalizationHelper.GetString("PackageControl_ShutdownRequired"),
         _ => string.Empty
     };
 
     public bool HasRebootWarning =>
         Package.Reboot is RebootType.Delayed or RebootType.Requested
             or RebootType.Forced or RebootType.ForcedPowerOff;
+
+    public string DownloadLabel => LocalizationHelper.GetString("PackageControl_Download");
+    public string CancelLabel => LocalizationHelper.GetString("Cancel");
+    public string ReadmeLabel => LocalizationHelper.GetString("PackageControl_OpenReadme");
+    public string OldPackageWarning => LocalizationHelper.GetString("PackageControl_OldPackageWarning");
+    public string IsUpdateLabel => LocalizationHelper.GetString("PackageControl_IsUpdateInfo");
+    public string HideLabel => LocalizationHelper.GetString("Hide");
 
     [ObservableProperty]
     private bool _isDownloading;
@@ -657,8 +661,8 @@ public partial class PackageViewModel : ViewModelBase
 
             await _notificationService.ShowAsync(new NotificationMessage(
                 NotificationType.Error,
-                "Download failed",
-                $"The package file could not be found on the server. ({FileName})")).ConfigureAwait(true);
+                T("PackageControl_Http404Error_Title"),
+                T("PackageControl_Http404Error_Message"))).ConfigureAwait(true);
         }
         catch (HttpRequestException ex)
         {
@@ -666,15 +670,15 @@ public partial class PackageViewModel : ViewModelBase
 
             await _notificationService.ShowAsync(new NotificationMessage(
                 NotificationType.Error,
-                "Download failed",
-                $"A network error occurred while downloading {FileName}.")).ConfigureAwait(true);
+                T("PackageControl_HttpGeneralError_Title"),
+                T("PackageControl_HttpGeneralError_Message"))).ConfigureAwait(true);
         }
         catch (Exception ex)
         {
             PackagesViewModelTrace("Error occurred when downloading package file.", ex);
 
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Error, "Download failed", ex.Message)).ConfigureAwait(true);
+                NotificationType.Error, T("PackageControl_GeneralError_Title"), ex.Message)).ConfigureAwait(true);
         }
         finally
         {
@@ -690,7 +694,7 @@ public partial class PackageViewModel : ViewModelBase
         if (result)
         {
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Success, "Download complete", FileName)).ConfigureAwait(true);
+                NotificationType.Success, T("PackageControl_DownloadComplete_Title"), string.Format(T("PackageControl_DownloadComplete_Message"), FileName))).ConfigureAwait(true);
         }
     }
 
