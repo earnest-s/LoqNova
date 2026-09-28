@@ -131,6 +131,9 @@ public partial class PackagesViewModel : ViewModelBase
 
     public bool IsCancelVisible => IsLoading;
 
+    /// <summary>Keeps the Cancel button in sync with the loading state.</summary>
+    partial void OnIsLoadingChanged(bool value) => OnPropertyChanged(nameof(IsCancelVisible));
+
     public bool HasHiddenPackages => _packageDownloaderSettings.Store.HiddenPackages.Count != 0;
 
     /// <summary>Drives the "No matching downloads" empty state.</summary>
