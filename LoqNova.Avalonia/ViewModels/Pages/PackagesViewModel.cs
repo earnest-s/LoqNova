@@ -321,6 +321,42 @@ public partial class PackagesViewModel : ViewModelBase
     /// <summary>Mirrors WPF <c>FilterTextBox_TextChanged</c> including the 500ms debounce.</summary>
     partial void OnFilterTextChanged(string value) => ScheduleFilterRefresh();
 
+    // The two source options are mutually exclusive, as the WPF radio group is.
+    partial void OnIsVantageSourceChanged(bool value)
+    {
+        if (value)
+            IsPCSupportSource = false;
+
+        OnSourceChanged();
+    }
+
+    partial void OnIsPCSupportSourceChanged(bool value)
+    {
+        if (value)
+            IsVantageSource = false;
+
+        OnSourceChanged();
+    }
+
+    private void OnSourceChanged()
+    {
+        OnPropertyChanged(nameof(IsOnlyShowUpdatesVisible));
+
+        // WPF hides and clears "only show updates" for the non-Vantage source.
+        if (!IsVantageSource)
+        {
+            OnlyShowUpdates = false;
+            _packageDownloaderSettings.Store.OnlyShowUpdates = false;
+            _packageDownloaderSettings.SynchronizeStore();
+        }
+        else
+        {
+            OnlyShowUpdates = _packageDownloaderSettings.Store.OnlyShowUpdates;
+        }
+
+        Reload();
+    }
+
     private void ScheduleFilterRefresh()
     {
         if (_packages is null)
