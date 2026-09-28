@@ -85,6 +85,39 @@ public partial class DashboardViewModel : ViewModelBase
         InitializeWidgets();
         SubscribeToEvents();
         SyncFromService();
+        _ = InitializeServicesAsync();
+    }
+
+    /// <summary>
+    /// Starts the real power mode and sensor backends. Failures are logged and
+    /// leave the page in its "unknown" state rather than showing placeholder data.
+    /// </summary>
+    private async Task InitializeServicesAsync()
+    {
+        try
+        {
+            await _performanceService.InitializeAsync();
+
+            PowerModeItems.Clear();
+            foreach (var state in _performanceService.AvailableStates)
+                PowerModeItems.Add(state);
+
+            OnPropertyChanged(nameof(IsGodModeSupported));
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Power mode initialization failed: {ex}");
+        }
+
+        try
+        {
+            await _sensorsService.InitializeAsync();
+            await _thermalService.InitializeAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Sensor initialization failed: {ex}");
+        }
     }
     
     private void InitializeWidgets()
@@ -338,11 +371,10 @@ public partial class DashboardViewModel : ViewModelBase
         
         _thermalService.CpuTemperatureChanged += temp => CpuTemperature = temp;
         _thermalService.GpuTemperatureChanged += temp => GpuTemperature = temp;
-        _thermalService.FanSpeedChanged += rpm => 
-        {
-            FanSpeedRpm = rpm;
-            FanSpeedPercent = (int)(rpm / 6000.0 * 100);
-        };
+        _thermalService.FanSpeedChanged += rpm => FanSpeedRpm = rpm;
+
+        _sensorsService.CpuUsageChanged += usage => CpuUsage = usage;
+        _sensorsService.GpuUsageChanged += usage => GpuUsage = usage;
     }
 
     /// <summary>Adopts whatever the performance service already reports.</summary>
