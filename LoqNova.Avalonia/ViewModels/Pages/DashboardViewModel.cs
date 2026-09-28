@@ -120,245 +120,99 @@ public partial class DashboardViewModel : ViewModelBase
         }
     }
     
+    /// <summary>
+    /// Builds the dashboard's control widgets from live backend state only.
+    /// Sensor channels are presented by SensorsPanel, so they are not repeated
+    /// here. A widget is only created when a real adapter for that feature is
+    /// registered; unsupported features are omitted rather than shown with
+    /// placeholder values, mirroring WPF's AbstractRefreshingControl, which
+    /// collapses itself when the backend reports NotSupportedException.
+    /// </summary>
     private void InitializeWidgets()
     {
-        // Add sensor widgets
-        Widgets.Add(new DashboardWidgetViewModel
+        if (_performanceService.IsSupported)
         {
-            Title = "CPU",
-            Value = "12%",
-            Unit = "%",
-            Icon = "Cpu64",
-            Type = WidgetType.Sensor,
-            MinValue = 0,
-            MaxValue = 100,
-            CurrentValue = 12,
-            Color = "#0078D4"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "GPU",
-            Value = "3%",
-            Unit = "%",
-            Icon = "Gpu64",
-            Type = WidgetType.Sensor,
-            MinValue = 0,
-            MaxValue = 100,
-            CurrentValue = 3,
-            Color = "#00B294"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "CPU Temp",
-            Value = "54°C",
-            Unit = "°C",
-            Icon = "Thermometer64",
-            Type = WidgetType.Sensor,
-            MinValue = 30,
-            MaxValue = 100,
-            CurrentValue = 54,
-            Color = "#E81123"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "GPU Temp",
-            Value = "49°C",
-            Unit = "°C",
-            Icon = "Thermometer64",
-            Type = WidgetType.Sensor,
-            MinValue = 30,
-            MaxValue = 95,
-            CurrentValue = 49,
-            Color = "#E81123"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Fan Speed",
-            Value = "2400 RPM",
-            Unit = "RPM",
-            Icon = "Fan64",
-            Type = WidgetType.Sensor,
-            MinValue = 0,
-            MaxValue = 6000,
-            CurrentValue = 2400,
-            Color = "#744DA9"
-        });
-        
-        // Add feature control widgets
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Power Mode",            Value = "Balance",
-            Icon = "Bolt64",
-            Type = WidgetType.ComboBox,
-            Items = new ObservableCollection<string> { "Quiet", "Balance", "Performance", "GodMode" },
-            SelectedItem = "Balance",
-            Color = "#FFFFFF"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Battery",
-            Value = "Normal",
-            Icon = "Battery64",
-            Type = WidgetType.ComboBox,
-            Items = new ObservableCollection<string> { "Normal", "Rapid Charge", "Conservation" },
-            SelectedItem = "Normal",
-            Color = "#00B294"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Fn Lock",
-            Value = "Off",
-            Icon = "Key64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#744DA9"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Win Key",
-            Value = "Off",
-            Icon = "Window64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#744DA9"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Microphone",
-            Value = "On",
-            Icon = "Mic64",
-            Type = WidgetType.Toggle,
-            IsOn = true,
-            Color = "#00B294"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Touchpad Lock",
-            Value = "Off",
-            Icon = "Touchpad64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#744DA9"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "HDR",
-            Value = "Off",
-            Icon = "Display64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#E81123",
-            IsBlocked = true
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Hybrid Mode",
-            Value = "Off",
-            Icon = "Gpu64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#744DA9"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Instant Boot",
-            Value = "On",
-            Icon = "Flash64",
-            Type = WidgetType.ComboBox,
-            Items = new ObservableCollection<string> { "Disabled", "Enabled", "Enabled (Fast)" },
-            SelectedItem = "Enabled",
-            Color = "#744DA9"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Panel Logo",
-            Value = "Off",
-            Icon = "Badge64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#744DA9"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Ports Backlight",
-            Value = "Off",
-            Icon = "UsbC64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#744DA9"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "White KB",
-            Value = "Off",
-            Icon = "Keyboard64",
-            Type = WidgetType.ComboBox,
-            Items = new ObservableCollection<string> { "Off", "Level 1", "Level 2" },
-            SelectedItem = "Off",
-            Color = "#FFFFFF"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "OverDrive",
-            Value = "Off",
-            Icon = "Rocket64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#E81123"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "dGPU",
-            Value = "Active",
-            Icon = "Gpu64",
-            Type = WidgetType.Custom,
-            Color = "#00B294"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "GPU Overclock",
-            Value = "Off",
-            Icon = "SpeedHigh64",
-            Type = WidgetType.Toggle,
-            IsOn = false,
-            Color = "#E81123"
-        });
-        
-        Widgets.Add(new DashboardWidgetViewModel
-        {
-            Title = "Turn Off Monitors",
-            Value = "Click",
-            Icon = "DisplayOff64",
-            Type = WidgetType.Button,
-            Color = "#E81123"
-        });
+            var powerMode = new DashboardWidgetViewModel
+            {
+                Title = "Power Mode",
+                Icon = "Bolt64",
+                Type = WidgetType.ComboBox,
+                ItemsSource = PowerModeItems,
+                SelectedItem = CurrentPowerMode,
+                IsAvailable = true
+            };
 
-        // Sensor channels are rendered by SensorsPanel, so only the control
-        // widgets belong on the dashboard's own widget grid.
-        foreach (var widget in Widgets.Where(w => w.Type != WidgetType.Sensor))
+            powerMode.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(DashboardWidgetViewModel.SelectedItem) &&
+                    powerMode.SelectedItem is PowerModeState mode &&
+                    !_suppressModeWrite)
+                {
+                    _ = _performanceService.SetModeAsync(mode);
+                }
+            };
+
+            ControlWidgets.Add(powerMode);
+        }
+
+        if (_batteryService.IsSupported)
         {
-            ControlWidgets.Add(widget);
+            var battery = new DashboardWidgetViewModel
+            {
+                Title = "Battery Charge Mode",
+                Icon = "Battery64",
+                Type = WidgetType.ComboBox,
+                ItemsSource = BatteryModes,
+                SelectedItem = _batteryService.CurrentMode,
+                IsAvailable = true
+            };
+
+            battery.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(DashboardWidgetViewModel.SelectedItem) &&
+                    battery.SelectedItem is BatteryState mode)
+                {
+                    _ = _batteryService.SetModeAsync(mode);
+                }
+            };
+
+            _batteryService.ModeChanged += mode =>
+            {
+                battery.SelectedItem = mode;
+                battery.Status = null;
+            };
+
+            ControlWidgets.Add(battery);
+
+            var nightCharge = new DashboardWidgetViewModel
+            {
+                Title = "Night Charge",
+                Icon = "Moon64",
+                Type = WidgetType.ComboBox,
+                ItemsSource = NightChargeModes,
+                SelectedItem = _batteryService.NightChargeMode,
+                IsAvailable = true
+            };
+
+            nightCharge.PropertyChanged += (_, e) =>
+            {
+                if (e.PropertyName == nameof(DashboardWidgetViewModel.SelectedItem) &&
+                    nightCharge.SelectedItem is BatteryNightChargeState state)
+                {
+                    _ = _batteryService.SetNightChargeAsync(state);
+                }
+            };
+
+            _batteryService.NightChargeChanged += state =>
+            {
+                nightCharge.SelectedItem = state;
+                nightCharge.Status = null;
+            };
+
+            ControlWidgets.Add(nightCharge);
         }
     }
-    
+
     private void SubscribeToEvents()
     {
         _performanceService.ModeChanged += mode => 
