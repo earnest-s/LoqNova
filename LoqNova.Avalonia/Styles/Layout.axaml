@@ -154,6 +154,14 @@
         <Setter Property="MinWidth" Value="36" />
     </Style>
 
+    <!-- The Fluent theme fades the Track (and therefore the thumb) to zero
+         opacity at rest. The scrollbar still occupied its 12px, so a
+         scrollable page looked permanently clipped. -->
+    <Style Selector="ScrollBar /template/ Track#PART_Track">
+        <Setter Property="Opacity" Value="1" />
+    </Style>
+
+
     <Style Selector="ScrollBar:pointerover">
         <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
     </Style>
