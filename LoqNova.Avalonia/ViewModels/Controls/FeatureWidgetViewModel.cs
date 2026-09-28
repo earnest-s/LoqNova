@@ -42,6 +42,54 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     /// <summary>True for a multi-state feature rendered as a combo box.</summary>
     public bool IsChoice { get; protected init; }
 
+    /// <summary>True for a widget that performs an action rather than holding state.</summary>
+    public bool IsAction { get; protected init; }
+
+    /// <summary>True for a widget that presents a read-only status string.</summary>
+    public bool IsStatus { get; protected init; }
+
+    /// <summary>State of a two-state feature. Shared by toggle features and the GPU overclock toggle.</summary>
+    [ObservableProperty]
+    private bool _isOn;
+
+    /// <summary>Invoked when the shared two-state <c>IsOn</c> property changes.</summary>
+    protected virtual void OnIsOnChangedCore(bool value)
+    {
+    }
+
+    partial void OnIsOnChanged(bool value) => OnIsOnChangedCore(value);
+
+    /// <summary>Read-only status text, shown for widgets that report rather than set state.</summary>
+    [ObservableProperty]
+    private string? _statusText;
+
+    /// <summary>Primary action command (for example turning the monitors off, or deactivating the dGPU).</summary>
+    public CommunityToolkit.Mvvm.Input.AsyncRelayCommand? PrimaryActionCommand { get; set; }
+
+    /// <summary>Caption for <see cref="PrimaryActionCommand"/>.</summary>
+    public string? PrimaryActionText { get; set; }
+
+    /// <summary>Secondary action command, matching WPF's context-menu actions.</summary>
+    public CommunityToolkit.Mvvm.Input.AsyncRelayCommand? SecondaryActionCommand { get; set; }
+
+    /// <summary>Caption for <see cref="SecondaryActionCommand"/>.</summary>
+    public string? SecondaryActionText { get; set; }
+
+    /// <summary>True when a primary action button should be shown.</summary>
+    public bool HasPrimaryAction => PrimaryActionCommand is not null;
+
+    /// <summary>True when a secondary action button should be shown.</summary>
+    public bool HasSecondaryAction => SecondaryActionCommand is not null;
+
+    /// <summary>
+    /// Subscribes to backend signals in addition to <c>FeatureStateMessage</c>. WPF
+    /// controls do this for features whose state also changes through a listener
+    /// (display configuration, native display device arrival).
+    /// </summary>
+    protected virtual void SubscribeExtraSignals()
+    {
+    }
+
     /// <summary>False when the backend reports the feature as unsupported. Hidden when false.</summary>
     [ObservableProperty]
     private bool _isAvailable;
@@ -85,6 +133,8 @@ public abstract partial class FeatureWidgetViewModel<TState> : FeatureWidgetView
         _feature = LoqNova.Lib.IoCContainer.Resolve<IFeature<TState>>();
 
         MessagingCenter.Subscribe<FeatureStateMessage<TState>>(Subscriber, OnFeatureStateMessage);
+
+        await Dispatcher.InvokeAsync(SubscribeExtraSignals).ConfigureAwait(false);
 
         await RefreshAsync().ConfigureAwait(false);
     }
@@ -185,10 +235,7 @@ public sealed partial class FeatureToggleWidgetViewModel<TState> : FeatureWidget
         _offState = offState;
     }
 
-    [ObservableProperty]
-    private bool _isOn;
-
-    /// <summary>Every state the machine reports, used to label the control.</summary>
+    /// <summary>Human-readable form of the state the machine reported.</summary>
     public string StateLabel { get; private set; } = string.Empty;
 
     protected override void ApplyState(TState state)
@@ -197,7 +244,8 @@ public sealed partial class FeatureToggleWidgetViewModel<TState> : FeatureWidget
         StateLabel = state.ToString()!;
     }
 
-    partial void OnIsOnChanged(bool value)
+    /// <summary>Writes the requested state through the library feature.</summary>
+    protected override void OnIsOnChangedCore(bool value)
     {
         if (!IsAvailable || IsBusy)
             return;
@@ -211,7 +259,7 @@ public sealed partial class FeatureToggleWidgetViewModel<TState> : FeatureWidget
 /// <c>AbstractComboBoxFeatureCardControl</c>. Options come from the machine via
 /// <see cref="IFeature{T}.GetAllStatesAsync"/>.
 /// </summary>
-public sealed partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewModel<TState>
+public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewModel<TState>
     where TState : struct
 {
     public FeatureChoiceWidgetViewModel(

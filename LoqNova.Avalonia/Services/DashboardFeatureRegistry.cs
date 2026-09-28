@@ -31,7 +31,12 @@ public enum DashboardFeature
     Microphone,
     FlipToStart,
     DpiScale,
-    WhiteKeyboardBacklight
+    WhiteKeyboardBacklight,
+    Resolution,
+    RefreshRate,
+    DiscreteGpu,
+    OverclockDiscreteGpu,
+    TurnOffMonitors
 }
 
 public static class DashboardFeatureRegistry
@@ -105,6 +110,16 @@ public static class DashboardFeatureRegistry
             DashboardFeature.WhiteKeyboardBacklight => new FeatureChoiceWidgetViewModel<WhiteKeyboardBacklightState>(
                 dispatcher, "White Keyboard Backlight", "Keyboard64"),
 
+            DashboardFeature.Resolution => new ResolutionWidgetViewModel(dispatcher),
+
+            DashboardFeature.RefreshRate => new RefreshRateWidgetViewModel(dispatcher),
+
+            DashboardFeature.DiscreteGpu => new DiscreteGpuWidgetViewModel(dispatcher),
+
+            DashboardFeature.OverclockDiscreteGpu => new OverclockGpuWidgetViewModel(dispatcher),
+
+            DashboardFeature.TurnOffMonitors => new TurnOffMonitorsWidgetViewModel(dispatcher),
+
             _ => throw new ArgumentOutOfRangeException(nameof(feature), feature, null)
         };
     }
@@ -121,10 +136,15 @@ public static class DashboardFeatureRegistry
         DashboardFeature.FlipToStart,
         // Graphics group
         DashboardFeature.HybridMode,
+        DashboardFeature.DiscreteGpu,
+        DashboardFeature.OverclockDiscreteGpu,
         // Display group
+        DashboardFeature.Resolution,
+        DashboardFeature.RefreshRate,
+        DashboardFeature.DpiScale,
         DashboardFeature.Hdr,
         DashboardFeature.OverDrive,
-        DashboardFeature.DpiScale,
+        DashboardFeature.TurnOffMonitors,
         // Other group
         DashboardFeature.Microphone,
         DashboardFeature.WhiteKeyboardBacklight,

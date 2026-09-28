@@ -95,48 +95,69 @@
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vmControls:FeatureWidgetViewModel">
                         <Border Classes="WidgetCard" Margin="0,0,12,12">
-                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
-                                <PathIcon Grid.Row="0" Grid.Column="0"
-                                          Classes="SensorIcon"
-                                          VerticalAlignment="Center"
-                                          Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
-                                          Foreground="{StaticResource TextMutedBrush}" />
+                            <StackPanel Spacing="6">
+                                <Grid ColumnDefinitions="Auto,*">
+                                    <PathIcon Grid.Column="0"
+                                              Classes="SensorIcon"
+                                              VerticalAlignment="Center"
+                                              Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
+                                              Foreground="{StaticResource TextMutedBrush}" />
 
-                                <TextBlock Grid.Row="0" Grid.Column="1"
-                                           Text="{Binding Title}"
-                                           Classes="WidgetTitle"
-                                           Margin="10,0,0,0"
-                                           VerticalAlignment="Center" />
+                                    <TextBlock Grid.Column="1"
+                                               Text="{Binding Title}"
+                                               Classes="WidgetTitle"
+                                               Margin="10,0,0,0"
+                                               VerticalAlignment="Center" />
+                                </Grid>
 
-                                <!-- Two-state feature: writes through the library feature. -->
-                                <ToggleSwitch Grid.Row="1" Grid.ColumnSpan="2"
-                                              Margin="0,10,0,0"
-                                              IsVisible="{Binding IsToggle}"
+                                <!-- Two-state feature (or GPU overclock): writes through the backend. -->
+                                <ToggleSwitch IsVisible="{Binding IsToggle}"
                                               IsEnabled="{Binding !IsBusy}"
                                               IsChecked="{Binding IsOn, Mode=TwoWay}" />
 
-                                <!-- Multi-state feature: options come from the machine. -->
-                                <ComboBox Grid.Row="1" Grid.ColumnSpan="2"
-                                          Margin="0,10,0,0"
-                                          IsVisible="{Binding IsChoice}"
+                                <!-- Multi-state feature: options are read from the machine. -->
+                                <ComboBox IsVisible="{Binding IsChoice}"
                                           IsEnabled="{Binding !IsBusy}"
                                           HorizontalAlignment="Stretch"
                                           ItemsSource="{Binding Options}"
-                                          SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
+                                          SelectedItem="{Binding SelectedState, Mode=TwoWay}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <!-- Library state types implementing IDisplayName supply
+                                                 their own text (Resolution, RefreshRate). -->
+                                            <TextBlock Text="{Binding Converter={StaticResource DisplayNameConverter}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
 
-                                <!-- Advisory text, mirroring WPF's Warning on the card header. -->
-                                <TextBlock Grid.Row="2" Grid.ColumnSpan="2"
-                                           Text="{Binding Warning}"
+                                <!-- Read-only state, e.g. discrete GPU status. -->
+                                <TextBlock Text="{Binding StatusText}"
+                                           Classes="WidgetValue"
+                                           IsVisible="{Binding IsStatus}" />
+
+                                <!-- Action widgets, matching WPF's buttons and context-menu actions. -->
+                                <StackPanel Orientation="Horizontal" Spacing="8"
+                                            IsVisible="{Binding HasPrimaryAction}">
+                                    <Button Classes="SecondaryButton"
+                                            IsEnabled="{Binding !IsBusy}"
+                                            Content="{Binding PrimaryActionText}"
+                                            Command="{Binding PrimaryActionCommand}" />
+                                    <Button Classes="GhostButton"
+                                            IsVisible="{Binding HasSecondaryAction}"
+                                            IsEnabled="{Binding !IsBusy}"
+                                            Content="{Binding SecondaryActionText}"
+                                            Command="{Binding SecondaryActionCommand}" />
+                                </StackPanel>
+
+
+                                <TextBlock Text="{Binding Warning}"
                                            Classes="WidgetWarning"
-                                           Margin="0,6,0,0"
                                            IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
 
-                                <TextBlock Grid.Row="2" Grid.ColumnSpan="2"
-                                           Text="{Binding ErrorMessage}"
+                                <TextBlock Text="{Binding ErrorMessage}"
                                            Classes="WidgetError"
-                                           Margin="0,6,0,0"
                                            IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
-                            </Grid>
+                            </StackPanel>
                         </Border>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>

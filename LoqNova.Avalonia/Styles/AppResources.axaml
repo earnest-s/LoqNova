@@ -161,4 +161,5 @@
     <local:IconNameToGeometryConverter x:Key="IconNameToGeometryConverter" />
     <local:EnumDisplayNameConverter x:Key="EnumDisplayNameConverter" />
   <local:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+  <local:DisplayNameConverter x:Key="DisplayNameConverter" />
 </ResourceDictionary>
