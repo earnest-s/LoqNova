@@ -44,6 +44,8 @@
     <Color x:Key="DisabledTextColor">#4C545F</Color>
     <Color x:Key="FocusColor">#1E9EFF</Color>
     <Color x:Key="DisabledColor">#232830</Color>
+    <!-- Foreground used on top of the accent / danger fills -->
+    <Color x:Key="OnAccentColor">#FFFFFF</Color>
 
     <!-- Power mode ramp: calm -> hot -->
     <Color x:Key="QuietModeColor">#4C9AFF</Color>
