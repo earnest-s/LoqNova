@@ -11,7 +11,10 @@
         MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Icon="avares://LOQ Nova/Assets/icon.ico"
-        Background="{StaticResource BackgroundBrush}">
+        Background="{StaticResource BackgroundBrush}"
+        ExtendClientAreaToDecorationsHint="True"
+        ExtendClientAreaChromeHints="NoChrome"
+        ExtendClientAreaTitleBarHeightHint="-1">
 
     <Window.Resources>
         <!-- One navigation item template, shared by the primary list and the
