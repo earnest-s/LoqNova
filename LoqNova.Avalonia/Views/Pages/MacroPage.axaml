@@ -55,7 +55,7 @@
             <Border Classes="ContentCard" IsVisible="{Binding SelectedKeyViewModel, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel Spacing="16">
                     <StackPanel Orientation="Horizontal" Spacing="16">
-                        <TextBlock Text="{Binding SelectedKeyViewModel.Name, Stringoormat='Key {0}'}" Classes="Heading4" />
+                        <TextBlock Text="{Binding SelectedKeyViewModel.Name, StringFormat='Key {0}'}" Classes="Heading4" />
                         <ToggleSwitch IsChecked="{Binding SelectedKeyViewModel.Enabled}" OnContent="Enabled" OffContent="Disabled" VerticalAlignment="Center" />
                     </StackPanel>
                     
@@ -66,9 +66,9 @@
                                 <Border Margin="0,8,0,0" Padding="12" Background="{StaticResource SurfaceBrush}" CornerRadius="6">
                                     <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0">
                                         <!-- PathIcon for Key type -->
-                                        <PathIcon Grid.Column="0" Data="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" Width="20" Height="20" ooreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Key}" />
+                                        <PathIcon Grid.Column="0" Data="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Key}" />
                                         <!-- PathIcon for Mouse type -->
-                                        <PathIcon Grid.Column="0" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" Width="20" Height="20" ooreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Mouse}" />
+                                        <PathIcon Grid.Column="0" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Mouse}" />
                                         
                                         <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
                                             <StackPanel IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Key}">
@@ -77,7 +77,7 @@
                                                           ItemsSource="{Binding AvailableKeys}"
                                                           Background="{StaticResource SurfaceBrush}"
                                                           BorderBrush="{StaticResource BorderBrush}"
-                                                          ooreground="{StaticResource TextPrimaryBrush}" />
+                                                          Foreground="{StaticResource TextPrimaryBrush}" />
                                             </StackPanel>
                                             
                                             <StackPanel IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Mouse}" Orientation="Horizontal" Spacing="8">
@@ -90,7 +90,7 @@
                                                           ItemsSource="{Binding AvailableMouseButtons}"
                                                           Background="{StaticResource SurfaceBrush}"
                                                           BorderBrush="{StaticResource BorderBrush}"
-                                                          ooreground="{StaticResource TextPrimaryBrush}" />
+                                                          Foreground="{StaticResource TextPrimaryBrush}" />
                                             </StackPanel>
                                             
                                             <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,0">
@@ -106,7 +106,7 @@
                                         </StackPanel>
                                         
                                         <Button Grid.Column="3" Classes="IconButton" ToolTip.Tip="Remove" Command="{Binding $parent[ItemsControl].DataContext.RemoveEventCommand}" CommandParameter="{Binding}">
-                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="20" Height="20" ooreground="{StaticResource TextMutedBrush}" />
+                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="20" Height="20" Foreground="{StaticResource TextMutedBrush}" />
                                         </Button>
                                     </Grid>
                                 </Border>
@@ -126,10 +126,10 @@
             <!-- Recording Controls -->
             <Border Classes="ContentCard" IsVisible="{Binding IsRecording}">
                 <StackPanel Spacing="16" HorizontalAlignment="Center">
-                    <TextBlock Text="Recording..." Classes="Heading3" ooreground="#E81123" />
-                    <TextBlock Text="{Binding RecordingTime, Stringoormat='{}{0:mm\\:ss\\.ff}'}" Classes="Heading2" oontoamily="Consolas" />
-                    <TextBlock Text="{Binding LastKey, Stringoormat='Last: {0}'}" Classes="Body" />
-                    <TextBlock Text="{Binding EventCount, Stringoormat='Events: {0}'}" Classes="Caption" />
+                    <TextBlock Text="Recording..." Classes="Heading3" Foreground="{StaticResource DangerBrush}" />
+                    <TextBlock Text="{Binding RecordingTime, StringFormat='{}{0:mm\\:ss\\.ff}'}" Classes="Heading2" FontFamily="Consolas" />
+                    <TextBlock Text="{Binding LastKey, StringFormat='Last: {0}'}" Classes="Body" />
+                    <TextBlock Text="{Binding EventCount, StringFormat='Events: {0}'}" Classes="Caption" />
                     <Button Classes="DangerButton" Content="Stop Recording" Command="{Binding StopRecordingCommand}" />
                 </StackPanel>
             </Border>
