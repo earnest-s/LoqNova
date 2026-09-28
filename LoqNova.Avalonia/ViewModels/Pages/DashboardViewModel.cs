@@ -381,13 +381,31 @@ public partial class DashboardViewModel : ViewModelBase
         _sensorsService.GpuUsageChanged += usage => GpuUsage = usage;
     }
 
-    /// <summary>Adopts whatever the performance service already reports.</summary>
+    /// <summary>Adopts whatever the backends already report.</summary>
     private void SyncFromService()
     {
         _suppressModeWrite = true;
         CurrentPowerMode = _performanceService.CurrentMode;
         _suppressModeWrite = false;
         PowerModeColor = GetPowerModeColor(CurrentPowerMode);
+
+        if (_sensorsService.CpuUsage >= 0)
+            CpuUsage = _sensorsService.CpuUsage;
+
+        if (_sensorsService.GpuUsage >= 0)
+            GpuUsage = _sensorsService.GpuUsage;
+
+        if (_thermalService.CpuTemperature >= 0)
+            CpuTemperature = _thermalService.CpuTemperature;
+
+        if (_thermalService.GpuTemperature >= 0)
+            GpuTemperature = _thermalService.GpuTemperature;
+
+        if (_thermalService.FanSpeedRpm >= 0)
+        {
+            FanSpeedRpm = _thermalService.FanSpeedRpm;
+            FanSpeedPercent = _thermalService.FanSpeedPercent;
+        }
     }
 
     partial void OnCurrentPowerModeChanged(PowerModeState value)
@@ -430,14 +448,19 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshAsync()
     {
+        await _performanceService.RefreshAsync();
         await _sensorsService.InitializeAsync();
+        await _thermalService.InitializeAsync();
         SyncFromService();
     }
 
     [RelayCommand]
     private async Task OpenGodModeAsync()
     {
-        await _performanceService.ApplyGodModeSettingsAsync();
+        if (!_performanceService.IsGodModeSupported)
+            return;
+
+        await _performanceService.SetModeAsync(PowerModeState.GodMode);
     }
 
     [RelayCommand]
