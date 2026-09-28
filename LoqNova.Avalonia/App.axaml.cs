@@ -73,26 +73,36 @@ public partial class App : Application
                .As(typeof(Microsoft.Extensions.Logging.ILogger<>))
                .SingleInstance();
 
-        // Register mock services
-        builder.RegisterType<MockPerformanceService>().As<IPerformanceService>().SingleInstance();
+        // LoqNova.Lib controllers and features are singletons owned by
+        // LoqNova.Lib.IoCContainer. They are surfaced here as instances so the
+        // Avalonia adapters below talk to the same objects WPF uses.
+        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Controllers.Sensors.ISensorsController>()).SingleInstance();
+        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Features.PowerModeFeature>()).SingleInstance();
+
+        // Real power mode / sensor / thermal adapters over the existing library
+        // controllers. Power mode state is read from and written to the machine;
+        // nothing is synthesised.
+        builder.RegisterType<PerformanceService>().As<IPerformanceService>().SingleInstance();
+        builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
+        builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
+
+        // Remaining pages still use mocks until their adapters are ported.
         builder.RegisterType<MockRgbService>().As<IRgbService>().SingleInstance();
-        builder.RegisterType<MockThermalService>().As<IThermalService>().SingleInstance();
         builder.RegisterType<MockBatteryService>().As<IBatteryService>().SingleInstance();
-        builder.RegisterType<MockSensorsService>().As<ISensorsService>().SingleInstance();
         builder.RegisterType<MockSettingsService>().As<ISettingsService>().SingleInstance();
         builder.RegisterType<MockAutomationService>().As<IAutomationService>().SingleInstance();
         builder.RegisterType<MockMacroService>().As<IMacroService>().SingleInstance();
 
         // Real package downloader (Packages page) straight from LoqNova.Lib.
         // No mock and no local HTTP/API layer: PackagesViewModel resolves the
-        // existing PackageDownloaderFactory and calls IPackageDownloader.
-        // The factory takes the concrete downloader types, so they are
-        // registered as themselves rather than behind the interface.
-        builder.RegisterType<LoqNova.Lib.HttpClientFactory>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.Settings.PackageDownloaderSettings>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.PackageDownloader.PCSupportPackageDownloader>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.PackageDownloader.VantagePackageDownloader>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.PackageDownloader.PackageDownloaderFactory>().SingleInstance();
+        // existing PackageDownloaderFactory and calls IPackageDownloader. The
+        // factory takes the concrete downloader types, so the same singletons
+        // WPF uses are surfaced rather than constructing second copies.
+        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.HttpClientFactory>()).SingleInstance();
+        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.PackageDownloaderSettings>()).SingleInstance();
+        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.PackageDownloader.PCSupportPackageDownloader>()).SingleInstance();
+        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.PackageDownloader.VantagePackageDownloader>()).SingleInstance();
+        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.PackageDownloader.PackageDownloaderFactory>()).SingleInstance();
         
         // Register ViewModels
         builder.RegisterType<MainWindowViewModel>().SingleInstance();

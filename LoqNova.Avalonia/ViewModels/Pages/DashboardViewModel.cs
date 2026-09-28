@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels.Dialogs;
+using LoqNova.Lib;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
@@ -21,23 +22,25 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly INavigationService _navigationService;
     private bool _suppressModeWrite;
     
+    // Sensor channels start as "unknown" (-1) and are only ever set from a real
+    // reading. Placeholder percentages or temperatures are never displayed.
     [ObservableProperty]
-    private double _cpuUsage = 12;
+    private double _cpuUsage = -1;
     
     [ObservableProperty]
-    private double _gpuUsage = 3;
+    private double _gpuUsage = -1;
     
     [ObservableProperty]
-    private double _cpuTemperature = 54;
+    private double _cpuTemperature = -1;
     
     [ObservableProperty]
-    private double _gpuTemperature = 49;
+    private double _gpuTemperature = -1;
     
     [ObservableProperty]
-    private int _fanSpeedRpm = 2400;
+    private int _fanSpeedRpm = -1;
     
     [ObservableProperty]
-    private int _fanSpeedPercent = 45;
+    private int _fanSpeedPercent = -1;
     
     [ObservableProperty]
     private PowerModeState _currentPowerMode = PowerModeState.Balance;
