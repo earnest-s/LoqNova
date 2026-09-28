@@ -12,6 +12,24 @@ public class MainThreadDispatcher : IMainThreadDispatcher
         Dispatcher.UIThread.Post(action);
     }
     
+    public Task InvokeAsync(Action action)
+    {
+        var tcs = new TaskCompletionSource<object?>();
+        Dispatcher.UIThread.Post(() =>
+        {
+            try
+            {
+                action();
+                tcs.SetResult(null);
+            }
+            catch (Exception ex)
+            {
+                tcs.SetException(ex);
+            }
+        });
+        return tcs.Task;
+    }
+    
     public Task<T> InvokeAsync<T>(Func<T> func)
     {
         var tcs = new TaskCompletionSource<T>();
