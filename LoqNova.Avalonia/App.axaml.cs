@@ -148,11 +148,9 @@ public partial class App : Application
         // Initialize localization
         LocalizationHelper.Initialize();
         
-        // Apply theme
-        var themeService = Container.Resolve<IThemeService>();
-        await themeService.InitializeAsync();
-
-        
+        // The theme is applied after the shared library container is ready, because
+        // reading the persisted theme goes through ISettingsService, which resolves
+        // its backing store from that container.
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Create main window
