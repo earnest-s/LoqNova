@@ -214,26 +214,28 @@
             </ItemsControl>
 
             <!-- ============================ Empty / no-match state ============================ -->
+            <!-- Nothing retrieved yet: prompt the user, never imply packages loaded. -->
             <Border Classes="ContentCard" IsVisible="{Binding !HasLoadedPackages}">
                 <TextBlock Text="Press Refresh to retrieve packages from the selected source."
                            Classes="BodySmall" HorizontalAlignment="Center" Margin="0,24,0,24" />
             </Border>
 
+            <!-- Retrieved, but nothing survived filtering. -->
             <Border Classes="ContentCard" IsVisible="{Binding HasLoadedPackages}">
-                <StackPanel>
-                    <TextBlock Text="{Binding NoMatchingDownloadsLabel}" Classes="BodySmall"
-                               HorizontalAlignment="Center" Margin="0,24,0,24"
-                               IsVisible="{Binding !HasVisiblePackages}" />
-                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
-                                HorizontalAlignment="Right" Margin="0,8,0,0"
-                                IsVisible="{Binding HasHiddenPackages}">
-                        <Button Classes="GhostButton" Content="{Binding HideAllLabel}"
-                                Command="{Binding HideAllPackagesCommand}" />
-                        <Button Classes="SecondaryButton" Content="{Binding ShowHiddenDownloadsLabel}"
-                                Command="{Binding ShowHiddenPackagesCommand}" />
-                    </StackPanel>
-                </StackPanel>
+                <TextBlock Text="{Binding NoMatchingDownloadsLabel}" Classes="BodySmall"
+                           HorizontalAlignment="Center" Margin="0,24,0,24"
+                           IsVisible="{Binding !HasVisiblePackages}" />
             </Border>
+
+            <!-- Hidden packages recovery -->
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
+                        HorizontalAlignment="Right" Margin="0,4,0,0"
+                        IsVisible="{Binding HasHiddenPackages}">
+                <Button Classes="GhostButton" Content="{Binding HideAllLabel}"
+                        Command="{Binding HideAllPackagesCommand}" />
+                <Button Classes="SecondaryButton" Content="{Binding ShowHiddenDownloadsLabel}"
+                        Command="{Binding ShowHiddenPackagesCommand}" />
+            </StackPanel>
 
         </StackPanel>
     </ScrollViewer>
