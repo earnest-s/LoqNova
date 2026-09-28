@@ -131,13 +131,12 @@
          clipped one. These are thin, always-visible and on-brand. -->
 
     <Style Selector="ScrollBar">
-        <Setter Property="Background" Value="#00FFFF" />
-        <!-- The Fluent scrollbar fades to zero opacity at rest, which made a
-             scrollable dashboard read as a clipped one. -->
+        <!-- A visible track: the Fluent scrollbar is otherwise fully
+             transparent at rest, so a scrollable page looked clipped. -->
+        <Setter Property="Background" Value="{StaticResource DividerBrush}" />
         <Setter Property="Opacity" Value="1" />
         <Setter Property="Width" Value="12" />
         <Setter Property="MinWidth" Value="12" />
-        <!-- The Fluent thumb template paints from the ScrollBar Foreground. -->
         <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
     </Style>
 
