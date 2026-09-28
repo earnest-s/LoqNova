@@ -17,6 +17,7 @@ using LoqNova.Lib.PackageDownloader;
 using LoqNova.Lib.Settings;
 using LoqNova.Lib.System;
 using LoqNova.Lib.Utils;
+using IMainThreadDispatcher = LoqNova.Avalonia.Services.IMainThreadDispatcher;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
