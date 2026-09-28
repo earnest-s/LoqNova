@@ -28,6 +28,7 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        void __S() => System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt", $"mark" + Environment.NewLine);
         // LoqNova.Lib keeps its own Autofac container and is the single source of
         // truth for controllers, features and settings, so the same backend
         // singletons WPF uses are reused here. It is started on a background
@@ -37,6 +38,10 @@ public partial class App : Application
         // its module joins the container when the Automation page is ported.
         LibContainer.Initialize();
 
+        var __d = @"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt";
+        System.IO.File.WriteAllText(__d, "1 entered OnFrameworkInitializationCompleted\n");
+        void __s(string m) => System.IO.File.AppendAllText(__d, m + "\n");
+        // END-TEMP-DIAG-B
         // Build DI container
         var builder = new ContainerBuilder();
         
@@ -152,16 +157,20 @@ public partial class App : Application
         Container = builder.Build();
         AppHost.Initialize(new AutofacServiceProvider(Container));
         
+        __S();
         // Initialize localization
         LocalizationHelper.Initialize();
         
+        __S();
         // Apply theme
         var themeService = Container.Resolve<IThemeService>();
         await themeService.InitializeAsync();
 
         
+        __S();
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            __S();
             // Create main window
             var mainWindow = new MainWindow
             {
@@ -170,10 +179,12 @@ public partial class App : Application
             
             desktop.MainWindow = mainWindow;
             
+            __S();
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
             await trayService.InitializeAsync(mainWindow);
             
+            __S();
             // Initialize navigation
             var navigationService = Container.Resolve<INavigationService>();
             await navigationService.InitializeAsync(mainWindow);
@@ -211,7 +222,9 @@ public partial class App : Application
         }
         catch (Exception ex) { __s("FATAL " + ex); }
         // END-TEMP-DIAG-B
+        __S();
         base.OnFrameworkInitializationCompleted();
+        __S();
 
         // The shared library container is built on a background thread because the
         // library's Windows message listeners need Avalonia's dispatcher to be
