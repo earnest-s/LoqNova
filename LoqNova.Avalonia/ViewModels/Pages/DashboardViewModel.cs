@@ -66,13 +66,12 @@ public partial class DashboardViewModel : ViewModelBase
     public ObservableCollection<BatteryNightChargeState> NightChargeModes { get; } =
         [BatteryNightChargeState.On, BatteryNightChargeState.Off];
 
-    public ObservableCollection<DashboardWidgetViewModel> Widgets { get; } = new();
-
     /// <summary>
-    /// Non-sensor widgets. Sensor channels are already presented by
-    /// SensorsPanel, so they are excluded here to avoid showing them twice.
+    /// Feature widgets backed by live library features. Only widgets the machine
+    /// reports as supported are added. Sensor channels are presented separately by
+    /// SensorsPanel, so they are not repeated here.
     /// </summary>
-    public ObservableCollection<DashboardWidgetViewModel> ControlWidgets { get; } = new();
+    public ObservableCollection<LoqNova.Avalonia.ViewModels.Controls.FeatureWidgetViewModel> ControlWidgets { get; } = new();
 
     public DashboardViewModel(
         IPerformanceService performanceService,
@@ -80,7 +79,8 @@ public partial class DashboardViewModel : ViewModelBase
         IThermalService thermalService,
         IBatteryService batteryService,
         ISensorsService sensorsService,
-        INavigationService navigationService)
+        INavigationService navigationService,
+        IMainThreadDispatcher dispatcher)
     {
         _performanceService = performanceService;
         _rgbService = rgbService;
@@ -88,7 +88,8 @@ public partial class DashboardViewModel : ViewModelBase
         _batteryService = batteryService;
         _sensorsService = sensorsService;
         _navigationService = navigationService;
-        
+        _dispatcher = dispatcher;
+
         InitializeWidgets();
         SubscribeToEvents();
         SyncFromService();
