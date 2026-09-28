@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
+using LoqNova.Lib;
 using LoqNova.Lib.Features;
 using Microsoft.Extensions.Logging;
 

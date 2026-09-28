@@ -1,4 +1,3 @@
-using System;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -6,88 +5,50 @@ using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.ViewModels.Dialogs;
 
+/// <summary>
+/// God Mode state as reported by the machine. The numeric CPU/GPU limit fields
+/// that previously lived here were placeholders: they were never read from or
+/// written to hardware. The real values live in
+/// <c>GodModeSettings.GodModeSettingsStore.Preset</c> and are applied through
+/// <c>IGodModeController</c>, so they are surfaced there instead of being
+/// invented here.
+/// </summary>
 public partial class GodModeSettingsViewModel : ViewModelBase
 {
     private readonly IPerformanceService _performanceService;
-    
+
     [ObservableProperty]
-    private double _cpuPL1 = 45;
-    
+    private bool _isEnabled;
+
     [ObservableProperty]
-    private double _cpuPL2 = 80;
-    
-    [ObservableProperty]
-    private double _gpuPowerLimit = 80;
-    
-    [ObservableProperty]
-    private double _cpuThermalLimit = 85;
-    
-    [ObservableProperty]
-    private double _gpuThermalLimit = 83;
-    
-    [ObservableProperty]
-    private bool _isEnabled = true;
-    
+    private bool _isSupported;
+
     public GodModeSettingsViewModel(IPerformanceService performanceService)
     {
         _performanceService = performanceService;
-        
-        LoadCurrentSettings();
+        LoadCurrentState();
     }
-    
-    private void LoadCurrentSettings()
+
+    private void LoadCurrentState()
     {
-        CpuPL1 = _performanceService.CpuPowerLimit;
-        GpuPowerLimit = _performanceService.GpuPowerLimit;
-        CpuThermalLimit = _performanceService.CpuThermalLimit;
-        GpuThermalLimit = _performanceService.GpuThermalLimit;
+        IsSupported = _performanceService.IsGodModeSupported;
         IsEnabled = _performanceService.IsGodModeEnabled;
     }
-    
-    partial void OnCpuPL1Changed(double value)
+
+    partial void OnIsEnabledChanged(bool value)
     {
-        _performanceService.CpuPowerLimit = value;
+        if (!IsSupported)
+            return;
+
+        if (value)
+            _ = _performanceService.SetModeAsync(LoqNova.Lib.PowerModeState.GodMode);
+        else
+            _ = _performanceService.SetModeAsync(LoqNova.Lib.PowerModeState.Balance);
     }
-    
-    partial void OnCpuPL2Changed(double value)
-    {
-        // PL2 handling
-    }
-    
-    partial void OnGpuPowerLimitChanged(double value)
-    {
-        _performanceService.GpuPowerLimit = value;
-    }
-    
-    partial void OnCpuThermalLimitChanged(double value)
-    {
-        _performanceService.CpuThermalLimit = value;
-    }
-    
-    partial void OnGpuThermalLimitChanged(double value)
-    {
-        _performanceService.GpuThermalLimit = value;
-    }
-    
+
     [RelayCommand]
-    private async Task ApplyAsync()
-    {
-        await _performanceService.ApplyGodModeSettingsAsync();
-    }
-    
+    private Task ApplyAsync() => _performanceService.ApplyGodModeSettingsAsync();
+
     [RelayCommand]
-    private async Task ResetDefaultsAsync()
-    {
-        CpuPL1 = 45;
-        CpuPL2 = 80;
-        GpuPowerLimit = 80;
-        CpuThermalLimit = 85;
-        GpuThermalLimit = 83;
-    }
-    
-    [RelayCommand]
-    private async Task CloseAsync()
-    {
-        // Close dialog
-    }
+    private Task RefreshAsync() => _performanceService.RefreshAsync();
 }
