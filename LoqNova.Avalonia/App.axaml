@@ -11,10 +11,7 @@
     </Application.Resources>
 
     <Application.Styles>
-        <!-- AccentColor is the design-system PrimaryColor so Fluent controls
-             (checkbox, radio, slider, focus) match the LOQ Nova palette
-             instead of the Windows system accent. -->
-        <FluentTheme AccentColor="{StaticResource PrimaryColor}" />
+        <FluentTheme />
         <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Typography.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Layout.axaml" />
