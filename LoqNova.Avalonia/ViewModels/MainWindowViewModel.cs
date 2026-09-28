@@ -67,6 +67,25 @@ public partial class MainWindowViewModel : ViewModelBase
         
         InitializeNavigationItems();
         _navigationService.PageChanged += OnPageChanged;
+
+        _ = LoadDeviceModelAsync();
+    }
+
+    /// <summary>
+    /// Reads the machine type from the same source WPF uses, rather than assuming
+    /// a fixed model.
+    /// </summary>
+    private async Task LoadDeviceModelAsync()
+    {
+        try
+        {
+            var mi = await LoqNova.Lib.Compatibility.GetMachineInformationAsync();
+            DeviceModel = mi.MachineType;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Machine information unavailable: {ex.Message}");
+        }
     }
     
     private void InitializeNavigationItems()
