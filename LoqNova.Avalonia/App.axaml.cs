@@ -28,6 +28,16 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        // LoqNova.Lib keeps its own Autofac container and is the single source of
+        // truth for controllers, features and settings. WPF seeds it with the three
+        // library modules (its own module only supplies WPF view models), so the
+        // same set is used here and every page resolves the exact same backend
+        // singletons WPF does. It must be initialized before anything is resolved.
+        LoqNova.Lib.IoCContainer.Initialize(
+            new LoqNova.Lib.IoCModule(),
+            new LoqNova.Lib.Automation.IoCModule(),
+            new LoqNova.Lib.Macro.IoCModule());
+
         // Build DI container
         var builder = new ContainerBuilder();
         
