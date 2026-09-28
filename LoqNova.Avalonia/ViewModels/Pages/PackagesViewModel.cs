@@ -86,6 +86,31 @@ public partial class PackagesViewModel : ViewModelBase
 
     public ObservableCollection<OS> OperatingSystems { get; } = new(Enum.GetValues<OS>());
 
+    // Labels come from the existing localization resources, as in WPF.
+    public string PageTitle => T("PackagesPage_Title");
+    public string DisclaimerMessage => T("PackagesPage_Disclaimer_Message");
+    public string MachineTypeLabel => T("PackagesPage_MachineType");
+    public string OperatingSystemLabel => T("PackagesPage_OperatingSystem");
+    public string DownloadToLabel => T("PackagesPage_DownloadTo");
+    public string OpenDownloadToLabel => T("PackagesPage_OpenDownloadTo");
+    public string SourceLabel => T("PackagesPage_Source");
+    public string PrimarySourceLabel => T("PackagesPage_PrimarySource");
+    public string PrimarySourceMessage => T("PackagesPage_PrimarySource_Message");
+    public string SecondarySourceLabel => T("PackagesPage_SecondarySource");
+    public string SecondarySourceMessage => T("PackagesPage_SecondarySource_Message");
+    public string OnlyShowUpdatesLabel => T("PackagesPage_OnlyShowUpdates");
+    public string FilterLabel => T("Filter");
+    public string SortLabel => T("PackagesPage_Sort_Name") is not null ? "Sort" : "Sort";
+    public string RefreshLabel => T("Refresh");
+    public string CancelLabel => T("Cancel");
+    public string HideLabel => T("Hide");
+    public string HideAllLabel => T("HideAll");
+    public string BrowseLabel => "Browse";
+    public string ShowHiddenDownloadsLabel => "Show hidden downloads";
+    public string NoMatchingDownloadsLabel => T("PackagesPage_NoMatchingDownloads");
+
+    private static string T(string key) => LocalizationHelper.GetString(key);
+
     public ObservableCollection<string> SortOptions { get; } = new()
     {
         "Name", "Category", "Release date"
