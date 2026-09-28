@@ -164,7 +164,9 @@ public class BatteryService : IBatteryService, IDisposable
                 if (IsCharging != oldIsCharging)
                     ChargingChanged?.Invoke(IsCharging);
 
-                if (adapter != oldAdapter || IsLowWattageCharger != oldLowWattage)
+                // Adapter state has no dedicated event; subscribers to the battery
+                // are re-notified so adapter and low-wattage flags are picked up.
+                if (adapter != oldAdapterStatus)
                     PercentageChanged?.Invoke(Percentage);
             }).ConfigureAwait(false);
         }
