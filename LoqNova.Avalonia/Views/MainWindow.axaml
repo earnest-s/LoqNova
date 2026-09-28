@@ -77,16 +77,13 @@
 
                     <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
                         <Button Classes="CaptionButton" ToolTip.Tip="Minimize" Command="{Binding MinimizeCommand}">
-                            <PathIcon Data="M0 10h24" Width="11" Height="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                            <PathIcon Data="{x:Static icons:IconGeometries.Minimize}" Classes="CaptionGlyph" />
                         </Button>
                         <Button Classes="CaptionButton" ToolTip.Tip="Maximize" Command="{Binding ToggleMaximizeCommand}">
-                            <PathIcon Data="M4 4h16v16H4z" Width="11" Height="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                            <PathIcon Data="{x:Static icons:IconGeometries.Maximize}" Classes="CaptionGlyph" />
                         </Button>
                         <Button Classes="CaptionButton CaptionClose" ToolTip.Tip="Close" Command="{Binding CloseCommand}">
-                            <PathIcon Data="M18 6L6 18M6 6l12 12" Width="11" Height="11"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                            <PathIcon Data="{x:Static icons:IconGeometries.Close}" Classes="CaptionGlyph" />
                         </Button>
                     </StackPanel>
                 </Grid>
