@@ -137,87 +137,31 @@ public partial class DashboardViewModel : ViewModelBase
     /// </summary>
     private void InitializeWidgets()
     {
-        if (_performanceService.IsSupported)
+        _ = BuildWidgetsAsync();
+    }
+
+    /// <summary>
+    /// Creates one widget per WPF dashboard feature. Every widget resolves its
+    /// library <c>IFeature&lt;T&gt;</c> and hides itself when the backend reports
+    /// the feature as unsupported, so the dashboard only ever shows controls that
+    /// actually work on this machine.
+    /// </summary>
+    private async Task BuildWidgetsAsync()
+    {
+        var dispatcher = Container.Resolve<IMainThreadDispatcher>();
+        var widgets = await DashboardFeatureRegistry.CreateAllAsync(
+            DashboardFeatureRegistry.DefaultFeatures, dispatcher);
+
+        var available = widgets.Where(w => w.IsAvailable).ToList();
+
+        await dispatcher.InvokeAsync(() =>
         {
-            var powerMode = new DashboardWidgetViewModel
-            {
-                Title = "Power Mode",
-                Icon = "Bolt64",
-                Type = WidgetType.ComboBox,
-                ItemsSource = PowerModeItems,
-                SelectedItem = CurrentPowerMode,
-                IsAvailable = true
-            };
+            ControlWidgets.Clear();
+            foreach (var widget in available)
+                ControlWidgets.Add(widget);
+        });
 
-            powerMode.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(DashboardWidgetViewModel.SelectedItem) &&
-                    powerMode.SelectedItem is PowerModeState mode &&
-                    !_suppressModeWrite)
-                {
-                    _ = _performanceService.SetModeAsync(mode);
-                }
-            };
-
-            ControlWidgets.Add(powerMode);
-        }
-
-        if (_batteryService.IsSupported)
-        {
-            var battery = new DashboardWidgetViewModel
-            {
-                Title = "Battery Charge Mode",
-                Icon = "Battery64",
-                Type = WidgetType.ComboBox,
-                ItemsSource = BatteryModes,
-                SelectedItem = _batteryService.CurrentMode,
-                IsAvailable = true
-            };
-
-            battery.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(DashboardWidgetViewModel.SelectedItem) &&
-                    battery.SelectedItem is BatteryState mode)
-                {
-                    _ = _batteryService.SetModeAsync(mode);
-                }
-            };
-
-            _batteryService.ModeChanged += mode =>
-            {
-                battery.SelectedItem = mode;
-                battery.Status = null;
-            };
-
-            ControlWidgets.Add(battery);
-
-            var nightCharge = new DashboardWidgetViewModel
-            {
-                Title = "Night Charge",
-                Icon = "Moon64",
-                Type = WidgetType.ComboBox,
-                ItemsSource = NightChargeModes,
-                SelectedItem = _batteryService.NightChargeMode,
-                IsAvailable = true
-            };
-
-            nightCharge.PropertyChanged += (_, e) =>
-            {
-                if (e.PropertyName == nameof(DashboardWidgetViewModel.SelectedItem) &&
-                    nightCharge.SelectedItem is BatteryNightChargeState state)
-                {
-                    _ = _batteryService.SetNightChargeAsync(state);
-                }
-            };
-
-            _batteryService.NightChargeChanged += state =>
-            {
-                nightCharge.SelectedItem = state;
-                nightCharge.Status = null;
-            };
-
-            ControlWidgets.Add(nightCharge);
-        }
+        await _batteryService.InitializeAsync();
     }
 
     private void SubscribeToEvents()
