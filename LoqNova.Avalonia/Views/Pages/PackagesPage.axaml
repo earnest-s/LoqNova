@@ -65,7 +65,7 @@
                     </Grid>
 
                     <!-- ==================== Right: source + actions ==================== -->
-                    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" MinWidth="260">
+                    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" MinWidth="260" Margin="32,0,0,0">
                         <TextBlock Grid.Row="0" Text="{Binding SourceLabel}" Classes="SectionLabel" />
 
                         <StackPanel Grid.Row="1" Spacing="{StaticResource SpaceSm}" Margin="0,0,0,16">
