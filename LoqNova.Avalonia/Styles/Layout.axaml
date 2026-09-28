@@ -124,7 +124,7 @@
     </Style>
 
     <Style Selector="CheckBox.Control:checked /template/ Path#PART_CheckMark">
-        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+        <Setter Property="Stroke" Value="{StaticResource OnAccentBrush}" />
     </Style>
 
 
