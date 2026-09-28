@@ -1,6 +1,7 @@
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels"
+        xmlns:icons="clr-namespace:LoqNova.Avalonia.Styles"
         xmlns:notifications="clr-namespace:LoqNova.Avalonia.Views.Controls.Notifications"
         x:Class="LoqNova.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
@@ -116,10 +117,11 @@
                                           ItemTemplate="{StaticResource NavigationItemTemplate}" />
                         </ScrollViewer>
 
-                        <!-- Settings + About, pinned to the bottom -->
+                        <!-- Settings + About, pinned to the bottom as its own group -->
                         <Border Grid.Row="2" Classes="NavFooterPlate">
                             <StackPanel>
                                 <Separator Classes="NavSeparator" Margin="10,0" />
+                                <TextBlock Text="System" Classes="NavSectionLabel" Margin="24,10,0,6" />
                                 <ItemsControl ItemsSource="{Binding FooterNavigationItems}"
                                               ItemTemplate="{StaticResource NavigationItemTemplate}" />
                             </StackPanel>

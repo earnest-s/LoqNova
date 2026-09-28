@@ -125,6 +125,43 @@
         <Setter Property="Maximum" Value="100" />
     </Style>
 
+    <!-- ============================ Scrollbars ============================
+         The default Fluent scrollbar is an overlay that is effectively
+         invisible at rest, which made a scrollable dashboard look like a
+         clipped one. These are thin, always-visible and on-brand. -->
+
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Width" Value="10" />
+        <Setter Property="MinWidth" Value="10" />
+    </Style>
+
+    <Style Selector="ScrollBar:horizontal">
+        <Setter Property="Height" Value="10" />
+        <Setter Property="MinHeight" Value="10" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Track#PART_Track">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="CornerRadius" Value="5" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ Thumb#PART_Thumb">
+        <Setter Property="Background" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="CornerRadius" Value="5" />
+        <Setter Property="MinHeight" Value="32" />
+        <Setter Property="MinWidth" Value="32" />
+    </Style>
+
+    <Style Selector="ScrollBar:pointerover /template/ Thumb#PART_Thumb">
+        <Setter Property="Background" Value="{StaticResource TextMutedBrush}" />
+    </Style>
+
+    <Style Selector="ScrollBar /template/ RepeatButton#PART_RepeatButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Focusable" Value="False" />
+    </Style>
+
     <!-- ============================ Dividers ============================ -->
 
     <Style Selector="Separator.Hairline">

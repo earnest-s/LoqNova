@@ -36,6 +36,24 @@
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
+    <!-- Channel-tinted labels make the three families of reading
+         (utilisation / temperature / fan) distinguishable at a glance. -->
+    <Style Selector="TextBlock.SensorLabelCpu">
+        <Setter Property="Foreground" Value="{StaticResource SensorCpuBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.SensorLabelGpu">
+        <Setter Property="Foreground" Value="{StaticResource SensorGpuBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.SensorLabelTemp">
+        <Setter Property="Foreground" Value="{StaticResource SensorTempBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.SensorLabelFan">
+        <Setter Property="Foreground" Value="{StaticResource SensorFanBrush}" />
+    </Style>
+
     <Style Selector="TextBlock.SensorCardValue">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSize3XL}" />
