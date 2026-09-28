@@ -116,7 +116,7 @@
         <Setter Property="Fill" Value="{StaticResource PrimaryBrush}" />
     </Style>
 
-    <Style Selector="RadioButton.Control /template__Ellipse#PART_OuterEllipse">
+    <Style Selector="RadioButton.Control /template/ Ellipse#PART_OuterEllipse">
         <Setter Property="Stroke" Value="{StaticResource PrimaryBrush}" />
     </Style>
 
