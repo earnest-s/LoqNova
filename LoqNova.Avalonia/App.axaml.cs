@@ -182,6 +182,14 @@ public partial class App : Application
         try
         {
             await LibContainer.Initialization;
+
+            // The shared container is up. Hydrate the adapters that read settings or
+            // hardware so the shell renders real state on its first paint.
+            await Container.Resolve<ISettingsService>().InitializeAsync();
+            await Container.Resolve<IThemeService>().InitializeAsync();
+            await Container.Resolve<IRgbService>().InitializeAsync();
+            await Container.Resolve<IPerformanceService>().InitializeAsync();
+            await Container.Resolve<IBatteryService>().InitializeAsync();
         }
         catch (Exception ex)
         {
