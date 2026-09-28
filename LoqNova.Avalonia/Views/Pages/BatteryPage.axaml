@@ -19,7 +19,7 @@
                     <!-- Battery Icon -->
                     <Border Width="120" Height="60" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2">
                         <Grid ColumnDefinitions="*,Auto">
-                            <Border x:Name="BatteryFill" Grid.Column="0" Background="#00B294" CornerRadius="0,6,6,0">
+                            <Border x:Name="BatteryFill" Grid.Column="0" Background="{StaticResource SecondaryBrush}" CornerRadius="0,6,6,0">
                                 <Border.Width>
                                     <Binding Path="Percentage" Converter="{StaticResource EnumToDisplayConverter}" />
                                 </Border.Width>
@@ -70,11 +70,11 @@
                         <TextBlock Text="Min / Max Discharge" Classes="CardTitle" />
                         <StackPanel Orientation="Horizontal" Spacing="16">
                             <StackPanel>
-                                <TextBlock Text="{Binding MinDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="#00B294" />
+                                <TextBlock Text="{Binding MinDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="{StaticResource SecondaryBrush}" />
                                 <TextBlock Text="Min" Classes="Caption" />
                             </StackPanel>
                             <StackPanel Margin="16,0,0,0">
-                                <TextBlock Text="{Binding MaxDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="#E81123" />
+                                <TextBlock Text="{Binding MaxDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="{StaticResource DangerBrush}" />
                                 <TextBlock Text="Max" Classes="Caption" />
                             </StackPanel>
                         </StackPanel>
