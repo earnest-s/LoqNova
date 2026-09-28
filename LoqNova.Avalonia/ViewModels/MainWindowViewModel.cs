@@ -80,7 +80,7 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         try
         {
-            var mi = await LoqNova.Lib.Compatibility.GetMachineInformationAsync();
+            var mi = await LoqNova.Lib.Utils.Compatibility.GetMachineInformationAsync();
             DeviceModel = mi.MachineType;
         }
         catch (Exception ex)
