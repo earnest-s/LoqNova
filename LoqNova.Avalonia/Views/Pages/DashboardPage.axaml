@@ -10,7 +10,7 @@
         <vm:DashboardViewModel />
     </Design.DataContext>
 
-    <ScrollViewer Classes="PageContainer" VerticalScrollBarVisibility="Visible">
+    <ScrollViewer Classes="PageContainer" VerticalScrollBarVisibility="Visible" Background="#FF0000">
         <StackPanel Classes="PageBody">
 
             <!-- ============================ Page header ============================ -->
