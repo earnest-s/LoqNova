@@ -76,10 +76,12 @@ public partial class App : Application
         // Real package downloader (Packages page) straight from LoqNova.Lib.
         // No mock and no local HTTP/API layer: PackagesViewModel resolves the
         // existing PackageDownloaderFactory and calls IPackageDownloader.
+        // The factory takes the concrete downloader types, so they are
+        // registered as themselves rather than behind the interface.
         builder.RegisterType<LoqNova.Lib.HttpClientFactory>().SingleInstance();
         builder.RegisterType<LoqNova.Lib.Settings.PackageDownloaderSettings>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.PackageDownloader.PCSupportPackageDownloader>().As<LoqNova.Lib.PackageDownloader.IPackageDownloader>().SingleInstance();
-        builder.RegisterType<LoqNova.Lib.PackageDownloader.VantagePackageDownloader>().As<LoqNova.Lib.PackageDownloader.IPackageDownloader>().SingleInstance();
+        builder.RegisterType<LoqNova.Lib.PackageDownloader.PCSupportPackageDownloader>().SingleInstance();
+        builder.RegisterType<LoqNova.Lib.PackageDownloader.VantagePackageDownloader>().SingleInstance();
         builder.RegisterType<LoqNova.Lib.PackageDownloader.PackageDownloaderFactory>().SingleInstance();
         
         // Register ViewModels
