@@ -68,22 +68,22 @@
 
                     <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Spacing="{StaticResource SpaceSm}"
                                 VerticalAlignment="Top" Margin="32,0,0,0" MinWidth="240">
-                        <CheckBox Classes="Control" GroupName="packageSource"
-                                  IsChecked="{Binding IsVantageSource, Mode=TwoWay}"
-                                  IsEnabled="{Binding !IsLoading}">
+                        <RadioButton Classes="Control" GroupName="packageSource"
+                                     IsChecked="{Binding IsVantageSource, Mode=TwoWay}"
+                                     IsEnabled="{Binding !IsLoading}">
                             <StackPanel>
                                 <TextBlock Text="{Binding PrimarySourceLabel}" />
                                 <TextBlock Text="{Binding PrimarySourceMessage}" Classes="Caption" />
                             </StackPanel>
-                        </CheckBox>
-                        <CheckBox Classes="Control" GroupName="packageSource"
-                                  IsChecked="{Binding IsPCSupportSource, Mode=TwoWay}"
-                                  IsEnabled="{Binding !IsLoading}">
+                        </RadioButton>
+                        <RadioButton Classes="Control" GroupName="packageSource"
+                                     IsChecked="{Binding IsPCSupportSource, Mode=TwoWay}"
+                                     IsEnabled="{Binding !IsLoading}">
                             <StackPanel>
                                 <TextBlock Text="{Binding SecondarySourceLabel}" />
                                 <TextBlock Text="{Binding SecondarySourceMessage}" Classes="Caption" />
                             </StackPanel>
-                        </CheckBox>
+                        </RadioButton>
                     </StackPanel>
 
                     <!-- Actions -->
