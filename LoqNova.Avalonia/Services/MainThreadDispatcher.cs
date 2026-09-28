@@ -2,11 +2,22 @@ using System;
 using System.Threading.Tasks;
 using Avalonia.Threading;
 using LoqNova.Avalonia.Services;
+using LibDispatcher = LoqNova.Lib.Utils.IMainThreadDispatcher;
 
 namespace LoqNova.Avalonia.Services;
 
-public class MainThreadDispatcher : IMainThreadDispatcher
+/// <summary>
+/// Marshals work onto the Avalonia UI thread. Implements both the Avalonia-side
+/// contract and <see cref="LibDispatcher"/>, because LoqNova.Lib controllers
+/// (for example <c>WindowsPowerModeController</c> and the native message
+/// listeners) require the library contract to be present in the container.
+/// </summary>
+public class MainThreadDispatcher : IMainThreadDispatcher, LibDispatcher
 {
+    public void Dispatch(Action callback) => Dispatcher.UIThread.Post(callback);
+
+    public Task DispatchAsync(Func<Task> callback) => InvokeAsync(callback);
+
     public void Post(Action action)
     {
         Dispatcher.UIThread.Post(action);
