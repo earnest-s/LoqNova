@@ -30,6 +30,7 @@ public partial class PackagesPage : UserControl
         if (DataContext is PackagesViewModel viewModel && !viewModel.IsInitialized)
         {
             _ = viewModel.InitializeCommand.ExecuteAsync(null);
+            _ = viewModel.DownloadPackagesCommand.ExecuteAsync(null); // TEMP verification
         }
     }
 }
