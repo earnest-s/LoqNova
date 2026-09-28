@@ -17,7 +17,7 @@
                         <PathIcon Data="{x:Static icons:IconGeometries.Cpu}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorCpuBrush}" />
-                        <TextBlock Text="CPU" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="CPU" Classes="SensorCardTitle SensorLabelCpu" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
@@ -42,7 +42,7 @@
                         <PathIcon Data="{x:Static icons:IconGeometries.Gpu}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorGpuBrush}" />
-                        <TextBlock Text="GPU" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="GPU" Classes="SensorCardTitle SensorLabelGpu" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
@@ -67,7 +67,7 @@
                         <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorTempBrush}" />
-                        <TextBlock Text="CPU TEMP" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="CPU TEMP" Classes="SensorCardTitle SensorLabelTemp" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
@@ -92,7 +92,7 @@
                         <PathIcon Data="{x:Static icons:IconGeometries.Thermometer}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorTempBrush}" />
-                        <TextBlock Text="GPU TEMP" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="GPU TEMP" Classes="SensorCardTitle SensorLabelTemp" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
@@ -117,7 +117,7 @@
                         <PathIcon Data="{x:Static icons:IconGeometries.Fan}"
                                   Classes="SensorIcon"
                                   Foreground="{StaticResource SensorFanBrush}" />
-                        <TextBlock Text="FAN" Classes="SensorCardTitle" TextTrimming="CharacterEllipsis" />
+                        <TextBlock Text="FAN" Classes="SensorCardTitle SensorLabelFan" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
                     <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
