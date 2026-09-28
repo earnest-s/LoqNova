@@ -477,6 +477,7 @@ public partial class PackagesViewModel : ViewModelBase
         if (_packageDownloader is null || _packages is null || _packages.Count == 0)
         {
             OnPropertyChanged(nameof(HasHiddenPackages));
+            OnPropertyChanged(nameof(HasVisiblePackages));
             return;
         }
 
@@ -490,6 +491,7 @@ public partial class PackagesViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(HasHiddenPackages));
+        OnPropertyChanged(nameof(HasVisiblePackages));
     }
 
     /// <summary>
