@@ -28,26 +28,14 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
-        // TEMP-BISECT-SLICEA
-        const string DiagPath = @"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag.txt";
-        System.IO.File.WriteAllText(DiagPath, "A: entered OnFrameworkInitializationCompleted\n");
-        // END-TEMP-BISECT-SLICEA
-
         // LoqNova.Lib keeps its own Autofac container and is the single source of
-        // truth for controllers, features and settings. WPF seeds it with the
-        // library modules plus its own front-end module, so the same set is used
-        // here and every page resolves the exact same backend singletons WPF does.
-        // It must be initialized before anything is resolved.
+        // truth for controllers, features and settings, so the same backend
+        // singletons WPF uses are reused here. It is started on a background
+        // thread because the library auto-activates Windows message listeners that
+        // need Avalonia's dispatcher to be pumping; see LibContainer.Initialize.
         // LoqNova.Lib.Automation is a separate project that is not referenced yet;
         // its module joins the container when the Automation page is ported.
-        LoqNova.Lib.IoCContainer.Initialize(
-            new LoqNova.Lib.IoCModule(),
-            new LoqNova.Lib.Macro.IoCModule(),
-            new IoCModule());
-
-        // TEMP-BISECT-SLICEA
-        System.IO.File.AppendAllText(DiagPath, "B: IoCContainer.Initialize completed\n");
-        // END-TEMP-BISECT-SLICEA
+        LibContainer.Initialize();
 
         // Build DI container
         var builder = new ContainerBuilder();
