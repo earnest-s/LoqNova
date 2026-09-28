@@ -25,7 +25,7 @@
                 <Grid ColumnDefinitions="*,Auto" ColumnSpacing="32">
 
                     <!-- ==================== Left: inputs ==================== -->
-                    <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto">
+                    <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto,Auto,Auto">
 
                         <!-- Machine type -->
                         <TextBlock Grid.Row="0" Text="{Binding MachineTypeLabel}"
