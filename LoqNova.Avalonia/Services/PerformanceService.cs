@@ -48,6 +48,8 @@ public class PerformanceService : IPerformanceService
 
     public async Task InitializeAsync()
     {
+        await LibContainer.Initialization.ConfigureAwait(false);
+
         IsSupported = await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false);
 
         if (!IsSupported)
