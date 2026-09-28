@@ -130,8 +130,8 @@
          invisible at rest, which made a scrollable dashboard look like a
          clipped one. These are thin, always-visible and on-brand. -->
 
-    <Style Selector="ScrollBar"><Setter Property="Background" Value="#00FFFF" />
-        <Setter Property="Background" Value="Transparent" />
+    <Style Selector="ScrollBar">
+        <Setter Property="Background" Value="#00FFFF" />
         <!-- The Fluent scrollbar fades to zero opacity at rest, which made a
              scrollable dashboard read as a clipped one. -->
         <Setter Property="Opacity" Value="1" />
