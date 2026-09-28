@@ -20,6 +20,7 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly IBatteryService _batteryService;
     private readonly ISensorsService _sensorsService;
     private readonly INavigationService _navigationService;
+    private readonly IMainThreadDispatcher _dispatcher;
     private bool _suppressModeWrite;
     
     // Sensor channels start as "unknown" (-1) and are only ever set from a real
@@ -149,13 +150,12 @@ public partial class DashboardViewModel : ViewModelBase
     /// </summary>
     private async Task BuildWidgetsAsync()
     {
-        var dispatcher = Container.Resolve<IMainThreadDispatcher>();
         var widgets = await DashboardFeatureRegistry.CreateAllAsync(
-            DashboardFeatureRegistry.DefaultFeatures, dispatcher);
+            DashboardFeatureRegistry.DefaultFeatures, _dispatcher);
 
         var available = widgets.Where(w => w.IsAvailable).ToList();
 
-        await dispatcher.InvokeAsync(() =>
+        await _dispatcher.InvokeAsync(() =>
         {
             ControlWidgets.Clear();
             foreach (var widget in available)

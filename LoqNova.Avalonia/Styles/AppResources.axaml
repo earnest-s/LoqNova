@@ -160,4 +160,5 @@
     <local:StringEqualityConverter x:Key="StringEqualityConverter" />
     <local:IconNameToGeometryConverter x:Key="IconNameToGeometryConverter" />
     <local:EnumDisplayNameConverter x:Key="EnumDisplayNameConverter" />
+  <local:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
 </ResourceDictionary>

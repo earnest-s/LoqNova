@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:vmControls="clr-namespace:LoqNova.Avalonia.ViewModels.Controls"
              xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
              xmlns:sensors="clr-namespace:LoqNova.Avalonia.Views.Controls.Sensors"
              x:Class="LoqNova.Avalonia.Views.Pages.DashboardPage"
@@ -92,9 +93,9 @@
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="vm:DashboardWidgetViewModel">
+                    <DataTemplate x:DataType="vmControls:FeatureWidgetViewModel">
                         <Border Classes="WidgetCard" Margin="0,0,12,12">
-                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto">
+                            <Grid ColumnDefinitions="Auto,*" RowDefinitions="Auto,Auto,Auto">
                                 <PathIcon Grid.Row="0" Grid.Column="0"
                                           Classes="SensorIcon"
                                           VerticalAlignment="Center"
@@ -107,10 +108,34 @@
                                            Margin="10,0,0,0"
                                            VerticalAlignment="Center" />
 
-                                <TextBlock Grid.Row="1" Grid.ColumnSpan="2"
-                                           Text="{Binding Value}"
-                                           Classes="WidgetValue"
-                                           Margin="0,10,0,0" />
+                                <!-- Two-state feature: writes through the library feature. -->
+                                <ToggleSwitch Grid.Row="1" Grid.ColumnSpan="2"
+                                              Margin="0,10,0,0"
+                                              IsVisible="{Binding IsToggle}"
+                                              IsEnabled="{Binding !IsBusy}"
+                                              IsChecked="{Binding IsOn, Mode=TwoWay}" />
+
+                                <!-- Multi-state feature: options come from the machine. -->
+                                <ComboBox Grid.Row="1" Grid.ColumnSpan="2"
+                                          Margin="0,10,0,0"
+                                          IsVisible="{Binding IsChoice}"
+                                          IsEnabled="{Binding !IsBusy}"
+                                          HorizontalAlignment="Stretch"
+                                          ItemsSource="{Binding Options}"
+                                          SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
+
+                                <!-- Advisory text, mirroring WPF's Warning on the card header. -->
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="2"
+                                           Text="{Binding Warning}"
+                                           Classes="WidgetWarning"
+                                           Margin="0,6,0,0"
+                                           IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
+
+                                <TextBlock Grid.Row="2" Grid.ColumnSpan="2"
+                                           Text="{Binding ErrorMessage}"
+                                           Classes="WidgetError"
+                                           Margin="0,6,0,0"
+                                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
                             </Grid>
                         </Border>
                     </DataTemplate>

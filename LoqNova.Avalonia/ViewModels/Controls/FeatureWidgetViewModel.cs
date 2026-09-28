@@ -36,6 +36,12 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
 
     public string Icon { get; init; } = string.Empty;
 
+    /// <summary>True for a two-state feature rendered as a switch.</summary>
+    public bool IsToggle { get; protected init; }
+
+    /// <summary>True for a multi-state feature rendered as a combo box.</summary>
+    public bool IsChoice { get; protected init; }
+
     /// <summary>False when the backend reports the feature as unsupported. Hidden when false.</summary>
     [ObservableProperty]
     private bool _isAvailable;
@@ -173,6 +179,8 @@ public sealed partial class FeatureToggleWidgetViewModel<TState> : FeatureWidget
     {
         Title = title;
         Icon = icon;
+        IsToggle = true;
+
         _onState = onState;
         _offState = offState;
     }
@@ -214,6 +222,7 @@ public sealed partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidget
     {
         Title = title;
         Icon = icon;
+        IsChoice = true;
     }
 
     /// <summary>States the machine reports, in canonical order.</summary>

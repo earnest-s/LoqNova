@@ -169,6 +169,19 @@
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
     </Style>
+    <!-- Advisory text on a feature widget card, mirroring WPF's card Warning. -->
+    <Style Selector="TextBlock.WidgetWarning">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="Foreground" Value="{StaticResource WarningBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.WidgetError">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="Foreground" Value="{StaticResource DangerBrush}" />
+    </Style>
+
 
     <!-- ============================ Card actions ============================ -->
 
