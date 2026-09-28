@@ -1,27 +1,42 @@
 using System;
 using System.Threading.Tasks;
-using LoqNova.Avalonia.Services;
+using LoqNova.Lib;
+using LoqNova.Lib.Features;
 using LoqNova.Lib.System;
-using LoqNova.Lib.Utils;
 using Microsoft.Extensions.Logging;
 
 namespace LoqNova.Avalonia.Services;
 
-public class BatteryService : IBatteryService
+/// <summary>
+/// Battery adapter over the existing library pieces:
+/// <c>Battery.GetBatteryInformation</c> for telemetry,
+/// <c>BatteryFeature</c> / <c>BatteryNightChargeFeature</c> for charge modes and
+/// <c>Power.IsPowerAdapterConnectedAsync</c> for adapter state. Nothing is
+/// synthesised; unknown values stay -1.
+/// </summary>
+public class BatteryService : IBatteryService, IDisposable
 {
+    private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(5);
+
+    private readonly IMainThreadDispatcher _dispatcher;
     private readonly ILogger<BatteryService> _logger;
+
+    private BatteryFeature? _batteryFeature;
+    private BatteryNightChargeFeature? _nightChargeFeature;
+
     private System.Timers.Timer? _timer;
+    private bool _disposed;
 
     public int Percentage { get; private set; } = -1;
     public string StatusText { get; private set; } = "Unknown";
-    public bool IsCharging { get; private set; } = false;
-    public bool IsLowBattery { get; private set; } = false;
-    public bool IsLowWattageCharger { get; private set; } = false;
+    public bool IsCharging { get; private set; }
+    public bool IsLowBattery { get; private set; }
+    public bool IsLowWattageCharger { get; private set; }
     public double TemperatureC { get; private set; } = -1;
     public double TemperatureF { get; private set; } = -1;
-    public double DischargeRate { get; private set; } = 0;
-    public double MinDischargeRate { get; private set; } = 0;
-    public double MaxDischargeRate { get; private set; } = 0;
+    public double DischargeRate { get; private set; }
+    public double MinDischargeRate { get; private set; }
+    public double MaxDischargeRate { get; private set; }
     public int CurrentCapacity { get; private set; } = -1;
     public int FullChargeCapacity { get; private set; } = -1;
     public int DesignCapacity { get; private set; } = -1;
@@ -31,52 +46,90 @@ public class BatteryService : IBatteryService
     public int CycleCount { get; private set; } = -1;
     public DateTime? ManufactureDate { get; private set; }
     public DateTime? FirstUseDate { get; private set; }
-    public BatteryState CurrentMode { get; private set; } = BatteryState.Normal;
-    public BatteryNightChargeState NightChargeMode { get; private set; } = BatteryNightChargeState.Disabled;
-    public bool IsPowerAdapterConnected { get; private set; } = false;
+    public BatteryState CurrentMode { get; private set; }
+    public BatteryNightChargeState NightChargeMode { get; private set; }
+    public bool IsPowerAdapterConnected { get; private set; }
+    public bool IsSupported { get; private set; }
 
     public event Action<int>? PercentageChanged;
     public event Action<bool>? ChargingChanged;
     public event Action<BatteryState>? ModeChanged;
+    public event Action<BatteryNightChargeState>? NightChargeChanged;
 
-    public BatteryService(ILogger<BatteryService> logger)
+    public BatteryService(
+        IMainThreadDispatcher dispatcher,
+        ILogger<BatteryService> logger)
     {
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
     public async Task InitializeAsync()
     {
-        try
+        await LibContainer.Initialization.ConfigureAwait(false);
+
+        // Resolved after the shared container is up so construction never races it.
+        _batteryFeature = LoqNova.Lib.IoCContainer.Resolve<BatteryFeature>();
+        _nightChargeFeature = LoqNova.Lib.IoCContainer.Resolve<BatteryNightChargeFeature>();
+
+        IsSupported = await _batteryFeature.IsSupportedAsync().ConfigureAwait(false);
+
+        if (!IsSupported)
         {
-            await RefreshAsync().ConfigureAwait(false);
-            
-            _timer = new System.Timers.Timer(5000);
-            _timer.Elapsed += async (_, _) => await RefreshAsync().ConfigureAwait(false);
-            _timer.AutoReset = true;
-            _timer.Start();
-            
-            _logger.LogInformation("Battery service initialized");
+            _logger.LogInformation("No battery detected.");
+            return;
         }
-        catch (Exception ex)
-        {
-            _logger.LogError(ex, "Failed to initialize battery service");
-        }
+
+        await ReadModeAsync().ConfigureAwait(false);
+        await ReadNightChargeAsync().ConfigureAwait(false);
+        await RefreshAsync().ConfigureAwait(false);
+
+        StartTimer();
     }
 
-    private async Task RefreshAsync()
+    private void StartTimer()
+    {
+        if (_timer is not null)
+            return;
+
+        _timer = new System.Timers.Timer(PollInterval.TotalMilliseconds) { AutoReset = true };
+        _timer.Elapsed += OnTimerElapsed;
+        _timer.Start();
+
+        _logger.LogInformation("Battery polling every {Interval}.", PollInterval);
+    }
+
+    private async void OnTimerElapsed(object? sender, System.Timers.ElapsedEventArgs e)
     {
         try
         {
-            var info = await Task.Run(() => Battery.GetBatteryInformation()).ConfigureAwait(false);
-            
+            await RefreshAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Battery refresh failed.");
+        }
+    }
+
+    public async Task RefreshAsync()
+    {
+        if (!IsSupported)
+            return;
+
+        try
+        {
+            var info = await Task.Run(Battery.GetBatteryInformation).ConfigureAwait(false);
+
             var oldPercentage = Percentage;
             var oldIsCharging = IsCharging;
-            
+            var oldAdapter = IsPowerAdapterConnected;
+            var oldLowWattage = IsLowWattageCharger;
+
             Percentage = info.BatteryPercentage;
             IsCharging = info.IsCharging;
             IsLowBattery = info.IsLowBattery;
             TemperatureC = info.BatteryTemperatureC ?? -1;
-            TemperatureF = info.BatteryTemperatureC.HasValue ? info.BatteryTemperatureC.Value * 9 / 5 + 32 : -1;
+            TemperatureF = info.BatteryTemperatureC is { } c ? c * 9 / 5 + 32 : -1;
             DischargeRate = Math.Abs(info.DischargeRate);
             MinDischargeRate = Math.Abs(info.MinDischargeRate);
             MaxDischargeRate = Math.Abs(info.MaxDischargeRate);
@@ -87,47 +140,150 @@ public class BatteryService : IBatteryService
             CycleCount = info.CycleCount;
             ManufactureDate = info.ManufactureDate;
             FirstUseDate = info.FirstUseDate;
-            IsPowerAdapterConnected = info.IsCharging;
-            
-            StatusText = info.IsCharging ? "Charging" : (info.IsLowBattery ? "Low Battery" : "On Battery");
-            
-            OnBatterySince = await Task.Run(() => Battery.GetOnBatterySince()).ConfigureAwait(false);
-            OnBatteryDuration = OnBatterySince.HasValue ? DateTime.Now - OnBatterySince.Value : TimeSpan.Zero;
-            
-            if (Percentage != oldPercentage)
+            StatusText = info.IsCharging
+                ? "Charging"
+                : info.IsLowBattery
+                    ? "Low Battery"
+                    : "On Battery";
+
+            // Adapter status is a separate query: a fully charged battery on AC
+            // reports IsCharging == false, so it cannot stand in for the adapter.
+            var adapter = await Power.IsPowerAdapterConnectedAsync().ConfigureAwait(false);
+            IsPowerAdapterConnected = adapter is PowerAdapterStatus.Connected or PowerAdapterStatus.ConnectedLowWattage;
+            IsLowWattageCharger = adapter is PowerAdapterStatus.ConnectedLowWattage;
+
+            OnBatterySince = await Task.Run(Battery.GetOnBatterySince).ConfigureAwait(false);
+            OnBatteryDuration = OnBatterySince is { } since ? DateTime.Now - since : TimeSpan.Zero;
+
+            await PublishAsync(() =>
             {
-                PercentageChanged?.Invoke(Percentage);
-            }
-            
-            if (IsCharging != oldIsCharging)
-            {
-                ChargingChanged?.Invoke(IsCharging);
-            }
+                if (Percentage != oldPercentage)
+                    PercentageChanged?.Invoke(Percentage);
+
+                if (IsCharging != oldIsCharging)
+                    ChargingChanged?.Invoke(IsCharging);
+
+                if (adapter != oldAdapter || IsLowWattageCharger != oldLowWattage)
+                    PercentageChanged?.Invoke(Percentage);
+            }).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Failed to refresh battery data");
+            _logger.LogError(ex, "Failed to read battery data.");
         }
     }
 
-    public Task SetModeAsync(BatteryState mode)
+    public async Task SetModeAsync(BatteryState mode)
     {
-        if (CurrentMode != mode)
+        if (_batteryFeature is null)
+            return;
+
+        try
         {
-            CurrentMode = mode;
-            ModeChanged?.Invoke(mode);
-            _logger.LogInformation("Battery mode changed to {Mode}", mode);
+            await _batteryFeature.SetStateAsync(mode).ConfigureAwait(false);
+
+            // Read back so the UI reflects the machine, not the request.
+            var actual = await _batteryFeature.GetStateAsync().ConfigureAwait(false);
+            await PublishAsync(() =>
+            {
+                CurrentMode = actual;
+                ModeChanged?.Invoke(actual);
+            }).ConfigureAwait(false);
         }
-        return Task.CompletedTask;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set battery mode to {Mode}.", mode);
+            await ReadModeAsync().ConfigureAwait(false);
+        }
     }
 
-    public Task SetNightChargeAsync(BatteryNightChargeState state)
+    public async Task SetNightChargeAsync(BatteryNightChargeState state)
     {
-        if (NightChargeMode != state)
+        if (_nightChargeFeature is null)
+            return;
+
+        try
         {
-            NightChargeMode = state;
-            _logger.LogInformation("Battery night charge mode changed to {State}", state);
+            await _nightChargeFeature.SetStateAsync(state).ConfigureAwait(false);
+
+            var actual = await _nightChargeFeature.GetStateAsync().ConfigureAwait(false);
+            await PublishAsync(() =>
+            {
+                NightChargeMode = actual;
+                NightChargeChanged?.Invoke(actual);
+            }).ConfigureAwait(false);
         }
-        return Task.CompletedTask;
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to set night charge to {State}.", state);
+            await ReadNightChargeAsync().ConfigureAwait(false);
+        }
+    }
+
+    private async Task ReadModeAsync()
+    {
+        if (_batteryFeature is null)
+            return;
+
+        try
+        {
+            var mode = await _batteryFeature.GetStateAsync().ConfigureAwait(false);
+            await PublishAsync(() =>
+            {
+                CurrentMode = mode;
+                ModeChanged?.Invoke(mode);
+            }).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to read battery mode.");
+        }
+    }
+
+    private async Task ReadNightChargeAsync()
+    {
+        if (_nightChargeFeature is null)
+            return;
+
+        try
+        {
+            var state = await _nightChargeFeature.GetStateAsync().ConfigureAwait(false);
+            await PublishAsync(() =>
+            {
+                NightChargeMode = state;
+                NightChargeChanged?.Invoke(state);
+            }).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to read night charge state.");
+        }
+    }
+
+    private Task PublishAsync(Action update)
+    {
+        if (_dispatcher.CheckAccess())
+        {
+            update();
+            return Task.CompletedTask;
+        }
+
+        return _dispatcher.InvokeAsync(update);
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+            return;
+
+        _disposed = true;
+
+        if (_timer is null)
+            return;
+
+        _timer.Elapsed -= OnTimerElapsed;
+        _timer.Stop();
+        _timer.Dispose();
+        _timer = null;
     }
 }
