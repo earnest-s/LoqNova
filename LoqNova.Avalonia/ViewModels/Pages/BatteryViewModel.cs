@@ -14,7 +14,7 @@ public partial class BatteryViewModel : ViewModelBase
     private readonly ISettingsService _settingsService;
     
     [ObservableProperty]
-    private int _percentage = 82;
+    private int _percentage = -1;
     
     [ObservableProperty]
     private string _statusText = "On battery";
@@ -29,31 +29,31 @@ public partial class BatteryViewModel : ViewModelBase
     private bool _isLowWattageCharger = false;
     
     [ObservableProperty]
-    private double _temperatureC = 32.5;
+    private double _temperatureC = -1;
     
     [ObservableProperty]
-    private double _temperatureF = 90.5;
+    private double _temperatureF = -1;
     
     [ObservableProperty]
-    private double _dischargeRate = 12.4;
+    private double _dischargeRate = -1;
     
     [ObservableProperty]
-    private double _minDischargeRate = 8.2;
+    private double _minDischargeRate = -1;
     
     [ObservableProperty]
-    private double _maxDischargeRate = 28.7;
+    private double _maxDischargeRate = -1;
     
     [ObservableProperty]
-    private int _currentCapacity = 45600;
+    private int _currentCapacity = -1;
     
     [ObservableProperty]
-    private int _fullChargeCapacity = 55800;
+    private int _fullChargeCapacity = -1;
     
     [ObservableProperty]
-    private int _designCapacity = 60000;
+    private int _designCapacity = -1;
     
     [ObservableProperty]
-    private int _healthPercent = 93;
+    private int _healthPercent = -1;
     
     [ObservableProperty]
     private TimeSpan _onBatteryDuration = TimeSpan.FromHours(2.5);
@@ -62,7 +62,7 @@ public partial class BatteryViewModel : ViewModelBase
     private DateTime? _onBatterySince = DateTime.Now.AddHours(-2.5);
     
     [ObservableProperty]
-    private int _cycleCount = 127;
+    private int _cycleCount = -1;
     
     [ObservableProperty]
     private DateTime? _manufactureDate = new DateTime(2024, 3, 15);
