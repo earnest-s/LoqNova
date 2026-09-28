@@ -46,6 +46,8 @@ public class SensorsService : ISensorsService, IDisposable
 
     public async Task InitializeAsync()
     {
+        await LibContainer.Initialization.ConfigureAwait(false);
+
         if (!await _sensorsController.IsSupportedAsync().ConfigureAwait(false))
         {
             _logger.LogWarning("Sensors controller is not supported on this machine.");
