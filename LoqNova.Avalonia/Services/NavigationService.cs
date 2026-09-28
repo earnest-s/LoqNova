@@ -28,7 +28,7 @@ public class NavigationService : INavigationService
         
         if (_contentHost != null)
         {
-            await NavigateToAsync(NavigationPage.Dashboard);
+            await NavigateToAsync(NavigationPage.Packages); // TEMP
         }
     }
     
