@@ -132,23 +132,30 @@
 
     <Style Selector="ScrollBar">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Width" Value="10" />
-        <Setter Property="MinWidth" Value="10" />
+        <!-- The Fluent scrollbar fades to zero opacity at rest, which made a
+             scrollable dashboard read as a clipped one. -->
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="Width" Value="12" />
+        <Setter Property="MinWidth" Value="12" />
+        <!-- The Fluent thumb template paints from the ScrollBar Foreground. -->
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
     </Style>
 
     <Style Selector="ScrollBar:horizontal">
-        <Setter Property="Height" Value="10" />
-        <Setter Property="MinHeight" Value="10" />
+        <Setter Property="Height" Value="12" />
+        <Setter Property="MinHeight" Value="12" />
     </Style>
 
     <Style Selector="ScrollBar /template/ Thumb#PART_Thumb">
-        <Setter Property="Background" Value="{StaticResource BorderStrongBrush}" />
-        <Setter Property="MinHeight" Value="32" />
-        <Setter Property="MinWidth" Value="32" />
+        <Setter Property="Background" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Opacity" Value="1" />
+        <Setter Property="MinHeight" Value="36" />
+        <Setter Property="MinWidth" Value="36" />
     </Style>
 
-    <Style Selector="ScrollBar:pointerover /template/ Thumb#PART_Thumb">
-        <Setter Property="Background" Value="{StaticResource TextMutedBrush}" />
+    <Style Selector="ScrollBar:pointerover">
+        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
     </Style>
 
     <Style Selector="ScrollBar /template/ RepeatButton#PART_RepeatButton">
@@ -179,4 +186,10 @@
         <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
+    <!-- TEMP DIAGNOSTIC -->
+    <Style Selector="ScrollBar /template/ Panel#PART_Panel"><Setter Property="Background" Value="#FF0000" /></Style>
+    <Style Selector="ScrollBar /template/ Border#PART_Panel"><Setter Property="Background" Value="#00FF00" /></Style>
+    <Style Selector="ScrollBar /template/ Thumb#PART_Thumb"><Setter Property="Background" Value="#FFFF00" /><Setter Property="Opacity" Value="1" /></Style>
+    <Style Selector="ScrollBar /template/ Thumb#PART_Thumb /template/ Border#PART_ThumbVisual"><Setter Property="Background" Value="#FF00FF" /><Setter Property="Opacity" Value="1" /></Style>
+    <Style Selector="ScrollBar /template/ Thumb#PART_Thumb /template/ Rectangle#PART_ThumbVisual"><Setter Property="Fill" Value="#00FFFF" /><Setter Property="Opacity" Value="1" /></Style>
 </Styles>
