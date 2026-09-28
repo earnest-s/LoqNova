@@ -93,12 +93,7 @@
 
     <!-- Check / radio accents: the Fluent theme paints these with the system
          accent colour, which clashes with the LOQ Nova palette. -->
-    <Style Selector="CheckBox.Control">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
-        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
-        <Setter Property="Cursor" Value="Hand" />
-    </Style>
+
 
     <Style Selector="CheckBox.Control /template/ Border#PART_NormalBackground">
         <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
