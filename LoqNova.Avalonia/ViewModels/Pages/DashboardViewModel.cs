@@ -53,16 +53,11 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty]
     private IBrush _powerModeColor = Brushes.Transparent;
 
-    /// <summary>God Mode is only offered when the device reports support.</summary>
-    public bool IsGodModeSupported => _performanceService.IsSupported;
+    /// <summary>God Mode is only offered when the machine reports it as available.</summary>
+    public bool IsGodModeSupported => _performanceService.IsGodModeSupported;
 
-    public ObservableCollection<PowerModeState> PowerModeItems { get; } = new()
-    {
-        PowerModeState.Quiet,
-        PowerModeState.Balance,
-        PowerModeState.Performance,
-        PowerModeState.GodMode
-    };
+    /// <summary>Populated from the machine's reported power modes.</summary>
+    public ObservableCollection<PowerModeState> PowerModeItems { get; } = new();
 
     public ObservableCollection<DashboardWidgetViewModel> Widgets { get; } = new();
 
