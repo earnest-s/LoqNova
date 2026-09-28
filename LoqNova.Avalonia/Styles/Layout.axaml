@@ -112,6 +112,21 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
+    <!-- The theme's ":checked" rules outrank a plain ".Control" selector in
+         Avalonia, so the checked states need matching specificity to be
+         recoloured from the system accent to the LOQ Nova accent. -->
+    <Style Selector="RadioButton.Control:checked /template/ Ellipse#PART_NormalBackground">
+        <Setter Property="Fill" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="RadioButton.Control:checked /template/ Ellipse#PART_OuterEllipse">
+        <Setter Property="Stroke" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="CheckBox.Control:checked /template/ Path#PART_CheckMark">
+        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+    </Style>
+
 
     <Style Selector="ToggleSwitch.Control:pointerover /template/ Border#PART_OffBackground">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
