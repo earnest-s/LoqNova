@@ -131,6 +131,9 @@ public partial class PackagesViewModel : ViewModelBase
 
     public bool HasHiddenPackages => _packageDownloaderSettings.Store.HiddenPackages.Count != 0;
 
+    /// <summary>Drives the "No matching downloads" empty state.</summary>
+    public bool HasVisiblePackages => Packages.Count > 0;
+
     public bool IsOnlyShowUpdatesVisible => IsVantageSource;
 
     public PackagesViewModel(
