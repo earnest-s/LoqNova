@@ -100,7 +100,7 @@ public partial class PackagesViewModel : ViewModelBase
     public string SecondarySourceMessage => T("PackagesPage_SecondarySource_Message");
     public string OnlyShowUpdatesLabel => T("PackagesPage_OnlyShowUpdates");
     public string FilterLabel => T("Filter");
-    public string SortLabel => T("PackagesPage_Sort_Name") is not null ? "Sort" : "Sort";
+    public string SortLabel => "Sort";
     public string RefreshLabel => T("Refresh");
     public string CancelLabel => T("Cancel");
     public string HideLabel => T("Hide");
