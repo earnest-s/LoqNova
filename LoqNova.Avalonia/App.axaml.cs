@@ -28,7 +28,6 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
-        void __S() => System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt", $"mark" + Environment.NewLine);
         // LoqNova.Lib keeps its own Autofac container and is the single source of
         // truth for controllers, features and settings, so the same backend
         // singletons WPF uses are reused here. It is started on a background
@@ -38,10 +37,9 @@ public partial class App : Application
         // its module joins the container when the Automation page is ported.
         LibContainer.Initialize();
 
-        var __d = @"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt";
-        System.IO.File.WriteAllText(__d, "1 entered OnFrameworkInitializationCompleted\n");
-        void __s(string m) => System.IO.File.AppendAllText(__d, m + "\n");
-        // END-TEMP-DIAG-B
+        void __S(string tag) => System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt", tag + Environment.NewLine);
+        System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt", "1 entered" + Environment.NewLine);
+        __S("2 built-builder-start");
         // Build DI container
         var builder = new ContainerBuilder();
         
@@ -154,23 +152,25 @@ public partial class App : Application
         builder.RegisterType<MacroRecordingViewModel>().InstancePerDependency();
         builder.RegisterType<SpectrumEditEffectViewModel>().InstancePerDependency();
         
+        __S("3 about-to-build");
         Container = builder.Build();
+        __S("4 container-built");
         AppHost.Initialize(new AutofacServiceProvider(Container));
         
-        __S();
+        __S("5 localizing");
         // Initialize localization
         LocalizationHelper.Initialize();
         
-        __S();
+        __S("6 theme-init");
         // Apply theme
         var themeService = Container.Resolve<IThemeService>();
         await themeService.InitializeAsync();
 
         
-        __S();
+        __S("7 lifetime-block");
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            __S();
+            __S("8 creating-window");
             // Create main window
             var mainWindow = new MainWindow
             {
@@ -179,52 +179,20 @@ public partial class App : Application
             
             desktop.MainWindow = mainWindow;
             
-            __S();
+            __S("9 window-done");
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
             await trayService.InitializeAsync(mainWindow);
             
-            __S();
+            __S("10 tray-done");
             // Initialize navigation
             var navigationService = Container.Resolve<INavigationService>();
             await navigationService.InitializeAsync(mainWindow);
         }
         
-        // TEMP-DIAG-B
-        var __d = @"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt";
-        System.IO.File.WriteAllText(__d, "start\n");
-        void __s(string m) => System.IO.File.AppendAllText(__d, m + "\n");
-        try
-        {
-            await LibContainer.Initialization;
-            __s("LibContainer ready");
-            foreach (var (name, vm) in new (string, object)[]
-            {
-                ("Dashboard", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.DashboardViewModel>()),
-                ("Keyboard", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.KeyboardBacklightViewModel>()),
-                ("Battery", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.BatteryViewModel>()),
-                ("Settings", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.SettingsViewModel>()),
-                ("StatusDialog", Container.Resolve<LoqNova.Avalonia.ViewModels.Dialogs.StatusViewModel>()),
-                ("OverclockDialog", Container.Resolve<LoqNova.Avalonia.ViewModels.Dialogs.OverclockGpuSettingsViewModel>()),
-            })
-            {
-                __s($"resolved {name} -> {vm.GetType().Name}");
-            }
-            var rgb = Container.Resolve<IRgbService>();
-            __s("rgb isMock=" + (rgb.GetType().Name.Contains("Mock")));
-            var bat = Container.Resolve<IBatteryService>();
-            __s("battery isMock=" + (bat.GetType().Name.Contains("Mock")) + " supported=" + bat.IsSupported);
-            var set = Container.Resolve<ISettingsService>();
-            __s("settings isMock=" + (set.GetType().Name.Contains("Mock")) + " theme=" + set.Theme);
-            var perf = Container.Resolve<IPerformanceService>();
-            __s("perf isMock=" + (perf.GetType().Name.Contains("Mock")) + " supported=" + perf.IsSupported);
-            __s("DONE");
-        }
-        catch (Exception ex) { __s("FATAL " + ex); }
-        // END-TEMP-DIAG-B
-        __S();
+        __S("11 nav-done");
         base.OnFrameworkInitializationCompleted();
-        __S();
+        __S("12 base-done");
 
         // The shared library container is built on a background thread because the
         // library's Windows message listeners need Avalonia's dispatcher to be
