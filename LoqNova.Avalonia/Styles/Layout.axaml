@@ -112,14 +112,6 @@
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
-    <Style Selector="RadioButton.Control /template/ Ellipse#PART_NormalBackground">
-        <Setter Property="Fill" Value="{StaticResource PrimaryBrush}" />
-    </Style>
-
-    <Style Selector="RadioButton.Control /template/ Ellipse#PART_OuterEllipse">
-        <Setter Property="Stroke" Value="{StaticResource PrimaryBrush}" />
-    </Style>
-
 
     <Style Selector="ToggleSwitch.Control:pointerover /template/ Border#PART_OffBackground">
         <Setter Property="Background" Value="{StaticResource HoverBrush}" />
