@@ -118,7 +118,7 @@ public class PerformanceService : IPerformanceService
 
     public async Task ApplyGodModeSettingsAsync()
     {
-        if (!IsGodModeEnabled)
+        if (_powerModeFeature is null || !IsGodModeEnabled)
         {
             _logger.LogInformation("Machine is not in God Mode; nothing to apply.");
             return;

@@ -16,5 +16,8 @@ public class IoCModule : Module
     protected override void Load(ContainerBuilder builder)
     {
         builder.Register<MainThreadDispatcher>();
+        builder.RegisterType<ScreenCapture>()
+               .As<LoqNova.Lib.Controllers.SpectrumKeyboardBacklightController.IScreenCapture>()
+               .SingleInstance();
     }
 }

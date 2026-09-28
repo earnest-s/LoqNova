@@ -56,31 +56,26 @@ public partial class App : Application
         builder.RegisterType<FileDialogService>().As<IFileDialogService>().SingleInstance();
         builder.RegisterType<MainThreadDispatcher>().As<IMainThreadDispatcher>().SingleInstance();
         
-        // Register logging
-        builder.Register(c => 
+        // Register logging. The factory is owned by the container: the previous
+        // registration created it inside a `using` and returned a logger for a
+        // disposed factory, and no ILoggerFactory was registered, so injecting
+        // ILogger<T> could not be satisfied.
+        builder.RegisterInstance(Microsoft.Extensions.Logging.LoggerFactory.Create(logging =>
         {
-            using var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(builder => 
-            {
-                builder.AddDebug();
-                builder.AddConsole();
-                builder.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug);
-            });
-            return loggerFactory.CreateLogger<Program>();
-        }).SingleInstance();
-        
+            logging.AddDebug();
+            logging.AddConsole();
+            logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug);
+        })).SingleInstance();
+
         builder.RegisterGeneric(typeof(Microsoft.Extensions.Logging.Logger<>))
                .As(typeof(Microsoft.Extensions.Logging.ILogger<>))
                .SingleInstance();
 
-        // LoqNova.Lib controllers and features are singletons owned by
-        // LoqNova.Lib.IoCContainer. They are surfaced here as instances so the
-        // Avalonia adapters below talk to the same objects WPF uses.
-        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Controllers.Sensors.ISensorsController>()).SingleInstance();
-        builder.Register(_ => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Features.PowerModeFeature>()).SingleInstance();
-
         // Real power mode / sensor / thermal adapters over the existing library
-        // controllers. Power mode state is read from and written to the machine;
-        // nothing is synthesised.
+        // controllers. Each adapter resolves its controller from the shared
+        // container after LibContainer.Initialization completes, so no Lib type is
+        // resolved while the container is still being built. Power mode state is
+        // read from and written to the machine; nothing is synthesised.
         builder.RegisterType<PerformanceService>().As<IPerformanceService>().SingleInstance();
         builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
         builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
@@ -149,55 +144,6 @@ public partial class App : Application
         var themeService = Container.Resolve<IThemeService>();
         await themeService.InitializeAsync();
 
-        // TEMP-DIAGNOSTIC-SLICEA
-        try
-        {
-            var diagPath = @"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag.txt";
-            System.IO.File.WriteAllText(diagPath, $"machine={Environment.MachineName} utc={DateTime.UtcNow:O}\n");
-            void Say(string s) => System.IO.File.AppendAllText(diagPath, s + "\n");
-
-            Say("resolving services...");
-            var perf = Container.Resolve<IPerformanceService>();
-            var sensors = Container.Resolve<ISensorsService>();
-            var thermal = Container.Resolve<IThermalService>();
-            Say("resolved all three");
-
-            Say("perf.InitializeAsync()...");
-            try
-            {
-                await perf.InitializeAsync();
-                Say($"PERF supported={perf.IsSupported} godModeSupported={perf.IsGodModeSupported} godModeEnabled={perf.IsGodModeEnabled}");
-                Say($"PERF available=[{string.Join(",", perf.AvailableStates)}]");
-                Say($"PERF current={perf.CurrentMode}");
-            }
-            catch (Exception ex) { Say($"PERF THREW {ex.GetType().Name}: {ex.Message}"); }
-
-            Say("sensors.InitializeAsync()...");
-            try
-            {
-                await sensors.InitializeAsync();
-                Say($"SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} gpuTemp={sensors.GpuTemperature} fan={sensors.FanSpeedRpm}");
-            }
-            catch (Exception ex) { Say($"SENSORS THREW {ex.GetType().Name}: {ex.Message}"); }
-
-            Say("thermal.InitializeAsync()...");
-            try
-            {
-                await thermal.InitializeAsync();
-                Say($"THERMAL cpuTemp={thermal.CpuTemperature} gpuTemp={thermal.GpuTemperature} fan={thermal.FanSpeedRpm} fanPct={thermal.FanSpeedPercent}");
-            }
-            catch (Exception ex) { Say($"THERMAL THREW {ex.GetType().Name}: {ex.Message}"); }
-
-            await Task.Delay(6000);
-            Say($"AFTER-6s SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} fan={sensors.FanSpeedRpm}");
-            Say($"AFTER-6s THERMAL cpuTemp={thermal.CpuTemperature} fan={thermal.FanSpeedRpm} fanPct={thermal.FanSpeedPercent}");
-            Say("DONE");
-        }
-        catch (Exception ex)
-        {
-            System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag.txt", "FATAL " + ex.ToString());
-        }
-        // END-TEMP-DIAGNOSTIC-SLICEA
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {

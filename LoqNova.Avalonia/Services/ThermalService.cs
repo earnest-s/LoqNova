@@ -15,10 +15,10 @@ public class ThermalService : IThermalService, IDisposable
 {
     private static readonly TimeSpan PollInterval = TimeSpan.FromSeconds(2);
 
-    private readonly ISensorsController _sensorsController;
     private readonly IMainThreadDispatcher _dispatcher;
     private readonly ILogger<ThermalService> _logger;
 
+    private ISensorsController? _sensorsController;
     private System.Timers.Timer? _timer;
     private bool _disposed;
 
@@ -39,11 +39,9 @@ public class ThermalService : IThermalService, IDisposable
     public event Action<int>? FanSpeedChanged;
 
     public ThermalService(
-        ISensorsController sensorsController,
         IMainThreadDispatcher dispatcher,
         ILogger<ThermalService> logger)
     {
-        _sensorsController = sensorsController;
         _dispatcher = dispatcher;
         _logger = logger;
     }
@@ -51,6 +49,10 @@ public class ThermalService : IThermalService, IDisposable
     public async Task InitializeAsync()
     {
         await LibContainer.Initialization.ConfigureAwait(false);
+
+        // Resolved only once the shared container is up, so constructing this
+        // service never races container initialisation.
+        _sensorsController = LoqNova.Lib.IoCContainer.Resolve<ISensorsController>();
 
         if (!await _sensorsController.IsSupportedAsync().ConfigureAwait(false))
         {
@@ -93,6 +95,9 @@ public class ThermalService : IThermalService, IDisposable
 
     private async Task RefreshAsync()
     {
+        if (_sensorsController is null)
+            return;
+
         try
         {
             var data = await _sensorsController.GetDataAsync().ConfigureAwait(false);

@@ -36,8 +36,10 @@ public static class LibContainer
         {
             try
             {
+                // Fully qualified: inside this namespace an unqualified IoCModule
+                // would bind to LoqNova.Avalonia.IoCModule, not the library one.
                 IoCContainer.Initialize(
-                    new IoCModule(),
+                    new LoqNova.Lib.IoCModule(),
                     new LoqNova.Lib.Macro.IoCModule(),
                     new Avalonia.IoCModule());
 
