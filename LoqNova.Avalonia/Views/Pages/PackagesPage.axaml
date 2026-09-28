@@ -22,80 +22,81 @@
 
             <!-- ============================ Configuration ============================ -->
             <Border Classes="ContentCard">
-                <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto,Auto,Auto">
+                <Grid ColumnDefinitions="*,Auto" ColumnSpacing="32">
 
-                    <!-- Machine type -->
-                    <TextBlock Grid.Row="0" Grid.Column="0" Text="{Binding MachineTypeLabel}"
-                               Classes="SettingsLabel" VerticalAlignment="Center" Margin="0,0,0,10" />
-                    <TextBox Grid.Row="0" Grid.Column="0" Classes="Control"
-                             Text="{Binding MachineType, Mode=TwoWay}"
-                             Watermark="(eg. 82JQ)"
-                             MaxWidth="160" HorizontalAlignment="Left"
-                             IsEnabled="{Binding !IsLoading}" />
+                    <!-- ==================== Left: inputs ==================== -->
+                    <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto">
 
-                    <!-- Operating system -->
-                    <TextBlock Grid.Row="1" Grid.Column="0" Text="{Binding OperatingSystemLabel}"
-                               Classes="SettingsLabel" VerticalAlignment="Center" Margin="0,0,0,10" />
-                    <ComboBox Grid.Row="1" Grid.Column="0" Classes="Control"
-                              ItemsSource="{Binding OperatingSystems}"
-                              SelectedItem="{Binding OperatingSystem, Mode=TwoWay}"
-                              MaxWidth="220" HorizontalAlignment="Left"
-                              IsEnabled="{Binding !IsLoading}">
-                        <ComboBox.ItemTemplate>
-                            <DataTemplate>
-                                <TextBlock Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}" />
-                            </DataTemplate>
-                        </ComboBox.ItemTemplate>
-                    </ComboBox>
+                        <!-- Machine type -->
+                        <TextBlock Grid.Row="0" Text="{Binding MachineTypeLabel}"
+                                   Classes="SectionLabel" Margin="0,0,0,6" />
+                        <TextBox Grid.Row="1" Classes="Control" MaxWidth="180" HorizontalAlignment="Left"
+                                 Text="{Binding MachineType, Mode=TwoWay}"
+                                 Watermark="(eg. 82JQ)"
+                                 IsEnabled="{Binding !IsLoading}"
+                                 Margin="0,0,0,14" />
 
-                    <!-- Download folder -->
-                    <TextBlock Grid.Row="2" Grid.Column="0" Text="{Binding DownloadToLabel}"
-                               Classes="SettingsLabel" VerticalAlignment="Center" Margin="0,0,0,10" />
-                    <StackPanel Grid.Row="2" Grid.Column="0" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
-                        <TextBox Classes="Control" Width="360"
-                                 Text="{Binding DownloadPath, Mode=TwoWay}" />
-                        <Button Classes="SecondaryButton" Content="{Binding BrowseLabel}"
-                                Command="{Binding BrowseDownloadPathCommand}"
-                                IsEnabled="{Binding !IsLoading}" />
-                        <Button Classes="SecondaryButton" Content="{Binding OpenDownloadToLabel}"
-                                Command="{Binding OpenDownloadLocationCommand}" />
-                    </StackPanel>
+                        <!-- Operating system -->
+                        <TextBlock Grid.Row="2" Text="{Binding OperatingSystemLabel}"
+                                   Classes="SectionLabel" Margin="0,0,0,6" />
+                        <ComboBox Grid.Row="3" Classes="Control" MaxWidth="220" HorizontalAlignment="Left"
+                                  ItemsSource="{Binding OperatingSystems}"
+                                  SelectedItem="{Binding OperatingSystem, Mode=TwoWay}"
+                                  IsEnabled="{Binding !IsLoading}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource EnumDisplayNameConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
 
-                    <!-- Source -->
-                    <TextBlock Grid.Row="0" Grid.RowSpan="2" Grid.Column="1"
-                               Text="{Binding SourceLabel}" Classes="SectionLabel"
-                               HorizontalAlignment="Left" Margin="32,0,0,0" />
+                        <!-- Download folder -->
+                        <TextBlock Grid.Row="4" Text="{Binding DownloadToLabel}"
+                                   Classes="SectionLabel" Margin="0,16,0,6" />
+                        <StackPanel Grid.Row="5" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                            <TextBox Classes="Control" Width="330"
+                                     Text="{Binding DownloadPath, Mode=TwoWay}" />
+                            <Button Classes="SecondaryButton" Content="{Binding BrowseLabel}"
+                                    Command="{Binding BrowseDownloadPathCommand}"
+                                    IsEnabled="{Binding !IsLoading}" />
+                            <Button Classes="SecondaryButton" Content="{Binding OpenDownloadToLabel}"
+                                    Command="{Binding OpenDownloadLocationCommand}" />
+                        </StackPanel>
+                    </Grid>
 
-                    <StackPanel Grid.Row="0" Grid.Column="1" Grid.RowSpan="2" Spacing="{StaticResource SpaceSm}"
-                                VerticalAlignment="Top" Margin="32,0,0,0" MinWidth="240">
-                        <RadioButton Classes="Control" GroupName="packageSource"
-                                     IsChecked="{Binding IsVantageSource, Mode=TwoWay}"
-                                     IsEnabled="{Binding !IsLoading}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding PrimarySourceLabel}" />
-                                <TextBlock Text="{Binding PrimarySourceMessage}" Classes="Caption" />
-                            </StackPanel>
-                        </RadioButton>
-                        <RadioButton Classes="Control" GroupName="packageSource"
-                                     IsChecked="{Binding IsPCSupportSource, Mode=TwoWay}"
-                                     IsEnabled="{Binding !IsLoading}">
-                            <StackPanel>
-                                <TextBlock Text="{Binding SecondarySourceLabel}" />
-                                <TextBlock Text="{Binding SecondarySourceMessage}" Classes="Caption" />
-                            </StackPanel>
-                        </RadioButton>
-                    </StackPanel>
+                    <!-- ==================== Right: source + actions ==================== -->
+                    <Grid Grid.Column="1" RowDefinitions="Auto,Auto,Auto" MinWidth="260">
+                        <TextBlock Grid.Row="0" Text="{Binding SourceLabel}" Classes="SectionLabel" />
 
-                    <!-- Actions -->
-                    <StackPanel Grid.Row="3" Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
-                                HorizontalAlignment="Right" VerticalAlignment="Center">
-                        <Button Classes="PrimaryButton" Content="{Binding RefreshLabel}"
-                                Command="{Binding DownloadPackagesCommand}"
-                                IsEnabled="{Binding !IsLoading}" />
-                        <Button Classes="SecondaryButton" Content="{Binding CancelLabel}"
-                                Command="{Binding CancelDownloadPackagesCommand}"
-                                IsVisible="{Binding IsCancelVisible}" />
-                    </StackPanel>
+                        <StackPanel Grid.Row="1" Spacing="{StaticResource SpaceSm}" Margin="0,0,0,16">
+                            <RadioButton Classes="Control" GroupName="packageSource"
+                                         IsChecked="{Binding IsVantageSource, Mode=TwoWay}"
+                                         IsEnabled="{Binding !IsLoading}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding PrimarySourceLabel}" />
+                                    <TextBlock Text="{Binding PrimarySourceMessage}" Classes="Caption" />
+                                </StackPanel>
+                            </RadioButton>
+                            <RadioButton Classes="Control" GroupName="packageSource"
+                                         IsChecked="{Binding IsPCSupportSource, Mode=TwoWay}"
+                                         IsEnabled="{Binding !IsLoading}">
+                                <StackPanel>
+                                    <TextBlock Text="{Binding SecondarySourceLabel}" />
+                                    <TextBlock Text="{Binding SecondarySourceMessage}" Classes="Caption" />
+                                </StackPanel>
+                            </RadioButton>
+                        </StackPanel>
+
+                        <StackPanel Grid.Row="2" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
+                                    HorizontalAlignment="Right">
+                            <Button Classes="PrimaryButton" Content="{Binding RefreshLabel}"
+                                    Command="{Binding DownloadPackagesCommand}"
+                                    IsEnabled="{Binding !IsLoading}" />
+                            <Button Classes="SecondaryButton" Content="{Binding CancelLabel}"
+                                    Command="{Binding CancelDownloadPackagesCommand}"
+                                    IsVisible="{Binding IsCancelVisible}" />
+                        </StackPanel>
+                    </Grid>
 
                 </Grid>
             </Border>
