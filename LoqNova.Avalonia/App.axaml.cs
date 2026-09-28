@@ -179,6 +179,38 @@ public partial class App : Application
             await navigationService.InitializeAsync(mainWindow);
         }
         
+        // TEMP-DIAG-B
+        var __d = @"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt";
+        System.IO.File.WriteAllText(__d, "start\n");
+        void __s(string m) => System.IO.File.AppendAllText(__d, m + "\n");
+        try
+        {
+            await LibContainer.Initialization;
+            __s("LibContainer ready");
+            foreach (var (name, vm) in new (string, object)[]
+            {
+                ("Dashboard", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.DashboardViewModel>()),
+                ("Keyboard", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.KeyboardBacklightViewModel>()),
+                ("Battery", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.BatteryViewModel>()),
+                ("Settings", Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.SettingsViewModel>()),
+                ("StatusDialog", Container.Resolve<LoqNova.Avalonia.ViewModels.Dialogs.StatusViewModel>()),
+                ("OverclockDialog", Container.Resolve<LoqNova.Avalonia.ViewModels.Dialogs.OverclockGpuSettingsViewModel>()),
+            })
+            {
+                __s($"resolved {name} -> {vm.GetType().Name}");
+            }
+            var rgb = Container.Resolve<IRgbService>();
+            __s("rgb isMock=" + (rgb.GetType().Name.Contains("Mock")));
+            var bat = Container.Resolve<IBatteryService>();
+            __s("battery isMock=" + (bat.GetType().Name.Contains("Mock")) + " supported=" + bat.IsSupported);
+            var set = Container.Resolve<ISettingsService>();
+            __s("settings isMock=" + (set.GetType().Name.Contains("Mock")) + " theme=" + set.Theme);
+            var perf = Container.Resolve<IPerformanceService>();
+            __s("perf isMock=" + (perf.GetType().Name.Contains("Mock")) + " supported=" + perf.IsSupported);
+            __s("DONE");
+        }
+        catch (Exception ex) { __s("FATAL " + ex); }
+        // END-TEMP-DIAG-B
         base.OnFrameworkInitializationCompleted();
 
         // The shared library container is built on a background thread because the
