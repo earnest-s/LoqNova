@@ -150,6 +150,48 @@ public partial class App : Application
         // Apply theme
         var themeService = Container.Resolve<IThemeService>();
         await themeService.InitializeAsync();
+
+        // TEMP-DIAGNOSTIC-SLICEA
+        try
+        {
+            var diagPath = @"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag.txt";
+            var perf = Container.Resolve<IPerformanceService>();
+            var sensors = Container.Resolve<ISensorsService>();
+            var thermal = Container.Resolve<IThermalService>();
+            var lines = new System.Collections.Generic.List<string>
+            {
+                $"machine={Environment.MachineName}",
+                $"utc={DateTime.UtcNow:O}"
+            };
+            try
+            {
+                await perf.InitializeAsync();
+                lines.Add($"PERF supported={perf.IsSupported} godModeSupported={perf.IsGodModeSupported} godModeEnabled={perf.IsGodModeEnabled}");
+                lines.Add($"PERF available=[{string.Join(",", perf.AvailableStates)}]");
+                lines.Add($"PERF current={perf.CurrentMode}");
+            }
+            catch (Exception ex) { lines.Add($"PERF THREW {ex.GetType().Name}: {ex.Message}"); }
+            try
+            {
+                await sensors.InitializeAsync();
+                lines.Add($"SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} gpuTemp={sensors.GpuTemperature} fan={sensors.FanSpeedRpm}");
+            }
+            catch (Exception ex) { lines.Add($"SENSORS THREW {ex.GetType().Name}: {ex.Message}"); }
+            try
+            {
+                await thermal.InitializeAsync();
+                lines.Add($"THERMAL cpuTemp={thermal.CpuTemperature} gpuTemp={thermal.GpuTemperature} fan={thermal.FanSpeedRpm} fanPct={thermal.FanSpeedPercent} fanCtl={thermal.IsFanControlSupported}");
+            }
+            catch (Exception ex) { lines.Add($"THERMAL THREW {ex.GetType().Name}: {ex.Message}"); }
+            await Task.Delay(4000);
+            lines.Add($"AFTER-4s SENSORS cpu={sensors.CpuUsage} gpu={sensors.GpuUsage} cpuTemp={sensors.CpuTemperature} fan={sensors.FanSpeedRpm}");
+            System.IO.File.WriteAllLines(diagPath, lines);
+        }
+        catch (Exception ex)
+        {
+            System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\sliceA-diag-fatal.txt", ex.ToString());
+        }
+        // END-TEMP-DIAGNOSTIC-SLICEA
         
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
