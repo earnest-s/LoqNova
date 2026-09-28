@@ -180,5 +180,19 @@ public partial class App : Application
         }
         
         base.OnFrameworkInitializationCompleted();
+
+        // The shared library container is built on a background thread because the
+        // library's Windows message listeners need Avalonia's dispatcher to be
+        // pumping. Now that it is, wait for it to finish before any page resolves a
+        // service that needs a library singleton, so no page can observe a
+        // half-built container.
+        try
+        {
+            await LibContainer.Initialization;
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Library container failed to initialize: {ex}");
+        }
     }
 }
