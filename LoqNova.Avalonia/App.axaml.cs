@@ -60,30 +60,45 @@ public partial class App : Application
         // registration created it inside a `using` and returned a logger for a
         // disposed factory, and no ILoggerFactory was registered, so injecting
         // ILogger<T> could not be satisfied.
-        builder.RegisterInstance(Microsoft.Extensions.Logging.LoggerFactory.Create(logging =>
+        var loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(logging =>
         {
             logging.AddDebug();
             logging.AddConsole();
             logging.SetMinimumLevel(Microsoft.Extensions.Logging.LogLevel.Debug);
-        })).SingleInstance();
+        });
+
+        builder.RegisterInstance(loggerFactory).SingleInstance();
 
         builder.RegisterGeneric(typeof(Microsoft.Extensions.Logging.Logger<>))
                .As(typeof(Microsoft.Extensions.Logging.ILogger<>))
                .SingleInstance();
 
-        // Real power mode / sensor / thermal adapters over the existing library
-        // controllers. Each adapter resolves its controller from the shared
-        // container after LibContainer.Initialization completes, so no Lib type is
-        // resolved while the container is still being built. Power mode state is
-        // read from and written to the machine; nothing is synthesised.
+        // Real adapters over the existing library controllers. Nothing is
+        // synthesised: power mode, battery modes, sensors and settings are read
+        // from and written to the machine / persisted configuration.
         builder.RegisterType<PerformanceService>().As<IPerformanceService>().SingleInstance();
         builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
         builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
+        builder.RegisterType<BatteryService>().As<IBatteryService>().SingleInstance();
 
-        // Remaining pages still use mocks until their adapters are ported.
-        builder.RegisterType<MockRgbService>().As<IRgbService>().SingleInstance();
-        builder.RegisterType<MockBatteryService>().As<IBatteryService>().SingleInstance();
-        builder.RegisterType<MockSettingsService>().As<ISettingsService>().SingleInstance();
+        // These two take library singletons in their constructors, so they are
+        // created through the shared container once it is up (see the await at the
+        // end of this method).
+        builder.Register(_ => new RgbService(
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Controllers.RGBKeyboardBacklightController>(),
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.RGBKeyboardSettings>(),
+                _loggerFactory.Value!.CreateLogger<RgbService>()))
+            .As<IRgbService>()
+            .SingleInstance();
+
+        builder.Register(_ => new SettingsService(
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.ApplicationSettings>(),
+                _loggerFactory.Value!.CreateLogger<SettingsService>()))
+            .As<ISettingsService>()
+            .SingleInstance();
+
+        // Automation and Macro still have Avalonia-invented contracts that do not
+        // match the library models; they are replaced when those pages are ported.
         builder.RegisterType<MockAutomationService>().As<IAutomationService>().SingleInstance();
         builder.RegisterType<MockMacroService>().As<IMacroService>().SingleInstance();
 
