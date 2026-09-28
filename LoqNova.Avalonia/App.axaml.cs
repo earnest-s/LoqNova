@@ -177,7 +177,6 @@ public partial class App : Application
         // pumping. Now that it is, wait for it to finish before any page resolves a
         // service that needs a library singleton, so no page can observe a
         // half-built container.
-        System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagD.txt", "start" + Environment.NewLine);
         try
         {
             await LibContainer.Initialization;
@@ -189,9 +188,6 @@ public partial class App : Application
             await Container.Resolve<IRgbService>().InitializeAsync();
             await Container.Resolve<IPerformanceService>().InitializeAsync();
             await Container.Resolve<IBatteryService>().InitializeAsync();
-            System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagD.txt", "hydrated ok" + Environment.NewLine);
-            var __vm = Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.DashboardViewModel>();
-            System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagD.txt", "dashboard vm ok, widgets=" + __vm.ControlWidgets.Count + " powerModes=" + __vm.PowerModeItems.Count + Environment.NewLine);
         }
         catch (Exception ex)
         {
