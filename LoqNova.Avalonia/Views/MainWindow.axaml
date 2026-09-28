@@ -62,13 +62,16 @@
     </Window.Resources>
 
     <Panel>
-        <Grid RowDefinitions="Auto,*" ColumnDefinitions="*,Auto">
+        <Grid RowDefinitions="Auto,*">
 
-            <!-- ============================ Title bar ============================ -->
-            <Border Grid.Row="0" Grid.ColumnSpan="2" Classes="TitleBar">
+            <!-- ============================ Custom title bar ============================
+                 Native chrome is suppressed via the ExtendClientArea* hints on
+                 the Window, so this bar is the application's only title bar.
+                 Drag handling lives in MainWindow.axaml.cs. -->
+            <Border Grid.Row="0" Classes="TitleBar" PointerPressed="OnTitleBarPointerPressed">
                 <Grid ColumnDefinitions="Auto,*">
-                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}" Margin="14,0,0,0" VerticalAlignment="Center">
-                        <Image Source="avares://LOQ Nova/Assets/icon.ico" Width="15" Height="15" />
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}" Margin="16,0,0,0" VerticalAlignment="Center">
+                        <Image Source="avares://LOQ Nova/Assets/icon.ico" Width="14" Height="14" />
                         <TextBlock Text="LOQ Nova" Classes="TitleBarText" />
                     </StackPanel>
 
@@ -90,7 +93,7 @@
             </Border>
 
             <!-- ============================ Body ============================ -->
-            <Grid Grid.Row="1" Grid.ColumnSpan="2" ColumnDefinitions="Auto,*">
+            <Grid Grid.Row="1" ColumnDefinitions="Auto,*">
 
                 <!-- ==================== Single primary sidebar ==================== -->
                 <Border Grid.Column="0" Classes="NavSidebar">
