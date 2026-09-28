@@ -37,9 +37,6 @@ public partial class App : Application
         // its module joins the container when the Automation page is ported.
         LibContainer.Initialize();
 
-        void __S(string tag) => System.IO.File.AppendAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt", tag + Environment.NewLine);
-        System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagB.txt", "1 entered" + Environment.NewLine);
-        __S("2 built-builder-start");
         // Build DI container
         var builder = new ContainerBuilder();
         
@@ -84,21 +81,13 @@ public partial class App : Application
         builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
         builder.RegisterType<BatteryService>().As<IBatteryService>().SingleInstance();
 
-        // These two take library singletons in their constructors, so they are
-        // created through the shared container once it is up (see the await at the
-        // end of this method).
-        builder.Register(_ => new RgbService(
-                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Controllers.RGBKeyboardBacklightController>(),
-                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.RGBKeyboardSettings>(),
-                loggerFactory.CreateLogger<RgbService>()))
-            .As<IRgbService>()
-            .SingleInstance();
-
-        builder.Register(_ => new SettingsService(
-                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.ApplicationSettings>(),
-                loggerFactory.CreateLogger<SettingsService>()))
-            .As<ISettingsService>()
-            .SingleInstance();
+        // These two resolve their library singletons inside InitializeAsync, after
+        // LibContainer.Initialization. They are deliberately never constructed
+        // through IoCContainer.Resolve on the UI thread: IoCContainer.Initialize
+        // holds a global lock across Build(), and Build() waits for this thread to
+        // pump queued listener callbacks, so resolving from here would deadlock.
+        builder.RegisterType<RgbService>().As<IRgbService>().SingleInstance();
+        builder.RegisterType<SettingsService>().As<ISettingsService>().SingleInstance();
 
         // Automation and Macro still have Avalonia-invented contracts that do not
         // match the library models; they are replaced when those pages are ported.
@@ -152,25 +141,19 @@ public partial class App : Application
         builder.RegisterType<MacroRecordingViewModel>().InstancePerDependency();
         builder.RegisterType<SpectrumEditEffectViewModel>().InstancePerDependency();
         
-        __S("3 about-to-build");
         Container = builder.Build();
-        __S("4 container-built");
         AppHost.Initialize(new AutofacServiceProvider(Container));
         
-        __S("5 localizing");
         // Initialize localization
         LocalizationHelper.Initialize();
         
-        __S("6 theme-init");
         // Apply theme
         var themeService = Container.Resolve<IThemeService>();
         await themeService.InitializeAsync();
 
         
-        __S("7 lifetime-block");
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
-            __S("8 creating-window");
             // Create main window
             var mainWindow = new MainWindow
             {
@@ -179,20 +162,16 @@ public partial class App : Application
             
             desktop.MainWindow = mainWindow;
             
-            __S("9 window-done");
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
             await trayService.InitializeAsync(mainWindow);
             
-            __S("10 tray-done");
             // Initialize navigation
             var navigationService = Container.Resolve<INavigationService>();
             await navigationService.InitializeAsync(mainWindow);
         }
         
-        __S("11 nav-done");
         base.OnFrameworkInitializationCompleted();
-        __S("12 base-done");
 
         // The shared library container is built on a background thread because the
         // library's Windows message listeners need Avalonia's dispatcher to be

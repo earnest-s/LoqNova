@@ -12,8 +12,8 @@ namespace LoqNova.Avalonia.Services;
 
 public class RgbService : IRgbService
 {
-    private readonly RGBKeyboardBacklightController _controller;
-    private readonly RGBKeyboardSettings _settings;
+    private RGBKeyboardBacklightController? _controller;
+    private RGBKeyboardSettings? _settings;
     private readonly ILogger<RgbService> _logger;
 
     public bool IsSupported { get; private set; } = false;
@@ -38,22 +38,29 @@ public class RgbService : IRgbService
     public event Action<int, RgbZoneColor>? ZoneColorChanged;
     public event Action<bool>? SynchronizationChanged;
 
-    public RgbService(RGBKeyboardBacklightController controller, RGBKeyboardSettings settings, ILogger<RgbService> logger)
+    private RGBKeyboardBacklightController Controller => _controller ?? throw new InvalidOperationException("RgbService.InitializeAsync must complete before RGB is used.");
+
+    private RGBKeyboardSettings SettingsStore => _settings ?? throw new InvalidOperationException("RgbService.InitializeAsync must complete before RGB is used.");
+
+    public RgbService(ILogger<RgbService> logger)
     {
-        _controller = controller;
-        _settings = settings;
         _logger = logger;
     }
 
     public async Task InitializeAsync()
     {
+        await LibContainer.Initialization.ConfigureAwait(false);
+
+        _controller = LoqNova.Lib.IoCContainer.Resolve<RGBKeyboardBacklightController>();
+        _settings = LoqNova.Lib.IoCContainer.Resolve<RGBKeyboardSettings>();
+
         try
         {
-            IsSupported = await _controller.IsSupportedAsync().ConfigureAwait(false);
+            IsSupported = await Controller.IsSupportedAsync().ConfigureAwait(false);
             
             if (IsSupported)
             {
-                var state = await _controller.GetStateAsync().ConfigureAwait(false);
+                var state = await Controller.GetStateAsync().ConfigureAwait(false);
                 UpdateFromState(state);
                 _logger.LogInformation("RGB service initialized. Preset: {Preset}", CurrentPreset);
             }
@@ -76,9 +83,9 @@ public class RgbService : IRgbService
         try
         {
             var libPreset = MapToLibPreset(preset);
-            await _controller.SetPresetAsync(libPreset).ConfigureAwait(false);
+            await Controller.SetPresetAsync(libPreset).ConfigureAwait(false);
             
-            var state = await _controller.GetStateAsync().ConfigureAwait(false);
+            var state = await Controller.GetStateAsync().ConfigureAwait(false);
             UpdateFromState(state);
             PresetChanged?.Invoke(CurrentPreset);
         }
@@ -95,7 +102,7 @@ public class RgbService : IRgbService
         try
         {
             var libEffect = MapToLibEffect(effect);
-            var state = _settings.Store.State;
+            var state = SettingsStore.Store.State;
             var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
@@ -111,12 +118,12 @@ public class RgbService : IRgbService
                     description.Zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
-                _settings.SynchronizeStore();
+                SettingsStore.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
+                SettingsStore.SynchronizeStore();
                 
-                await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
+                await Controller.SetStateAsync(SettingsStore.Store.State).ConfigureAwait(false);
                 
-                state = await _controller.GetStateAsync().ConfigureAwait(false);
+                state = await Controller.GetStateAsync().ConfigureAwait(false);
                 UpdateFromState(state);
                 EffectChanged?.Invoke(CurrentEffect);
             }
@@ -134,7 +141,7 @@ public class RgbService : IRgbService
         try
         {
             var libSpeed = MapToLibSpeed(speed);
-            var state = _settings.Store.State;
+            var state = SettingsStore.Store.State;
             var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
@@ -150,12 +157,12 @@ public class RgbService : IRgbService
                     description.Zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
-                _settings.SynchronizeStore();
+                SettingsStore.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
+                SettingsStore.SynchronizeStore();
                 
-                await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
+                await Controller.SetStateAsync(SettingsStore.Store.State).ConfigureAwait(false);
                 
-                state = await _controller.GetStateAsync().ConfigureAwait(false);
+                state = await Controller.GetStateAsync().ConfigureAwait(false);
                 UpdateFromState(state);
                 SpeedChanged?.Invoke(CurrentSpeed);
             }
@@ -173,7 +180,7 @@ public class RgbService : IRgbService
         try
         {
             var libBrightness = MapToLibBrightness(brightness);
-            var state = _settings.Store.State;
+            var state = SettingsStore.Store.State;
             var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
@@ -189,12 +196,12 @@ public class RgbService : IRgbService
                     description.Zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
-                _settings.SynchronizeStore();
+                SettingsStore.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
+                SettingsStore.SynchronizeStore();
                 
-                await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
+                await Controller.SetStateAsync(SettingsStore.Store.State).ConfigureAwait(false);
                 
-                state = await _controller.GetStateAsync().ConfigureAwait(false);
+                state = await Controller.GetStateAsync().ConfigureAwait(false);
                 UpdateFromState(state);
                 BrightnessChanged?.Invoke(CurrentBrightness);
             }
@@ -212,7 +219,7 @@ public class RgbService : IRgbService
         try
         {
             var libColor = new LoqNova.Lib.RGBColor(color.R, color.G, color.B);
-            var state = _settings.Store.State;
+            var state = SettingsStore.Store.State;
             var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
@@ -230,12 +237,12 @@ public class RgbService : IRgbService
                     zone1, zone2, zone3, zone4);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
-                _settings.SynchronizeStore();
+                SettingsStore.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
+                SettingsStore.SynchronizeStore();
                 
-                await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
+                await Controller.SetStateAsync(SettingsStore.Store.State).ConfigureAwait(false);
                 
-                state = await _controller.GetStateAsync().ConfigureAwait(false);
+                state = await Controller.GetStateAsync().ConfigureAwait(false);
                 UpdateFromState(state);
                 ZoneColorChanged?.Invoke(zone, color);
             }
@@ -253,7 +260,7 @@ public class RgbService : IRgbService
         try
         {
             ZonesSynchronized = synchronized;
-            var state = _settings.Store.State;
+            var state = SettingsStore.Store.State;
             var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
             var currentPreset = state.SelectedPreset;
             
@@ -267,12 +274,12 @@ public class RgbService : IRgbService
                     syncColor, syncColor, syncColor, syncColor);
                 presets[currentPreset] = newDescription;
                 
-                _settings.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
-                _settings.SynchronizeStore();
+                SettingsStore.Store.State = new RGBKeyboardBacklightState(currentPreset, presets);
+                SettingsStore.SynchronizeStore();
                 
-                await _controller.SetStateAsync(_settings.Store.State).ConfigureAwait(false);
+                await Controller.SetStateAsync(SettingsStore.Store.State).ConfigureAwait(false);
                 
-                state = await _controller.GetStateAsync().ConfigureAwait(false);
+                state = await Controller.GetStateAsync().ConfigureAwait(false);
                 UpdateFromState(state);
                 SynchronizationChanged?.Invoke(synchronized);
             }

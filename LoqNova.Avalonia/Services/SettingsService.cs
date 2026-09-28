@@ -10,29 +10,31 @@ namespace LoqNova.Avalonia.Services;
 
 public class SettingsService : ISettingsService
 {
-    private readonly ApplicationSettings _settings;
+    private ApplicationSettings? _settings;
+
+    private ApplicationSettings Settings => _settings ?? throw new InvalidOperationException("SettingsService.InitializeAsync must complete before settings are read.");
     private readonly ILogger<SettingsService> _logger;
 
     public AppTheme Theme
     {
-        get => MapFromLibTheme(_settings.Store.Theme);
+        get => MapFromLibTheme(Settings.Store.Theme);
         set
         {
-            _settings.Store.Theme = MapToLibTheme(value);
-            _settings.SynchronizeStore();
+            Settings.Store.Theme = MapToLibTheme(value);
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
 
     public string AccentColor
     {
-        get => _settings.Store.AccentColor?.ToString() ?? "#0078D4";
+        get => Settings.Store.AccentColor?.ToString() ?? "#0078D4";
         set
         {
             if (System.Drawing.ColorTranslator.FromHtml(value) is { } color)
             {
-                _settings.Store.AccentColor = new LoqNova.Lib.RGBColor(color.R, color.G, color.B);
-                _settings.SynchronizeStore();
+                Settings.Store.AccentColor = new LoqNova.Lib.RGBColor(color.R, color.G, color.B);
+                Settings.SynchronizeStore();
                 SettingsChanged?.Invoke();
             }
         }
@@ -40,11 +42,11 @@ public class SettingsService : ISettingsService
 
     public bool UseSystemAccent
     {
-        get => _settings.Store.AccentColorSource == LoqNova.Lib.AccentColorSource.System;
+        get => Settings.Store.AccentColorSource == LoqNova.Lib.AccentColorSource.System;
         set
         {
-            _settings.Store.AccentColorSource = value ? LoqNova.Lib.AccentColorSource.System : LoqNova.Lib.AccentColorSource.Custom;
-            _settings.SynchronizeStore();
+            Settings.Store.AccentColorSource = value ? LoqNova.Lib.AccentColorSource.System : LoqNova.Lib.AccentColorSource.Custom;
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
@@ -52,11 +54,11 @@ public class SettingsService : ISettingsService
     public string Language { get; set; } = "en";
     public bool TemperatureUnitFahrenheit
     {
-        get => _settings.Store.TemperatureUnit == LoqNova.Lib.TemperatureUnit.F;
+        get => Settings.Store.TemperatureUnit == LoqNova.Lib.TemperatureUnit.F;
         set
         {
-            _settings.Store.TemperatureUnit = value ? LoqNova.Lib.TemperatureUnit.F : LoqNova.Lib.TemperatureUnit.C;
-            _settings.SynchronizeStore();
+            Settings.Store.TemperatureUnit = value ? LoqNova.Lib.TemperatureUnit.F : LoqNova.Lib.TemperatureUnit.C;
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
@@ -64,22 +66,22 @@ public class SettingsService : ISettingsService
     public bool AutorunEnabled { get; set; } = false;
     public bool MinimizeToTray
     {
-        get => _settings.Store.MinimizeToTray;
+        get => Settings.Store.MinimizeToTray;
         set
         {
-            _settings.Store.MinimizeToTray = value;
-            _settings.SynchronizeStore();
+            Settings.Store.MinimizeToTray = value;
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
     
     public bool MinimizeOnClose
     {
-        get => _settings.Store.MinimizeOnClose;
+        get => Settings.Store.MinimizeOnClose;
         set
         {
-            _settings.Store.MinimizeOnClose = value;
-            _settings.SynchronizeStore();
+            Settings.Store.MinimizeOnClose = value;
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
@@ -94,11 +96,11 @@ public class SettingsService : ISettingsService
     public bool GodModeFnQSwitchable { get; set; } = false;
     public bool NotificationsEnabled 
     { 
-        get => !_settings.Store.DontShowNotifications;
+        get => !Settings.Store.DontShowNotifications;
         set
         {
-            _settings.Store.DontShowNotifications = !value;
-            _settings.SynchronizeStore();
+            Settings.Store.DontShowNotifications = !value;
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
@@ -108,39 +110,42 @@ public class SettingsService : ISettingsService
     public string HwInfoSharedMemoryPath { get; set; } = "";
     public bool SyncBrightnessToAllPowerPlans
     {
-        get => _settings.Store.SynchronizeBrightnessToAllPowerPlans;
+        get => Settings.Store.SynchronizeBrightnessToAllPowerPlans;
         set
         {
-            _settings.Store.SynchronizeBrightnessToAllPowerPlans = value;
-            _settings.SynchronizeStore();
+            Settings.Store.SynchronizeBrightnessToAllPowerPlans = value;
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
     
     public bool ResetBatteryOnSinceOnReboot
     {
-        get => _settings.Store.ResetBatteryOnSinceTimerOnReboot;
+        get => Settings.Store.ResetBatteryOnSinceTimerOnReboot;
         set
         {
-            _settings.Store.ResetBatteryOnSinceTimerOnReboot = value;
-            _settings.SynchronizeStore();
+            Settings.Store.ResetBatteryOnSinceTimerOnReboot = value;
+            Settings.SynchronizeStore();
             SettingsChanged?.Invoke();
         }
     }
 
     public event Action? SettingsChanged;
 
-    public SettingsService(ApplicationSettings settings, ILogger<SettingsService> logger)
+    public SettingsService(ILogger<SettingsService> logger)
     {
-        _settings = settings;
         _logger = logger;
     }
 
     public async Task InitializeAsync()
     {
+        await LibContainer.Initialization.ConfigureAwait(false);
+
+        _settings = LoqNova.Lib.IoCContainer.Resolve<ApplicationSettings>();
+
         try
         {
-            await Task.Run(() => _settings.LoadStore()).ConfigureAwait(false);
+            await Task.Run(() => Settings.LoadStore()).ConfigureAwait(false);
             _logger.LogInformation("Settings service initialized");
         }
         catch (Exception ex)
@@ -153,7 +158,7 @@ public class SettingsService : ISettingsService
     {
         try
         {
-            await Task.Run(() => _settings.SynchronizeStore()).ConfigureAwait(false);
+            await Task.Run(() => Settings.SynchronizeStore()).ConfigureAwait(false);
             _logger.LogInformation("Settings saved");
         }
         catch (Exception ex)
