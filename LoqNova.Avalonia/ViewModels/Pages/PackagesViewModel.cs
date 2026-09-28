@@ -116,6 +116,14 @@ public partial class PackagesViewModel : ViewModelBase
         "Name", "Category", "Release date"
     };
 
+    /// <summary>Localized sort labels, index-aligned with <see cref="SortOptions"/>.</summary>
+    public ObservableCollection<string> SortLabels { get; } = new()
+    {
+        LocalizationHelper.GetString("PackagesPage_Sort_Name"),
+        LocalizationHelper.GetString("PackagesPage_Sort_Category"),
+        LocalizationHelper.GetString("PackagesPage_Sort_Date")
+    };
+
     /// <summary>Filtered/sorted view actually rendered. Never contains mock data.</summary>
     public ObservableCollection<PackageViewModel> Packages { get; } = new();
 
