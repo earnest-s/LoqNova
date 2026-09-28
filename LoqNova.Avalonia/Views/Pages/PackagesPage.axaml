@@ -10,16 +10,6 @@
 
     <ScrollViewer Classes="PageContainer">
         <StackPanel Classes="PageBody">
-            <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Classes="Body" Foreground="#FF00FF" Text="IsLoading" />
-                <TextBlock Classes="Body" Foreground="#FF00FF" Text="{Binding IsLoading}" />
-                <TextBlock Classes="Body" Foreground="#00FF00" Text="HasLoaded" />
-                <TextBlock Classes="Body" Foreground="#00FF00" Text="{Binding HasLoadedPackages}" />
-                <TextBlock Classes="Body" Foreground="#FFFF00" Text="IsCancel" />
-                <TextBlock Classes="Body" Foreground="#FFFF00" Text="{Binding IsCancelVisible}" />
-                <TextBlock Classes="Body" Foreground="#00FFFF" Text="MachineType" />
-                <TextBlock Classes="Body" Foreground="#00FFFF" Text="{Binding MachineType}" />
-            </StackPanel>
 
             <!-- ============================ Header ============================ -->
             <Grid Classes="PageHeader" ColumnDefinitions="*,Auto">

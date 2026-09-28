@@ -29,7 +29,7 @@ public partial class PackagesPage : UserControl
 
         if (DataContext is PackagesViewModel viewModel && !viewModel.IsInitialized)
         {
-            _ = viewModel.InitializeCommand.ExecuteAsync(null);
+            // TEMP isolation test: init hook disabled
         }
     }
 }
