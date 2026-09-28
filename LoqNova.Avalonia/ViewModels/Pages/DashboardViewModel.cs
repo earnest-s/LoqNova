@@ -59,6 +59,13 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>Populated from the machine's reported power modes.</summary>
     public ObservableCollection<PowerModeState> PowerModeItems { get; } = new();
 
+    /// <summary>Charge modes the machine's battery feature accepts.</summary>
+    public ObservableCollection<BatteryState> BatteryModes { get; } =
+        [BatteryState.Normal, BatteryState.RapidCharge, BatteryState.Conservation];
+
+    public ObservableCollection<BatteryNightChargeState> NightChargeModes { get; } =
+        [BatteryNightChargeState.On, BatteryNightChargeState.Off];
+
     public ObservableCollection<DashboardWidgetViewModel> Widgets { get; } = new();
 
     /// <summary>
@@ -303,8 +310,7 @@ public partial class DashboardViewModel : ViewModelBase
     private async Task RefreshAsync()
     {
         await _performanceService.RefreshAsync();
-        await _sensorsService.InitializeAsync();
-        await _thermalService.InitializeAsync();
+        await _batteryService.RefreshAsync();
         SyncFromService();
     }
 
@@ -321,21 +327,43 @@ public partial class DashboardViewModel : ViewModelBase
     private Task EditDashboardAsync() => _navigationService.NavigateToDialogAsync<EditDashboardViewModel>();
 }
 
+/// <summary>
+/// A dashboard control widget bound to a live backend feature. Values are only
+/// ever populated from a real reading; nothing is pre-filled.
+/// </summary>
 public partial class DashboardWidgetViewModel : ViewModelBase
 {
     public string Title { get; init; } = "";
-    public string Value { get; set; } = "";
-    public string Unit { get; init; } = "";
     public string Icon { get; init; } = "";
     public WidgetType Type { get; init; }
-    public double MinValue { get; init; }
-    public double MaxValue { get; init; }
-    public double CurrentValue { get; set; }
-    public string Color { get; init; } = "#FFFFFF";
-    public ObservableCollection<string> Items { get; init; } = new();
-    public string SelectedItem { get; set; } = "";
-    public bool IsOn { get; set; }
-    public bool IsBlocked { get; init; } = false;
+
+    /// <summary>False when the backend reports the feature as unsupported; such widgets are not created.</summary>
+    public bool IsAvailable { get; init; }
+
+    /// <summary>Optional status line (for example an unavailable reason). Null when healthy.</summary>
+    public string? Status
+    {
+        get => _status;
+        set => SetProperty(ref _status, value);
+    }
+    private string? _status;
+
+    /// <summary>Options for <see cref="WidgetType.ComboBox"/> widgets, e.g. the machine's power modes.</summary>
+    public System.Collections.IEnumerable? ItemsSource { get; init; }
+
+    private object? _selectedItem;
+    public object? SelectedItem
+    {
+        get => _selectedItem;
+        set => SetProperty(ref _selectedItem, value);
+    }
+
+    private bool _isOn;
+    public bool IsOn
+    {
+        get => _isOn;
+        set => SetProperty(ref _isOn, value);
+    }
 }
 
 public enum WidgetType
