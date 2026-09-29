@@ -63,6 +63,13 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         ? null
         : $"{SelectedEffect} has no adjustable speed.";
 
+    /// <summary>
+    /// The zone "Synchronise All Zones" takes its colour from. Chosen by the user
+    /// from a zone card, so the single action is deterministic rather than implied.
+    /// </summary>
+    [ObservableProperty]
+    private int _sourceZone = 1;
+
     /// <summary>Backend-reported capability: the current effect uses per-zone colours.</summary>
     [ObservableProperty]
     private bool _zonesEnabled;
