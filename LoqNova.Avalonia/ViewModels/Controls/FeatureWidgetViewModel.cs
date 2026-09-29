@@ -435,3 +435,32 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
             RequestState(state);
     }
 }
+
+/// <summary>
+/// One numeric sub-setting on a widget, rendered as a labelled slider with a live
+/// value. The range is whatever the owning widget reports, so no bounds are assumed
+/// here.
+/// </summary>
+public partial class WidgetSettingViewModel : ViewModelBase
+{
+    [ObservableProperty]
+    private double _value;
+
+    public string Label { get; init; } = string.Empty;
+
+    public string Unit { get; init; } = string.Empty;
+
+    /// <summary>Writes the edited value back through the owning widget.</summary>
+    public IAsyncRelayCommand? ApplyCommand { get; init; }
+
+    public double Minimum { get; init; }
+
+    public double Maximum { get; init; }
+
+    public double TickFrequency { get; init; } = 1;
+
+    /// <summary>The value with its unit, matching WPF's "+0;-0;0 MHz" label format.</summary>
+    public string ValueText => Unit.Length == 0
+        ? $"{Value:0}"
+        : $"{Value:+0;-0;0} {Unit}";
+}
