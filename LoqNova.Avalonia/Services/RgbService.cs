@@ -18,6 +18,7 @@ public class RgbService : IRgbService
     private RGBKeyboardBacklightController? _controller;
     private RgbFrameDispatcher? _frameDispatcher;
     private RGBKeyboardSettings? _settings;
+    private VolumeBrightnessReactiveRgbService? _reactiveRgb;
     private readonly ILogger<RgbService> _logger;
 
     public bool IsSupported { get; private set; } = false;
