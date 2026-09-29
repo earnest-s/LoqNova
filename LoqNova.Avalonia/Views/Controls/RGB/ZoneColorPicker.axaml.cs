@@ -60,7 +60,7 @@ public partial class ZoneColorPicker : UserControl
     public ZoneColorPicker()
     {
         InitializeComponent();
-        BuildColourFlyout();
+        WireColourFlyout();
         BuildSynchroniseMenu();
     }
 
