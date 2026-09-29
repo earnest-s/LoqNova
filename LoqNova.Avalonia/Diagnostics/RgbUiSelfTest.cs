@@ -60,6 +60,16 @@ internal sealed class RecordingRgbService : IRgbService
         return SaveStateAsync(CurrentEffect, CurrentSpeed, CurrentBrightness, z1, z2, z3, z4);
     }
 
+    public Task SetZonesSynchronizedAsync(bool synchronized)
+    {
+        ZonesSynchronized = synchronized;
+        SynchronizationChanged?.Invoke(synchronized);
+        return Task.CompletedTask;
+    }
+
+    public void RaiseFrame(RgbZoneColor z1, RgbZoneColor z2, RgbZoneColor z3, RgbZoneColor z4)
+        => FrameRendered?.Invoke(z1, z2, z3, z4);
+
     public Task InitializeAsync() => Task.CompletedTask;
 
     public Task SetPresetAsync(RgbPreset preset)

@@ -48,7 +48,7 @@ public partial class App : Application
 
             return;
         }
-    {
+
         // LoqNova.Lib keeps its own Autofac container and is the single source of
         // truth for controllers, features and settings, so the same backend
         // singletons WPF uses are reused here. It is started on a background
