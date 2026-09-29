@@ -304,75 +304,6 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
         _ = ApplyAsync();
     }
 
-    private async Task ApplyAsync()
-    {
-        try
-        {
-            IsBusy = true;
-
-            var (_, info) = _controller!.GetState();
-
-            // Clamp to the same ranges the WPF sliders allow: zero to the reported
-            // maximum, since negative offsets are not selectable there.
-            var core = (int)Math.Clamp(Math.Round(CoreOffsetMhz), 0, MaxCoreOffset);
-            var memory = (int)Math.Clamp(Math.Round(MemoryOffsetMhz), 0, (int)MaxMemoryOffset);
-
-            _controller.SaveState(IsOn, new GPUOverclockInfo(core, memory));
-            await _controller.ApplyStateAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            await Dispatcher.InvokeAsync(() => ErrorMessage = ex.Message).ConfigureAwait(false);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-
-        await RefreshAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// The offset editors only make sense while overclocking is on, so they are
-    /// re-evaluated whenever the two-state value is republished.
-    /// </summary>
-    protected override void OnTwoStateValueRepublished()
-        => OnPropertyChanged(nameof(IsOffsetEditorEnabled));
-
-    /// <summary>Writes the current offsets without changing the on/off state.</summary>
-    [RelayCommand]
-    private async Task ApplyOffsetsAsync()
-    {
-        if (!IsOffsetEditorEnabled || IsBusy || _controller is null)
-            return;
-
-        try
-        {
-            IsBusy = true;
-
-            var core = (int)Math.Clamp(Math.Round(CoreOffsetMhz), 0, MaxCoreOffset);
-            var memory = (int)Math.Clamp(Math.Round(MemoryOffsetMhz), 0, (int)MaxMemoryOffset);
-
-            _controller.SaveState(IsOn, new GPUOverclockInfo(core, memory));
-            await _controller.ApplyStateAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            await Dispatcher.InvokeAsync(() => ErrorMessage = ex.Message).ConfigureAwait(false);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-
-        await RefreshAsync().ConfigureAwait(false);
-    }
-
-}
-
-/// <summary>
-/// WPF's <c>TurnOffMonitorsControl</c>: a single action that turns the monitors off
-/// through the native message listener.
 /// </summary>
 public sealed class TurnOffMonitorsWidgetViewModel : FeatureWidgetViewModel
 {
@@ -416,5 +347,73 @@ public sealed class TurnOffMonitorsWidgetViewModel : FeatureWidgetViewModel
         {
             IsBusy = false;
         }
+    }
+}
+    private async Task ApplyAsync()
+    {
+        try
+        {
+            IsBusy = true;
+
+            // The toggle changes the enabled flag; the offsets are whatever the
+            // sliders currently show, so editing a value is never lost by flipping
+            // the switch.
+            var (_, info) = _controller!.GetState();
+            var core = Settings.Count >= 2 ? (int)Math.Round(Settings[0].Value) : info.CoreDeltaMhz;
+            var memory = Settings.Count >= 2 ? (int)Math.Round(Settings[1].Value) : info.MemoryDeltaMhz;
+
+            _controller.SaveState(IsOn, ClampOffsets(core, memory));
+            await _controller.ApplyStateAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.InvokeAsync(() => ErrorMessage = ex.Message).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        await RefreshAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>Writes the edited frequency offsets through the same controller.</summary>
+    private async Task ApplyOffsetsAsync()
+    {
+        if (!IsAvailable || !IsOn || IsBusy || _controller is null || Settings.Count < 2)
+            return;
+
+        try
+        {
+            IsBusy = true;
+
+            var core = (int)Math.Round(Settings[0].Value);
+            var memory = (int)Math.Round(Settings[1].Value);
+
+            _controller.SaveState(IsOn, ClampOffsets(core, memory));
+            await _controller.ApplyStateAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.InvokeAsync(() => ErrorMessage = ex.Message).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        await RefreshAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Clamps to the ranges the WPF sliders allow: zero to the reported maximum,
+    /// because negative offsets are not selectable there.
+    /// </summary>
+    private GPUOverclockInfo ClampOffsets(int core, int memory)
+    {
+        var maxMemory = Settings.Count >= 2 ? (int)Settings[1].Maximum : 1500;
+        return new GPUOverclockInfo(
+            Math.Clamp(core, 0, MaxCoreOffset),
+            Math.Clamp(memory, 0, maxMemory));
     }
 }
