@@ -58,7 +58,7 @@ internal static class VerifyRun
         var perf = App.Container.Resolve<IPerformanceService>();
         log.Add($"power: supported={perf.IsSupported} current={perf.CurrentMode?.ToString() ?? "null"} items=[{string.Join(",", dvm.PowerModeItems)}]");
         log.Add($"power: current listed in combo items = {(dvm.CurrentPowerMode is { } m && dvm.PowerModeItems.Contains(m))} (true means the combo can render it, not --)");
-        var conv = App.Container.Resolve<LoqNova.Avalonia.Converters.PowerModeDisplayNameConverter>();
+        var conv = new LoqNova.Avalonia.Converters.PowerModeDisplayNameConverter();
         log.Add($"mapping: GodMode -> '{conv.Convert(PowerModeState.GodMode, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture)}'");
         log.Add($"mapping: null   -> '{conv.Convert(null, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture)}'");
         log.Add($"mapping: Quiet  -> '{conv.Convert(PowerModeState.Quiet, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture)}'");
