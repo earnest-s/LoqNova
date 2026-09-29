@@ -149,9 +149,18 @@ public partial class ZoneColorPicker : UserControl
 
         // Show the real colour before the popup is measured, so it never flashes empty.
         if (open)
+        {
             SyncEditorFromZone();
+            popup.IsOpen = true;
+            HookEditor();
 
-        popup.IsOpen = open;
+            // The popup may have realised its content on open, so re-apply the colour
+            // to the editor that now exists.
+            SyncEditorFromZone();
+            return;
+        }
+
+        popup.IsOpen = false;
     }
 
     private void SetPickerOpen(bool open)
