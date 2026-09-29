@@ -89,14 +89,23 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>Telemetry cards, in WPF's SensorsControl order.</summary>
     public ObservableCollection<LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel> SensorMetrics { get; } = new();
 
-    // Display forms for the existing sensor cards. "-" means the machine did not
-    // report the channel, and is never replaced by a plausible-looking number.
-    [ObservableProperty] private string _cpuUtilizationText = "--";
-    [ObservableProperty] private string _gpuUtilizationText = "--";
-    [ObservableProperty] private string _cpuTemperatureText = "--";
-    [ObservableProperty] private string _gpuTemperatureText = "--";
-    [ObservableProperty] private string _cpuFanSpeedText = "--";
+    // Display forms for the sensor cards. "-" means the machine did not report the
+    // channel, matching WPF's UpdateValue, which renders "-" for a negative max or
+    // value. Never replaced by a plausible-looking number.
+    [ObservableProperty] private string _cpuUtilizationText = "-";
+    [ObservableProperty] private string _gpuUtilizationText = "-";
+    [ObservableProperty] private string _cpuTemperatureText = "-";
+    [ObservableProperty] private string _gpuTemperatureText = "-";
+    [ObservableProperty] private string _cpuFanSpeedText = "-";
     [ObservableProperty] private string? _cpuFanSpeedMaxText;
+    [ObservableProperty] private string _cpuCoreClockText = "-";
+    [ObservableProperty] private string? _cpuCoreClockMaxText;
+    [ObservableProperty] private string _gpuCoreClockText = "-";
+    [ObservableProperty] private string? _gpuCoreClockMaxText;
+    [ObservableProperty] private string _gpuMemoryClockText = "-";
+    [ObservableProperty] private string? _gpuMemoryClockMaxText;
+    [ObservableProperty] private string _gpuFanSpeedText = "-";
+    [ObservableProperty] private string? _gpuFanSpeedMaxText;
 
     // Bar ratios: value / machine-reported maximum, matching WPF's UpdateValue.
     [ObservableProperty] private double _cpuUtilizationRatio;
@@ -104,6 +113,10 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private double _cpuTemperatureRatio;
     [ObservableProperty] private double _gpuTemperatureRatio;
     [ObservableProperty] private double _cpuFanSpeedRatio;
+    [ObservableProperty] private double _cpuCoreClockRatio;
+    [ObservableProperty] private double _gpuCoreClockRatio;
+    [ObservableProperty] private double _gpuMemoryClockRatio;
+    [ObservableProperty] private double _gpuFanSpeedRatio;
 
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuUtilizationMetric = New("CPU", "%", "SensorCpuBrush", "Cpu");
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuCoreClockMetric = New("CPU CLOCK", "MHz", "SensorCpuBrush", "Cpu");
