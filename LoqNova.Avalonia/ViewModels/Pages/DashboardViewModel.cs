@@ -22,6 +22,7 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly INavigationService _navigationService;
     private readonly IMainThreadDispatcher _dispatcher;
     private bool _suppressModeWrite;
+    private bool _sensorsInitialized;
     
     // Telemetry: every value and its maximum come from the library sensor
     // controller. -1 means "not reported" and is rendered as "--", never as a value.
@@ -119,9 +120,55 @@ public partial class DashboardViewModel : ViewModelBase
         _dispatcher = dispatcher;
 
         InitializeWidgets();
+        InitializeSensorMetrics();
         SubscribeToEvents();
         SyncTelemetry();
         _ = InitializeServicesAsync();
+    }
+
+    /// <summary>Publishes the metric cards in WPF's SensorsControl order.</summary>
+    private void InitializeSensorMetrics()
+    {
+        SensorMetrics.Add(_cpuUtilizationMetric);
+        SensorMetrics.Add(_gpuUtilizationMetric);
+        SensorMetrics.Add(_cpuCoreClockMetric);
+        SensorMetrics.Add(_gpuCoreClockMetric);
+        SensorMetrics.Add(_gpuMemoryClockMetric);
+        SensorMetrics.Add(_cpuTemperatureMetric);
+        SensorMetrics.Add(_gpuTemperatureMetric);
+        SensorMetrics.Add(_cpuFanSpeedMetric);
+        SensorMetrics.Add(_gpuFanSpeedMetric);
+    }
+
+    /// <summary>
+    /// Called when the page becomes visible: initialises the sensor controller if
+    /// needed and starts the refresh loop, exactly as WPF starts its refresh task
+    /// from <c>SensorsControl.IsVisibleChanged</c>.
+    /// </summary>
+    public async Task ResumeSensorsAsync()
+    {
+        try
+        {
+            if (!_sensorsInitialized)
+            {
+                _sensorsInitialized = true;
+                await _sensorsService.InitializeAsync();
+            }
+
+            _sensorsService.Start();
+            SyncTelemetry();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Sensor initialization failed: {ex.Message}");
+        }
+    }
+
+    /// <summary>Called when the page is hidden: stops the loop, as WPF does.</summary>
+    public void PauseSensors()
+    {
+        _sensorsService.Stop();
+        IsRefreshing = _sensorsService.IsRefreshing;
     }
 
     /// <summary>
@@ -145,15 +192,7 @@ public partial class DashboardViewModel : ViewModelBase
             System.Diagnostics.Debug.WriteLine($"Power mode initialization failed: {ex}");
         }
 
-        try
-        {
-            await _sensorsService.InitializeAsync();
-            await _thermalService.InitializeAsync();
-        }
-        catch (Exception ex)
-        {
-            System.Diagnostics.Debug.WriteLine($"Sensor initialization failed: {ex}");
-        }
+        await _thermalService.InitializeAsync();
     }
     
     /// <summary>
