@@ -88,6 +88,22 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>Telemetry cards, in WPF's SensorsControl order.</summary>
     public ObservableCollection<LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel> SensorMetrics { get; } = new();
 
+    // Display forms for the existing sensor cards. "-" means the machine did not
+    // report the channel, and is never replaced by a plausible-looking number.
+    [ObservableProperty] private string _cpuUtilizationText = "--";
+    [ObservableProperty] private string _gpuUtilizationText = "--";
+    [ObservableProperty] private string _cpuTemperatureText = "--";
+    [ObservableProperty] private string _gpuTemperatureText = "--";
+    [ObservableProperty] private string _cpuFanSpeedText = "--";
+    [ObservableProperty] private string? _cpuFanSpeedMaxText;
+
+    // Bar ratios: value / machine-reported maximum, matching WPF's UpdateValue.
+    [ObservableProperty] private double _cpuUtilizationRatio;
+    [ObservableProperty] private double _gpuUtilizationRatio;
+    [ObservableProperty] private double _cpuTemperatureRatio;
+    [ObservableProperty] private double _gpuTemperatureRatio;
+    [ObservableProperty] private double _cpuFanSpeedRatio;
+
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuUtilizationMetric = New("CPU", "%", "SensorCpuBrush", "Cpu");
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuCoreClockMetric = New("CPU CLOCK", "MHz", "SensorCpuBrush", "Cpu");
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuTemperatureMetric = New("CPU TEMP", "°C", "SensorTempBrush", "Thermometer");
