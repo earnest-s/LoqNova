@@ -290,6 +290,24 @@ public partial class DashboardViewModel : ViewModelBase
         _gpuMemoryClockMetric.Update(GpuMemoryClock, GpuMaxMemoryClock);
         _gpuTemperatureMetric.Update(GpuTemperature, GpuMaxTemperature);
         _gpuFanSpeedMetric.Update(GpuFanSpeed, GpuMaxFanSpeed);
+
+        Raise();
+        CpuUtilizationText = _cpuUtilizationMetric.ValueText;
+        CpuUtilizationRatio = _cpuUtilizationMetric.Ratio;
+        GpuUtilizationText = _gpuUtilizationMetric.ValueText;
+        GpuUtilizationRatio = _gpuUtilizationMetric.Ratio;
+        CpuTemperatureText = _cpuTemperatureMetric.ValueText;
+        CpuTemperatureRatio = _cpuTemperatureMetric.Ratio;
+        GpuTemperatureText = _gpuTemperatureMetric.ValueText;
+        GpuTemperatureRatio = _gpuTemperatureMetric.Ratio;
+        CpuFanSpeedText = _cpuFanSpeedMetric.ValueText;
+        CpuFanSpeedRatio = _cpuFanSpeedMetric.Ratio;
+        CpuFanSpeedMaxText = _cpuFanSpeedMetric.MaximumText is { } max ? $"max {max} RPM" : null;
+
+        void Raise()
+        {
+            OnPropertyChanged(nameof(SensorMetrics));
+        }
     }
 
     /// <summary>Clears every telemetry channel to "not reported" when the source is unsupported.</summary>
