@@ -27,6 +27,11 @@
                   <controls:KeyboardPreviewControl Zone1Color="{Binding PreviewZone1}"
                                                    Zone2Color="{Binding PreviewZone2}"
                                                    Zone3Color="{Binding PreviewZone3}"
+              </Border>
+              
+              <!-- Presets -->
+              <Border Classes="ContentCard">
+                  <StackPanel>
                                                    Zone4Color="{Binding PreviewZone4}" />
                     <TextBlock Text="Presets" Classes="SectionHeader" />
                     <StackPanel Orientation="Horizontal" Spacing="8">
