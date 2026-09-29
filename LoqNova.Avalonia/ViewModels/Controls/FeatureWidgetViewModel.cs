@@ -381,10 +381,11 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
     /// </summary>
     public void RequestState(TState state)
     {
+        // Deliberately no comparison against SelectedState: the binding has already
+        // written the chosen value into the property before this is called, so the
+        // previous value is not observable here and any such check would suppress a
+        // genuine user change. Backend echoes are blocked by SuppressWrite.
         if (SuppressWrite || !IsAvailable || IsBusy)
-            return;
-
-        if (EqualityComparer<TState?>.Default.Equals(SelectedState, state))
             return;
 
         _ = SetStateAsync(state);
