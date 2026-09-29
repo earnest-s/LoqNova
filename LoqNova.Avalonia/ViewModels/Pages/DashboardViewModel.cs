@@ -392,13 +392,21 @@ public partial class DashboardViewModel : ViewModelBase
         SyncTelemetry();
     }
 
+    /// <summary>
+    /// Opens the Custom Mode (backend: God Mode) settings surface. WPF opens
+    /// <c>GodModeSettingsWindow</c>, a full preset editor. That window is not ported
+    /// yet and Avalonia has no dialog window infrastructure, so this reports the gap
+    /// instead of silently re-selecting the power mode or inventing a settings form.
+    /// </summary>
     [RelayCommand]
-    private async Task OpenGodModeAsync()
+    private Task OpenCustomModeSettingsAsync()
     {
-        if (!_performanceService.IsGodModeSupported)
-            return;
+        _ = _notificationService.ShowAsync(
+            "Custom Mode settings",
+            "The Custom Mode settings window is not available in the Avalonia UI yet. "
+            + "Use the power mode selector to switch to Custom Mode.");
 
-        await _performanceService.SetModeAsync(PowerModeState.GodMode);
+        return Task.CompletedTask;
     }
 
     [RelayCommand]
