@@ -1,7 +1,8 @@
 // TEMP-WRITEPATH-VERIFY
-// Substitutes only IFeature<AlwaysOnUSBState> so the Avalonia write path can be
-// observed without elevation. The real AlwaysOnUSBState enum and the real widget
-// are used. Nothing here is production code.
+// Exercises the AVALONIA write path only. InitializeAsync resolves the real feature
+// from the shared container, so the recorder is injected afterwards and the public
+// availability flag is set directly, which isolates the selection -> write path
+// from container resolution. The real AlwaysOnUSBState / HDRState enums are used.
 using System;
 using System.Collections.Generic;
 using System.Reflection;
@@ -18,12 +19,9 @@ internal sealed class RecordingUsbFeature : IFeature<AlwaysOnUSBState>
     public bool ThrowOnWrite { get; set; }
 
     public Task<bool> IsSupportedAsync() => Task.FromResult(true);
-
     public Task<AlwaysOnUSBState[]> GetAllStatesAsync() =>
         Task.FromResult<AlwaysOnUSBState[]>([AlwaysOnUSBState.Off, AlwaysOnUSBState.OnWhenSleeping, AlwaysOnUSBState.OnAlways]);
-
     public Task<AlwaysOnUSBState> GetStateAsync() => Task.FromResult(State);
-
     public Task SetStateAsync(AlwaysOnUSBState state)
     {
         if (ThrowOnWrite)
@@ -53,62 +51,67 @@ internal static class WritePathVerify
         var log = new List<string>();
         var dispatcher = new LoqNova.Avalonia.Services.PassThroughDispatcherForVerify();
 
-        // ---- Always On USB choice widget ----
+        // ---------- Always On USB (choice widget) ----------
         var usb = new RecordingUsbFeature();
         var vm = new LoqNova.Avalonia.ViewModels.Controls.FeatureChoiceWidgetViewModel<AlwaysOnUSBState>(
             dispatcher, "Always On USB", "Usb64");
+
         Inject(vm, usb);
-        await vm.InitializeAsync();
-        log.Add($"init: options=[{string.Join(",", vm.Options)}] selected={vm.SelectedState} backend={usb.State} available={vm.IsAvailable}");
+        vm.IsAvailable = true;
+        vm.Options.Add(AlwaysOnUSBState.Off);
+        vm.Options.Add(AlwaysOnUSBState.OnWhenSleeping);
+        vm.Options.Add(AlwaysOnUSBState.OnAlways);
+        vm.SelectedState = AlwaysOnUSBState.Off;
+
+        log.Add($"start: selected={vm.SelectedState} backend={usb.State} available={vm.IsAvailable} busy={vm.IsBusy}");
 
         vm.SelectedState = AlwaysOnUSBState.OnAlways;
-        await Task.Delay(150);
         vm.RequestState(AlwaysOnUSBState.OnAlways);
-        await Task.Delay(150);
-        log.Add($"select OnAlways -> writes=[{string.Join(",", usb.Writes)}] backend={usb.State} (expect 1 write)");
+        await Task.Delay(200);
+        log.Add($"select OnAlways  -> writes=[{string.Join(",", usb.Writes)}] backend={usb.State}  EXPECT write=1");
 
         vm.SelectedState = AlwaysOnUSBState.OnWhenSleeping;
-        await Task.Delay(150);
+        vm.RequestState(AlwaysOnUSBState.OnWhenSleeping);
+        await Task.Delay(200);
+        log.Add($"select OnSleeping -> writes=[{string.Join(",", usb.Writes)}]  EXPECT write=2");
+
+        var sameBefore = usb.Writes.Count;
         vm.RequestState(AlwaysOnUSBState.OnWhenSleeping);
         await Task.Delay(150);
-        log.Add($"select OnWhenSleeping -> writes=[{string.Join(",", usb.Writes)}] (expect 2 writes)");
+        log.Add($"same value again  -> newWrites={usb.Writes.Count - sameBefore}  EXPECT 0");
 
-        var before = usb.Writes.Count;
-        vm.SelectedState = AlwaysOnUSBState.OnWhenSleeping;
-        await Task.Delay(120);
-        vm.RequestState(AlwaysOnUSBState.OnWhenSleeping);
-        await Task.Delay(120);
-        log.Add($"same value reselected -> newWrites={usb.Writes.Count - before} (expect 0)");
-
-        var writesBeforePublish = usb.Writes.Count;
+        // backend publishes a change: must be adopted, never written back
+        var publishBefore = usb.Writes.Count;
         usb.State = AlwaysOnUSBState.OnAlways;
         await vm.RefreshAsync();
-        await Task.Delay(120);
-        log.Add($"backend publish -> selected={vm.SelectedState} newWrites={usb.Writes.Count - writesBeforePublish} (expect 0)");
+        await Task.Delay(150);
+        log.Add($"backend publish   -> selected={vm.SelectedState} newWrites={usb.Writes.Count - publishBefore}  EXPECT 0 writes, selected=OnAlways");
 
+        // failed write must not leave the UI claiming the new state
         usb.ThrowOnWrite = true;
         vm.SelectedState = AlwaysOnUSBState.Off;
-        await Task.Delay(250);
         vm.RequestState(AlwaysOnUSBState.Off);
-        await Task.Delay(250);
-        log.Add($"failed write -> selected={vm.SelectedState} backend={usb.State} errorSet={!string.IsNullOrEmpty(vm.ErrorMessage)} (expect selected=OnAlways, no fake success)");
+        await Task.Delay(300);
+        log.Add($"failed write      -> selected={vm.SelectedState} backend={usb.State} errorSet={!string.IsNullOrEmpty(vm.ErrorMessage)}  EXPECT selected=OnAlways");
 
-        // ---- HDR toggle widget ----
+        // ---------- HDR (toggle widget) ----------
         var hdr = new RecordingHdrFeature();
         var toggle = new LoqNova.Avalonia.ViewModels.Controls.FeatureToggleWidgetViewModel<HDRState>(
             dispatcher, "HDR", "Hdr64", HDRState.On, HDRState.Off);
         Inject(toggle, hdr);
-        await toggle.InitializeAsync();
-        var tw = hdr.Writes.Count;
+        toggle.IsAvailable = true;
+        toggle.IsOn = false;
+
+        var adoptBefore = hdr.Writes.Count;
         hdr.State = HDRState.On;
         await toggle.RefreshAsync();
-        await Task.Delay(120);
-        log.Add($"toggle adopt -> IsOn={toggle.IsOn} newWrites={hdr.Writes.Count - tw} (expect 0)");
+        await Task.Delay(150);
+        log.Add($"toggle adopt      -> IsOn={toggle.IsOn} newWrites={hdr.Writes.Count - adoptBefore}  EXPECT 0 writes, IsOn=True");
+
         toggle.IsOn = false;
-        await Task.Delay(200);
         toggle.RequestOn(false);
-        await Task.Delay(200);
-        log.Add($"toggle user off -> writes=[{string.Join(",", hdr.Writes)}] (expect Off)");
+        await Task.Delay(250);
+        log.Add($"toggle user off   -> writes=[{string.Join(",", hdr.Writes)}]  EXPECT Off");
 
         return string.Join("\n", log);
     }
