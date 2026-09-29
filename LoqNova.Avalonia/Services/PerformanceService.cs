@@ -25,7 +25,7 @@ public class PerformanceService : IPerformanceService
     private PowerModeFeature? _powerModeFeature;
     private PowerModeState[] _availableStates = NoStates;
 
-    public PowerModeState CurrentMode { get; private set; } = PowerModeState.Balance;
+    public PowerModeState? CurrentMode { get; private set; }
 
     public bool IsSupported { get; private set; }
 
