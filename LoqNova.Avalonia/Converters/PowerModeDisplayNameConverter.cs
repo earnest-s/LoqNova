@@ -18,11 +18,14 @@ public sealed class PowerModeDisplayNameConverter : IValueConverter
     public object Convert(object? value, Type targetType, object? parameter, CultureInfo culture)
         => value switch
         {
+            // Not yet read from the machine: shown as unknown rather than a
+            // plausible default mode.
+            null => "--",
             PowerModeState.Quiet => "Quiet",
             PowerModeState.Balance => "Balance",
             PowerModeState.Performance => "Performance",
             PowerModeState.GodMode => "Custom Mode",
-            _ => value?.ToString() ?? string.Empty
+            _ => value.ToString() ?? string.Empty
         };
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
