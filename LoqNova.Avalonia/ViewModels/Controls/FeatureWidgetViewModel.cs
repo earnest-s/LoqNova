@@ -76,7 +76,7 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
         }
     }
 
-    /// <summary>True while a backend reading is being applied, so the view's change event is ignored.</summary>
+
     protected bool IsAdoptingBackendState => SuppressWrite;
 
     /// <summary>
