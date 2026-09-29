@@ -100,10 +100,10 @@
                     <TextBlock Text="Zone Colors" Classes="SectionHeader" />
 
                     <Grid ColumnDefinitions="*,*,*,*" Margin="0,16,0,0">
-                        <controls:ZoneColorPicker Grid.Column="0" ZoneNumber="1" Color="{Binding Zone1Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Grid.Column="1" ZoneNumber="2" Color="{Binding Zone2Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Grid.Column="2" ZoneNumber="3" Color="{Binding Zone3Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Grid.Column="3" ZoneNumber="4" Color="{Binding Zone4Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Name="Zone1" Grid.Column="0" ZoneNumber="1" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone1Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Name="Zone2" Grid.Column="1" ZoneNumber="2" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone2Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Name="Zone3" Grid.Column="2" ZoneNumber="3" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone3Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Name="Zone4" Grid.Column="3" ZoneNumber="4" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone4Color, Mode=TwoWay}" />
                     </Grid>
                 </StackPanel>
             </Border>

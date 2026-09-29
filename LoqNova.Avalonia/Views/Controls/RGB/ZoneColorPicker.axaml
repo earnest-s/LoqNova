@@ -2,34 +2,24 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker">
 
-    <!-- The swatch is a real control: clicking it raises the colour chooser so the
-         zone colour can actually be changed, which the previous passive Border could
-         not do. "Synchronise zones" is the same explicit action WPF exposes from the
-         zone colour picker's context menu. -->
-    <StackPanel Spacing="8">
-        <TextBlock Text="{Binding ZoneNumber, StringFormat='Zone {0}'}"
-                   Classes="Label"
-                   VerticalAlignment="Center" />
+    <!-- Zone colour. The swatch shows the current colour, the palette sets it, and
+         the TwoWay Color binding carries the change through the ViewModel's single
+         state-write path into the backend. "Synchronise zones" is the explicit action
+         WPF exposes, not a persistent mode. -->
+    <StackPanel Spacing="6">
+        <TextBlock Text="{Binding ZoneNumber, StringFormat='Zone {0}'}" Classes="Label" />
+
+        <Border Width="72" Height="20" CornerRadius="4"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+
+        <Panel Name="PaletteHost" />
 
         <Button Classes="GhostButton"
-                Padding="0"
-                Width="56"
-                Height="32"
-                HorizontalAlignment="Left"
+                Content="Synchronise"
+                Padding="6,2"
+                FontSize="11"
                 IsEnabled="{Binding IsInteractive}"
-                Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}"
-                BorderBrush="{StaticResource BorderBrush}"
-                BorderThickness="1"
-                CornerRadius="4"
-                Click="OnSwatchClick">
-
-            <Button.ContextMenu>
-                <ContextMenu>
-                    <MenuItem Header="Change colour…" Click="OnPickColourClick" />
-                    <Separator />
-                    <MenuItem Header="Synchronise zones" Click="OnSynchroniseClick" />
-                </ContextMenu>
-            </Button.ContextMenu>
-        </Button>
+                Click="OnSynchroniseClick" />
     </StackPanel>
 </UserControl>
