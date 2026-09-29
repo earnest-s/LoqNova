@@ -370,21 +370,20 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
     }
 
     /// <summary>
-    /// Raised before the selection is assigned, so the previous value is still
-    /// readable. CommunityToolkit invokes this ahead of the backing-field write,
-    /// whereas <c>OnSelectedStateChanged</c> runs afterwards and therefore cannot
-    /// distinguish the previous state from the requested one - comparing the
-    /// argument against the property at that point compares the new value with
-    /// itself and would suppress the write.
+    /// Applies a state requested by the user. The view calls this from its
+    /// selection-changed event. A property-changed callback cannot be used here:
+    /// it runs after the assignment, so the previous value is already gone and a
+    /// backend publish is indistinguishable from a user choice.
     /// </summary>
-    partial void OnSelectedStateChanging(TState? oldValue, TState? newValue)
+    public void RequestState(TState state)
     {
-        if (SuppressWrite || !IsAvailable || IsBusy || newValue is not { } requested)
+        if (SuppressWrite || !IsAvailable || IsBusy)
             return;
 
-        if (EqualityComparer<TState?>.Default.Equals(oldValue, newValue))
+        if (EqualityComparer<TState?>.Default.Equals(SelectedState, state))
             return;
 
-        _ = SetStateAsync(requested);
+        _ = SetStateAsync(state);
     }
+}
 }
