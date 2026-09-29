@@ -2,11 +2,34 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker">
 
+    <!-- The swatch is a real control: clicking it raises the colour chooser so the
+         zone colour can actually be changed, which the previous passive Border could
+         not do. "Synchronise zones" is the same explicit action WPF exposes from the
+         zone colour picker's context menu. -->
     <StackPanel Spacing="8">
-        <StackPanel Orientation="Horizontal" Spacing="8">
-            <TextBlock Text="{Binding $parent[UserControl].ZoneNumber, StringFormat='Zone {0}'}" Classes="Label" VerticalAlignment="Center" Width="80" />
-            <Border Width="32" Height="32" CornerRadius="4" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                    Background="{Binding $parent[UserControl].Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
-        </StackPanel>
+        <TextBlock Text="{Binding ZoneNumber, StringFormat='Zone {0}'}"
+                   Classes="Label"
+                   VerticalAlignment="Center" />
+
+        <Button Classes="GhostButton"
+                Padding="0"
+                Width="56"
+                Height="32"
+                HorizontalAlignment="Left"
+                IsEnabled="{Binding IsInteractive}"
+                Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                CornerRadius="4"
+                Click="OnSwatchClick">
+
+            <Button.ContextMenu>
+                <ContextMenu>
+                    <MenuItem Header="Change colour…" Click="OnPickColourClick" />
+                    <Separator />
+                    <MenuItem Header="Synchronise zones" Click="OnSynchroniseClick" />
+                </ContextMenu>
+            </Button.ContextMenu>
+        </Button>
     </StackPanel>
 </UserControl>
