@@ -4,16 +4,17 @@
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker"
              x:DataType="local:ZoneColorPicker">
 
-    <!-- One RGB zone, kept deliberately small.
+    <!-- One RGB zone, presented the way WPF does it: a colour button showing the
+         current colour, which opens a picker to change it.
 
-         The colour editor is hidden by default and shown by clicking the swatch.
-         Inline and always-open, four native editors made the page unusable and gave
-         four competing colour surfaces that looked like decoration rather than
-         controls.
+         The picker is hidden until the swatch is clicked, so only one is ever on
+         screen. Every "Is..." toggle below trims the native ColorView down to what
+         WPF's ColorPickerControl actually offers: a colour square plus hex entry.
+         Left on, they add colour-model radios, per-component sliders, R/G/B text
+         boxes and a palette, which is the clutter that made this look unfinished.
 
          Every binding uses $self because the inherited DataContext is the page
-         ViewModel, which has no Color or ZoneNumber. Binding to the DataContext is
-         what previously left these cards blank. -->
+         ViewModel, which has no Color or ZoneNumber. -->
 
     <Border Name="Card" Classes="FeatureCard" Padding="10" Background="Transparent">
         <StackPanel Spacing="6">
@@ -21,7 +22,7 @@
             <TextBlock Text="{Binding $self.ZoneNumber, StringFormat='ZONE {0}', Mode=OneWay}"
                        Classes="CardTitle" />
 
-            <!-- The swatch is both the current-colour readout and the editor trigger. -->
+            <!-- Current colour, and the trigger that opens the picker -->
             <Button Name="PickButton"
                     Height="44"
                     Padding="0"
@@ -39,19 +40,31 @@
                         Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
             </Button>
 
-            <!-- The zone's exact RGB, so the chosen value is unambiguous. -->
-            <TextBlock Text="{Binding $self.Color, Mode=OneWay}"
-                       Classes="CardSubtitle"
-                       HorizontalAlignment="Center" />
+            <!-- WPF's per-zone "Synchronise zones" action. Shown as a button rather
+                 than a hidden context menu, because a context menu is undiscoverable
+                 and this is a required action. -->
+            <Button Name="SyncButton"
+                    Classes="GhostButton"
+                    FontSize="11"
+                    HorizontalAlignment="Stretch"
+                    Content="Synchronise zones"
+                    IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}"
+                    Click="OnSyncClicked" />
 
-            <!-- Avalonia's native colour editor. Revealed on demand; hidden entirely
-                 otherwise so only one is ever on screen. Alpha is hidden because the
-                 backend colour is RGB only. -->
+            <!-- Picker, revealed on demand. Trimmed to a colour square plus hex:
+                 the exact feature set of WPF's ColorPickerControl. -->
             <ColorView Name="Editor"
                        IsVisible="False"
-                       Width="240"
+                       Width="230"
                        HorizontalAlignment="Left"
-                       IsAlphaVisible="False" />
+                       IsAlphaEnabled="False"
+                       IsColorModelVisible="False"
+                       IsColorComponentsVisible="False"
+                       IsComponentSliderVisible="False"
+                       IsComponentTextInputVisible="False"
+                       IsColorPaletteVisible="False"
+                       IsAccentColorsVisible="False"
+                       IsColorPreviewVisible="False" />
         </StackPanel>
     </Border>
 </UserControl>

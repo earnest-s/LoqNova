@@ -127,7 +127,7 @@
                     <StackPanel Spacing="2">
                         <TextBlock Text="Zone Colors" Classes="SectionHeader" />
                         <TextBlock Classes="CardSubtitle"
-                                   Text="Choose a colour per zone. Right-click a zone to apply its colour to all four." />
+                                   Text="Click a zone to change its colour, or synchronise zones to copy one to all four." />
                     </StackPanel>
 
                     <!-- Shown when the backend rejected a change, so a refused write is

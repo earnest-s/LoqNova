@@ -158,4 +158,7 @@ public partial class ZoneColorPicker : UserControl
         if (this.FindControl<Border>("Card") is { } card)
             card.ContextMenu = menu;
     }
+
+    private void OnSyncClicked(object? sender, RoutedEventArgs e)
+        => SynchroniseRequested?.Invoke(this, EventArgs.Empty);
 }
