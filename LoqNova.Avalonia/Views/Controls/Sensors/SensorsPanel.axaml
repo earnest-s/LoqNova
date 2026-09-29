@@ -6,8 +6,8 @@
     <!-- Five equal star columns: the tiles stay aligned with each other and
          share the full width at any window size, so no dead space appears.
          Every value is read from the library sensor controller; a channel the
-         machine does not report is shown as "--" by the bound text properties,
-         and each bar is driven by the machine-reported maximum. -->
+         machine does not report is rendered as a dash by the bound text
+         properties, and each bar is driven by the machine-reported maximum. -->
     <Grid ColumnDefinitions="*,*,*,*,*">
 
         <!-- ============================ CPU utilisation ============================ -->
