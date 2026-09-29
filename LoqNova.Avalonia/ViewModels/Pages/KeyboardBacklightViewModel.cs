@@ -107,6 +107,15 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         && !IsVantageEnabled
         && SelectedPreset != RgbPreset.Off;
 
+    /// <summary>
+    /// Preset selection stays available while the backlight is Off. WPF re-enables
+    /// every preset button after each refresh and only disables the effect, speed,
+    /// brightness and zone controls when Off, so the user can always switch back
+    /// on. Gating the preset buttons on <see cref="IsInteractive"/> would strand
+    /// the user on Off with no way back.
+    /// </summary>
+    public bool CanSelectPreset => _rgbService.IsSupported && !IsVantageEnabled;
+
     public KeyboardBacklightViewModel(
         IRgbService rgbService,
         IMainThreadDispatcher dispatcher)
