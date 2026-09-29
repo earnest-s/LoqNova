@@ -50,7 +50,14 @@ public class PerformanceService : IPerformanceService
 
         // Resolved only once the shared container is up, so constructing this
         // service never races container initialisation.
-        _powerModeFeature = IoCContainer.Resolve<PowerModeFeature>();
+        _powerModeFeature = LoqNova.Lib.IoCContainer.Resolve<PowerModeFeature>();
+
+        // The library's own listener is the source of truth for hardware-initiated
+        // mode changes: it watches the WMI LenovoGameZoneSmartFanModeEvent, which is
+        // what the Fn+Q key raises through the EC. Subscribing to it is how WPF stays
+        // in step, so no polling is used here.
+        var listener = LoqNova.Lib.IoCContainer.Resolve<PowerModeListener>();
+        listener.Changed += OnHardwareModeChanged;
 
         IsSupported = await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false);
 
@@ -72,6 +79,14 @@ public class PerformanceService : IPerformanceService
 
     /// <summary>True once the machine has been queried successfully.</summary>
     private bool IsReady => _powerModeFeature is not null && IsSupported;
+
+    /// <summary>
+    /// Raised by the library listener when the hardware changes the mode on its own
+    /// (Fn+Q) or when the firmware switches modes because of an AC change. The event
+    /// already carries the new state, so it is republished rather than re-read.
+    /// </summary>
+    private void OnHardwareModeChanged(object? sender, PowerModeListener.ChangedEventArgs e)
+        => _dispatcher.Post(() => SetMode(e.State));
 
     public async Task RefreshAsync()
     {
