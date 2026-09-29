@@ -30,6 +30,6 @@ public sealed class RgbZoneColorConverter : IValueConverter
         if (value is Color colour)
             return new RgbZoneColor(colour.R, colour.G, colour.B);
 
-        return Avalonia.Data.BindingOperations.DoNothing;
+        return global::Avalonia.Data.BindingOperations.DoNothing;
     }
 }

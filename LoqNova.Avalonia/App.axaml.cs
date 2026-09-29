@@ -28,27 +28,6 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
-        // Temporary runtime probe for the RGB page. Opt-in only, so normal runs are
-        // unaffected. Remove once the zone-picker and effects findings are settled.
-        if (Environment.GetEnvironmentVariable("RGB_SELFTEST") == "1")
-        {
-            try
-            {
-                LoqNova.Avalonia.Diagnostics.RgbUiSelfTest.Run();
-            }
-            catch (Exception ex)
-            {
-                await System.IO.File.WriteAllTextAsync(
-                    System.IO.Path.Combine(System.IO.Path.GetTempPath(), "rgbselftest.txt"),
-                    "SELFTEST FAILED: " + ex);
-            }
-
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime probeLifetime)
-                probeLifetime.Shutdown();
-
-            return;
-        }
-
         // LoqNova.Lib keeps its own Autofac container and is the single source of
         // truth for controllers, features and settings, so the same backend
         // singletons WPF uses are reused here. It is started on a background
