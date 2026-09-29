@@ -79,13 +79,15 @@
                 </StackPanel>
             </Border>
 
-            <!-- Speed: only shown for effects the backend reports as supporting speed -->
-            <Border Classes="ContentCard" IsVisible="{Binding SpeedEnabled}">
-                <StackPanel>
-                    <TextBlock Text="Speed" Classes="SectionHeader" />
+              <!-- Speed: always present. It is disabled, not hidden, when the backend
+                   reports the selected effect has no adjustable speed. -->
+              <Border Classes="ContentCard">
+                  <StackPanel>
+                      <TextBlock Text="Speed" Classes="SectionHeader" />
                     <ComboBox ItemsSource="{Binding Speeds}"
                               SelectedItem="{Binding SelectedSpeed, Mode=TwoWay}"
-                              IsEnabled="{Binding IsInteractive}"
+                              IsEnabled="{Binding SpeedEnabled}"
+                              ToolTip.Tip="{Binding SpeedToolTip}"
                               Width="150"
                               Margin="0,8,0,0"
                               Background="{StaticResource SurfaceBrush}"

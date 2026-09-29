@@ -58,6 +58,11 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
     [ObservableProperty]
     private bool _speedEnabled;
 
+    /// <summary>Explains why Speed is disabled, so the control is never silently inert.</summary>
+    public string? SpeedToolTip => SpeedEnabled
+        ? null
+        : $"{SelectedEffect} has no adjustable speed.";
+
     /// <summary>Backend-reported capability: the current effect uses per-zone colours.</summary>
     [ObservableProperty]
     private bool _zonesEnabled;

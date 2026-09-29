@@ -5,6 +5,13 @@ using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Views.Controls.RGB;
 
+/// <summary>
+/// Read-only display of the RGB keyboard. It renders the four zone colours that
+/// came from the library's frame dispatcher, so it mirrors what the hardware is
+/// actually showing. It deliberately has no settings control: brightness, effect,
+/// speed and zone colours are edited once, in the page's cards, so there is a
+/// single authoritative RGB state.
+/// </summary>
 public partial class KeyboardPreviewControl : UserControl
 {
     public static readonly StyledProperty<RgbZoneColor> Zone1ColorProperty =
@@ -18,9 +25,6 @@ public partial class KeyboardPreviewControl : UserControl
 
     public static readonly StyledProperty<RgbZoneColor> Zone4ColorProperty =
         AvaloniaProperty.Register<KeyboardPreviewControl, RgbZoneColor>(nameof(Zone4Color));
-
-    public static readonly StyledProperty<RgbBrightness> BrightnessProperty =
-        AvaloniaProperty.Register<KeyboardPreviewControl, RgbBrightness>(nameof(Brightness));
 
     public RgbZoneColor Zone1Color
     {
@@ -46,19 +50,7 @@ public partial class KeyboardPreviewControl : UserControl
         set => SetValue(Zone4ColorProperty, value);
     }
 
-    public RgbBrightness Brightness
-    {
-        get => GetValue(BrightnessProperty);
-        set => SetValue(BrightnessProperty, value);
-    }
+    public KeyboardPreviewControl() => InitializeComponent();
 
-    public KeyboardPreviewControl()
-    {
-        InitializeComponent();
-    }
-    
-    private void InitializeComponent()
-    {
-        AvaloniaXamlLoader.Load(this);
-    }
+    private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 }
