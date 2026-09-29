@@ -60,10 +60,47 @@ public partial class ZoneColorPicker : UserControl
     public ZoneColorPicker()
     {
         InitializeComponent();
+        BuildColourFlyout();
         BuildSynchroniseMenu();
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+
+    /// <summary>
+    /// The large preview opens Avalonia's native colour editor in a flyout, so the
+    /// heavy spectrum and hex entry stay out of the page until they are wanted.
+    /// <para>
+    /// The flyout's editor is bound straight to this control's
+    /// <see cref="ColorProperty"/>, which is itself bound to the page's zone colour.
+    /// That keeps one chain: editor to control to ViewModel to backend. The flyout
+    /// is outside the visual tree, so the binding names this instance as its source
+    /// rather than relying on an inherited DataContext.
+    /// </para>
+    /// </summary>
+    private void BuildColourFlyout()
+    {
+        if (this.FindControl<Button>("PickButton") is not { } button)
+            return;
+
+        var editor = new ColorView
+        {
+            IsAlphaVisible = false,
+            Width = 260
+        };
+
+        editor.Bind(ColorView.ColorProperty, new Binding(nameof(Color))
+        {
+            Source = this,
+            Mode = BindingMode.TwoWay,
+            Converter = RgbZoneColorConverter.Instance
+        });
+
+        button.Flyout = new Flyout
+        {
+            Content = editor,
+            Placement = FlyoutPlacementMode.BottomEdgeAlignedLeft
+        };
+    }
 
     /// <summary>
     /// WPF's per-zone "Synchronise zones" context-menu item, applying this zone's
