@@ -1,43 +1,43 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
+using Avalonia.Media;
 using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Views.Controls.RGB;
 
 /// <summary>
-/// One RGB zone: identity, a large preview of the authoritative colour, and
-/// Avalonia's native colour editor revealed on demand.
+/// One RGB zone: a colour swatch showing the zone's current colour, which opens
+/// Avalonia's native colour editor when clicked.
 /// <para>
-/// The zone colour lives in the RGB state and is edited through the built-in
-/// <see cref="ColorProperty"/> binding, so a change takes the single state-write
-/// path to the backend. The control holds no colour state of its own and renders
-/// no animation.
+/// The editor reports changes through <see cref="OnEditorColorChanged"/>, which writes
+/// <see cref="ColorProperty"/>. That property is bound by the page to this zone's
+/// ViewModel property, which saves through the single state write. This uses an
+/// explicit event rather than a TwoWay binding through a converter, because the
+/// editor's colour is a nullable Avalonia <see cref="Color"/> while the zone colour is
+/// a value struct, and the conversion in between is exactly where the chain previously
+/// broke silently.
 /// </para>
 /// <para>
-/// WPF exposes "Synchronise zones" as a per-zone context-menu item rather than a
-/// button, so that is reproduced here: right-click the zone card.
+/// WPF exposes "Synchronise zones" as a per-zone context-menu item, so that is
+/// reproduced here: right-click the zone card.
 /// </para>
 /// </summary>
 public partial class ZoneColorPicker : UserControl
 {
+    private static readonly RgbZoneColor Empty = new(0, 0, 0);
+
     public static readonly StyledProperty<int> ZoneNumberProperty =
         AvaloniaProperty.Register<ZoneColorPicker, int>(nameof(ZoneNumber));
 
     public static readonly StyledProperty<RgbZoneColor> ColorProperty =
-        AvaloniaProperty.Register<ZoneColorPicker, RgbZoneColor>(
-            nameof(Color), defaultBindingMode: BindingMode.TwoWay);
+        AvaloniaProperty.Register<ZoneColorPicker, RgbZoneColor>(nameof(Color));
 
     /// <summary>Mirrors the page's availability rule, which comes from the backend.</summary>
     public static readonly StyledProperty<bool> IsInteractiveProperty =
         AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsInteractive));
-
-    /// <summary>Whether the native colour editor is expanded.</summary>
-    public static readonly StyledProperty<bool> IsPickerOpenProperty =
-        AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsPickerOpen));
 
     /// <summary>Raised when the user asks to apply this zone's colour to all four.</summary>
     public event EventHandler? SynchroniseRequested;
@@ -60,12 +60,6 @@ public partial class ZoneColorPicker : UserControl
         set => SetValue(IsInteractiveProperty, value);
     }
 
-    public bool IsPickerOpen
-    {
-        get => GetValue(IsPickerOpenProperty);
-        set => SetValue(IsPickerOpenProperty, value);
-    }
-
     public ZoneColorPicker()
     {
         InitializeComponent();
@@ -78,17 +72,69 @@ public partial class ZoneColorPicker : UserControl
 
     private void OnSelfPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
+        if (e.Property == ColorProperty)
+            SyncEditorFromZone();
+
+        // Editing is unavailable while the backlight is Off or Vantage is running, so
+        // the editor must not stay open across that change.
         if (e.Property == IsInteractiveProperty && !IsInteractive)
-            IsPickerOpen = false;
+            SetEditorVisible(false);
+    }
+
+    /// <summary>
+    /// Pushes the authoritative zone colour into the editor, so opening it always
+    /// shows the colour the keyboard actually has. Guarded so it cannot loop with
+    /// <see cref="OnEditorColorChanged"/>.
+    /// </summary>
+    private void SyncEditorFromZone()
+    {
+        if (this.FindControl<ColorView>("Editor") is not { } editor)
+            return;
+
+        var target = Color.FromRgb(Color.R, Color.G, Color.B);
+        if (editor.Color != target)
+            editor.Color = target;
     }
 
     private void OnPickClicked(object? sender, RoutedEventArgs e)
-        => IsPickerOpen = !IsPickerOpen;
+    {
+        if (this.FindControl<ColorView>("Editor") is { } editor)
+            SetEditorVisible(!editor.IsVisible);
+    }
+
+    private void SetEditorVisible(bool visible)
+    {
+        if (this.FindControl<ColorView>("Editor") is not { } editor)
+            return;
+
+        editor.IsVisible = visible;
+        if (visible)
+        {
+            SyncEditorFromZone();
+            editor.Focus();
+        }
+    }
+
+    /// <summary>
+    /// The editor's chosen colour becomes this zone's colour. The zone colour is then
+    /// bound by the page to the ViewModel, which performs the single state write, so
+    /// there is one path from the editor to the keyboard.
+    /// </summary>
+    private void OnEditorColorChanged(object? sender, ColorChangedEventArgs e)
+    {
+        if (e.NewValue is not Color chosen || chosen.A == 0)
+            return;
+
+        var next = new RgbZoneColor(chosen.R, chosen.G, chosen.B);
+        if (next == Color || next == Empty && Color == Empty)
+            return;
+
+        Color = next;
+    }
 
     /// <summary>
     /// WPF's per-zone "Synchronise zones" context-menu item, applying this zone's
-    /// colour to all four in one backend state write. Built in code so the menu is
-    /// wired to this instance and carries this zone's number.
+    /// colour to all four in one backend state write.
     /// </summary>
     private void BuildSynchroniseMenu()
     {
