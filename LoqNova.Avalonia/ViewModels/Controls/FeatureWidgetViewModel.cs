@@ -74,6 +74,10 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
         {
             SuppressWrite = false;
         }
+
+        // Derived widgets expose sub-editors whose usability depends on the two-state
+        // value, so those are republished here.
+        OnPropertyChanged(nameof(IsOn));
     }
 
 

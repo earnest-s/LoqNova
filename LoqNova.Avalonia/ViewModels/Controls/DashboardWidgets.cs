@@ -194,7 +194,7 @@ public sealed partial class DiscreteGpuWidgetViewModel : FeatureWidgetViewModel
 /// an enable toggle backed by <c>GPUOverclockController</c>, refreshed on display
 /// device arrival and on the controller's own change event.
 /// </summary>
-public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
+public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
 {
     private GPUOverclockController? _controller;
     private NativeWindowsMessageListener? _listener;
