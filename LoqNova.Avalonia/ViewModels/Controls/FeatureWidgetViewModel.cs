@@ -102,6 +102,14 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     {
     }
 
+    /// <summary>
+    /// Entry point for a selection reported by the view, which carries the chosen
+    /// item as a plain object. Only choice widgets act on it.
+    /// </summary>
+    public virtual void RequestStateFrom(object? selected)
+    {
+    }
+
 
     /// <summary>Read-only status text, shown for widgets that report rather than set state.</summary>
     [ObservableProperty]
@@ -400,6 +408,13 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
 
         _ = SetStateAsync(state);
     }
+
+    public override void RequestStateFrom(object? selected)
+    {
+        if (selected is TState state)
+            RequestState(state);
+    }
+
 
     /// <summary>
     /// Entry point for a selection reported by the view, which carries the chosen

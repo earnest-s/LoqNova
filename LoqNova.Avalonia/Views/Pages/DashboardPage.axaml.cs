@@ -2,6 +2,7 @@ using System;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using LoqNova.Avalonia.ViewModels.Pages;
 
@@ -46,7 +47,7 @@ public partial class DashboardPage : UserControl
     /// widget needs in order not to write back a value it just read from the
     /// hardware.
     /// </summary>
-    private void OnWidgetToggleClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnWidgetToggleClicked(object? sender, RoutedEventArgs e)
     {
         if (sender is ToggleSwitch { IsChecked: { } checkedValue, DataContext: LoqNova.Avalonia.ViewModels.Controls.FeatureWidgetViewModel widget })
         {
