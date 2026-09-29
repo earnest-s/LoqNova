@@ -196,4 +196,25 @@ public partial class App : Application
             System.Diagnostics.Debug.WriteLine($"Library container failed to initialize: {ex}");
         }
     }
+
+    /// <summary>
+    /// Releases the library's RGB resources on shutdown, mirroring what WPF does when
+    /// it closes: stop the global volume/brightness reactive RGB service and hand the
+    /// keyboard's light-control ownership back so firmware and other front ends can
+    /// drive it again. Without this the reactive service keeps holding the keyboard.
+    /// </summary>
+    public override async void OnExit(EventArgs e)
+    {
+        try
+        {
+            if (Container.IsRegistered<IRgbService>())
+                await Container.Resolve<IRgbService>().ShutdownAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"RGB shutdown failed: {ex}");
+        }
+
+        base.OnExit(e);
+    }
 }
