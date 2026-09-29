@@ -70,6 +70,19 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
     [ObservableProperty]
     private int _sourceZone = 1;
 
+    public bool IsSourceZone1 => SourceZone == 1;
+    public bool IsSourceZone2 => SourceZone == 2;
+    public bool IsSourceZone3 => SourceZone == 3;
+    public bool IsSourceZone4 => SourceZone == 4;
+
+    partial void OnSourceZoneChanged(int value)
+    {
+        OnPropertyChanged(nameof(IsSourceZone1));
+        OnPropertyChanged(nameof(IsSourceZone2));
+        OnPropertyChanged(nameof(IsSourceZone3));
+        OnPropertyChanged(nameof(IsSourceZone4));
+    }
+
     /// <summary>Backend-reported capability: the current effect uses per-zone colours.</summary>
     [ObservableProperty]
     private bool _zonesEnabled;
@@ -225,6 +238,8 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
     /// </summary>
     [RelayCommand]
     public async Task SynchroniseAllZonesAsync() => await SynchroniseZonesAsync(SourceZone);
+
+    private async Task SynchroniseZonesAsync(int zoneNumber)
     {
         var color = zoneNumber switch
         {

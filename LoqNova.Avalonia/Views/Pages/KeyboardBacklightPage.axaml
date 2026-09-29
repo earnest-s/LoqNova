@@ -112,19 +112,45 @@
                 </StackPanel>
             </Border>
 
-            <!-- Zone Colors: four real state controls. Changing one writes the whole
-                 selected preset through the backend controller without disturbing
-                 the other zones, effect, speed, brightness or preset. -->
+            <!-- Zone colors: four equal cards showing the authoritative colour per
+                 zone, each with a compact palette, plus one shared synchronisation
+                 action. Changing a swatch writes the whole selected preset through
+                 the backend controller without disturbing the other zones, effect,
+                 speed, brightness or preset. -->
             <Border Classes="ContentCard">
-                <StackPanel>
-                    <TextBlock Text="Zone Colors" Classes="SectionHeader" />
+                <StackPanel Spacing="14">
 
-                    <Grid ColumnDefinitions="*,*,*,*" Margin="0,16,0,0">
-                        <controls:ZoneColorPicker Name="Zone1" Grid.Column="0" ZoneNumber="1" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone1Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Name="Zone2" Grid.Column="1" ZoneNumber="2" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone2Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Name="Zone3" Grid.Column="2" ZoneNumber="3" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone3Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Name="Zone4" Grid.Column="3" ZoneNumber="4" IsInteractive="{Binding IsInteractive}" Color="{Binding Zone4Color, Mode=TwoWay}" />
+                    <StackPanel Spacing="2">
+                        <TextBlock Text="Zone Colors" Classes="SectionHeader" />
+                        <TextBlock Classes="CardSubtitle"
+                                   Text="Select a colour per zone, then apply it to all four at once." />
+                    </StackPanel>
+
+                    <Grid ColumnDefinitions="*,*,*,*" Margin="0,4,0,0">
+                        <controls:ZoneColorPicker Name="Zone1" Grid.Column="0" Margin="0,0,8,0"
+                                                  ZoneNumber="1" IsSource="{Binding IsSourceZone1}"
+                                                  IsInteractive="{Binding IsInteractive}"
+                                                  Color="{Binding Zone1Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Name="Zone2" Grid.Column="1" Margin="0,0,8,0"
+                                                  ZoneNumber="2" IsSource="{Binding IsSourceZone2}"
+                                                  IsInteractive="{Binding IsInteractive}"
+                                                  Color="{Binding Zone2Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Name="Zone3" Grid.Column="2" Margin="0,0,8,0"
+                                                  ZoneNumber="3" IsSource="{Binding IsSourceZone3}"
+                                                  IsInteractive="{Binding IsInteractive}"
+                                                  Color="{Binding Zone3Color, Mode=TwoWay}" />
+                        <controls:ZoneColorPicker Name="Zone4" Grid.Column="3"
+                                                  ZoneNumber="4" IsSource="{Binding IsSourceZone4}"
+                                                  IsInteractive="{Binding IsInteractive}"
+                                                  Color="{Binding Zone4Color, Mode=TwoWay}" />
                     </Grid>
+
+                    <Button Content="Synchronise All Zones"
+                            Classes="ActionButton"
+                            HorizontalAlignment="Center"
+                            Margin="0,2,0,0"
+                            IsEnabled="{Binding IsInteractive}"
+                            Command="{Binding SynchroniseAllZonesCommand}" />
                 </StackPanel>
             </Border>
         </StackPanel>
