@@ -348,7 +348,7 @@ public sealed class TurnOffMonitorsWidgetViewModel : FeatureWidgetViewModel
             IsBusy = false;
         }
     }
-}
+
     private async Task ApplyAsync()
     {
         try
