@@ -163,6 +163,9 @@ public abstract partial class FeatureWidgetViewModel<TState> : FeatureWidgetView
 {
     private IFeature<TState>? _feature;
 
+    /// <summary>Last value read from the backend, used to avoid redundant writes.</summary>
+    protected TState? _lastBackendState;
+
     protected FeatureWidgetViewModel(IMainThreadDispatcher dispatcher) : base(dispatcher)
     {
     }
@@ -198,6 +201,7 @@ public abstract partial class FeatureWidgetViewModel<TState> : FeatureWidgetView
             }
 
             var state = await _feature.GetStateAsync().ConfigureAwait(false);
+            _lastBackendState = state;
 
             await Dispatcher.InvokeAsync(() =>
             {
@@ -387,6 +391,11 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
         // previous value is not observable here and any such check would suppress a
         // genuine user change. Backend echoes are blocked by SuppressWrite.
         if (SuppressWrite || !IsAvailable || IsBusy)
+            return;
+
+        // Compared against the last value the backend reported, which is still known
+        // here; SelectedState has already been overwritten by the binding.
+        if (_lastBackendState is { } last && EqualityComparer<TState>.Default.Equals(last, state))
             return;
 
         _ = SetStateAsync(state);
