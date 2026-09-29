@@ -49,24 +49,32 @@
                             <Border Width="10" Height="10" CornerRadius="5"
                                     Background="{Binding PowerModeColor}"
                                     VerticalAlignment="Center" />
-                            <TextBlock Text="{Binding CurrentPowerMode}"
-                                       Classes="PowerModeValue"
-                                       Foreground="{Binding PowerModeColor}" />
-                        </StackPanel>
-                    </StackPanel>
+                              <TextBlock Text="{Binding CurrentPowerMode, Converter={StaticResource PowerModeDisplayNameConverter}}"
+                                         Classes="PowerModeValue"
+                                         Foreground="{Binding PowerModeColor}" />
+                          </StackPanel>
+                      </StackPanel>
 
-                    <!-- Mode selector + God Mode -->
-                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
-                                VerticalAlignment="Center">
-                        <ComboBox Classes="Control"
-                                  Width="200"
-                                  ItemsSource="{Binding PowerModeItems}"
-                                  SelectedItem="{Binding CurrentPowerMode}" />
-                        <Button Classes="SecondaryButton"
-                                Content="God Mode"
-                                Command="{Binding OpenGodModeCommand}"
-                                IsVisible="{Binding IsGodModeSupported}" />
-                    </StackPanel>
+                      <!-- Mode selector + Custom Mode settings. The backend enum is
+                           PowerModeState.GodMode; it is presented as "Custom Mode"
+                           to match the WPF resource strings. -->
+                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
+                                  VerticalAlignment="Center">
+                          <ComboBox Classes="Control"
+                                    Width="200"
+                                    ItemsSource="{Binding PowerModeItems}"
+                                    SelectedItem="{Binding CurrentPowerMode}">
+                              <ComboBox.ItemTemplate>
+                                  <DataTemplate>
+                                      <TextBlock Text="{Binding Converter={StaticResource PowerModeDisplayNameConverter}}" />
+                                  </DataTemplate>
+                              </ComboBox.ItemTemplate>
+                          </ComboBox>
+                          <Button Classes="SecondaryButton"
+                                  Content="Custom Mode"
+                                  Command="{Binding OpenCustomModeSettingsCommand}"
+                                  IsVisible="{Binding IsGodModeSupported}" />
+                      </StackPanel>
                 </Grid>
             </Border>
 
