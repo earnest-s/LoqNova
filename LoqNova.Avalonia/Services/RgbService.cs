@@ -297,6 +297,112 @@ public class RgbService : IRgbService
         }
     }
 
+    /// <summary>
+    /// Raised for every frame the keyboard actually renders, mirroring WPF's
+    /// subscription to <c>RgbFrameDispatcher.FrameRendered</c>. May arrive on a
+    /// background thread, so consumers must marshal.
+    /// </summary>
+    public event Action<RgbZoneColor, RgbZoneColor, RgbZoneColor, RgbZoneColor>? FrameRendered;
+
+    /// <summary>
+    /// True when Lenovo Vantage is running. WPF disables every control and shows a
+    /// warning in that state, because Vantage competes for control of the keyboard.
+    /// </summary>
+    public bool IsVantageEnabled { get; private set; }
+
+    private void OnFrameRendered(ZoneColors zones)
+        => FrameRendered?.Invoke(
+            new RgbZoneColor(zones.Zone1.R, zones.Zone1.G, zones.Zone1.B),
+            new RgbZoneColor(zones.Zone2.R, zones.Zone2.G, zones.Zone2.B),
+            new RgbZoneColor(zones.Zone3.R, zones.Zone3.G, zones.Zone3.B),
+            new RgbZoneColor(zones.Zone4.R, zones.Zone4.G, zones.Zone4.B));
+
+    /// <summary>
+    /// Writes the supplied values into the currently selected preset and leaves every
+    /// other preset untouched, which is how WPF's <c>SaveState</c> behaves. The
+    /// authoritative state is always re-read from the controller afterwards, so the UI
+    /// never displays a write that did not land.
+    /// </summary>
+    public async Task SaveStateAsync(
+        RgbEffect effect,
+        RgbSpeed speed,
+        RgbBrightness brightness,
+        RgbZoneColor zone1,
+        RgbZoneColor zone2,
+        RgbZoneColor zone3,
+        RgbZoneColor zone4)
+    {
+        if (!IsSupported)
+            return;
+
+        try
+        {
+            var state = await Controller.GetStateAsync().ConfigureAwait(false);
+
+            // Preset Off holds no description; WPF does not write in that case.
+            if (state.SelectedPreset == RGBKeyboardBacklightPreset.Off)
+                return;
+
+            var presets = new Dictionary<RGBKeyboardBacklightPreset, RGBKeyboardBacklightBacklightPresetDescription>(state.Presets);
+
+            presets[state.SelectedPreset] = new RGBKeyboardBacklightBacklightPresetDescription(
+                MapToLibEffect(effect),
+                MapToLibSpeed(speed),
+                MapToLibBrightness(brightness),
+                ToLibColor(zone1),
+                ToLibColor(zone2),
+                ToLibColor(zone3),
+                ToLibColor(zone4));
+
+            SettingsStore.Store.State = new RGBKeyboardBacklightState(state.SelectedPreset, presets);
+            SettingsStore.SynchronizeStore();
+
+            await Controller.SetStateAsync(SettingsStore.Store.State).ConfigureAwait(false);
+
+            UpdateFromState(await Controller.GetStateAsync().ConfigureAwait(false));
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError(ex, "Failed to save RGB state");
+        }
+    }
+
+    /// <summary>
+    /// Applies one colour to all four zones in a single state write, matching WPF's
+    /// "Synchronise zones" context-menu action. This is an explicit action, not a
+    /// persistent mode.
+    /// </summary>
+    public Task SynchroniseZonesAsync(RgbZoneColor color)
+        => SaveStateAsync(CurrentEffect, CurrentSpeed, CurrentBrightness, color, color, color, color);
+
+    /// <summary>WPF enables the speed control only for effects that support a speed.</summary>
+    public bool SupportsSpeed(RgbEffect effect) => MapToLibEffect(effect).SupportsSpeed();
+
+    /// <summary>WPF shows the zone pickers only for effects that use zone colours.</summary>
+    public bool SupportsZoneColors(RgbEffect effect) => MapToLibEffect(effect).SupportsZoneColors();
+
+    /// <summary>True for the software effects driven by CustomRGBEffectController.</summary>
+    public bool IsCustomEffect(RgbEffect effect) => MapToLibEffect(effect).IsCustomEffect();
+
+    private static RGBColor ToLibColor(RgbZoneColor color) => new(color.R, color.G, color.B);
+
+    /// <summary>
+    /// Reads the Vantage status once during initialisation so the page can warn and
+    /// disable its controls the way WPF does.
+    /// </summary>
+    private async Task RefreshVantageStatusAsync()
+    {
+        try
+        {
+            var vantage = LoqNova.Lib.IoCContainer.Resolve<VantageDisabler>();
+            IsVantageEnabled = await vantage.GetStatusAsync().ConfigureAwait(false) == LoqNova.Lib.SoftwareDisabler.SoftwareStatus.Enabled;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not read Vantage status");
+        }
+    }
+
     private void UpdateFromState(RGBKeyboardBacklightState state)
     {
         CurrentPreset = MapFromLibPreset(state.SelectedPreset);
