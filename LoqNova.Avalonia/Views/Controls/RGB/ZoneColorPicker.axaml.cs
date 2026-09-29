@@ -71,16 +71,16 @@ public partial class ZoneColorPicker : UserControl
         InitializeComponent();
         BuildSynchroniseMenu();
 
-        // Editing is unavailable while the backlight is Off or Vantage is running, so
-        // the editor must not stay open across that change.
-        GetObservable(IsInteractiveProperty).Subscribe(interactive =>
-        {
-            if (!interactive)
-                IsPickerOpen = false;
-        });
+        PropertyChanged += OnSelfPropertyChanged;
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
+
+    private void OnSelfPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == IsInteractiveProperty && !IsInteractive)
+            IsPickerOpen = false;
+    }
 
     private void OnPickClicked(object? sender, RoutedEventArgs e)
         => IsPickerOpen = !IsPickerOpen;
