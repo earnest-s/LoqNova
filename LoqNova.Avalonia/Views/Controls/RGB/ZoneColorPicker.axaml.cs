@@ -93,6 +93,10 @@ public partial class ZoneColorPicker : UserControl
         set => SetValue(IsInteractiveProperty, value);
     }
 
+    /// <summary>True for the zone the user last asked to synchronise from.</summary>
+    public static readonly StyledProperty<bool> IsSourceProperty =
+        AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsSource));
+
     public bool IsSource
     {
         get => GetValue(IsSourceProperty);
@@ -127,12 +131,14 @@ public partial class ZoneColorPicker : UserControl
                 && swatch.Color.B == Color.B;
     }
 
-    private void OnSwatchTapped(object? sender, RoutedEventArgs e)
+    /// <summary>The zone number is carried on the control so the page can route the
+    /// synchronise gesture back to the matching zone.</summary>
+    private void OnSwatchClick(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { Tag: RgbZoneColor colour })
             Color = colour;
     }
 
-    private void OnSelectAsSource(object? sender, RoutedEventArgs e)
-        => SourceRequested?.Invoke(this, EventArgs.Empty);
+    private void OnSynchroniseClick(object? sender, RoutedEventArgs e)
+        => SynchroniseRequested?.Invoke(this, EventArgs.Empty);
 }
