@@ -1,6 +1,5 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:cp="using:Avalonia.Controls.ColorPicker"
              xmlns:local="clr-namespace:LoqNova.Avalonia.Views.Controls.RGB"
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker"
              x:DataType="local:ZoneColorPicker">
@@ -28,10 +27,11 @@
                     BorderThickness="1"
                     Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
 
-            <!-- Native colour editor. Alpha is hidden: the backend colour is RGB only. -->
-            <cp:ColorView Color="{Binding $self.Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}"
-                          IsAlphaVisible="False"
-                          IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}" />
+            <!-- Native colour editor, resolved from Avalonia's default namespace.
+                 Alpha is hidden: the backend colour is RGB only. -->
+            <ColorView Color="{Binding $self.Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}"
+                       IsAlphaVisible="False"
+                       IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}" />
         </StackPanel>
     </Border>
 </UserControl>
