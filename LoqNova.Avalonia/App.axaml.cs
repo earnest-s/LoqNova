@@ -43,8 +43,8 @@ public partial class App : Application
                     "SELFTEST FAILED: " + ex);
             }
 
-            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
-                desktop.Shutdown();
+            if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime probeLifetime)
+                probeLifetime.Shutdown();
 
             return;
         }

@@ -8,6 +8,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.VisualTree;
 using Avalonia.Threading;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels.Pages;
@@ -141,7 +142,7 @@ internal static class RgbUiSelfTest
         Log.Add($"palette.syncActionPresent={buttons.Any(b => b.Content?.ToString()?.Contains("Synchronise", StringComparison.OrdinalIgnoreCase) == true)}");
 
         var preview = FindAll<Border>(picker).FirstOrDefault(b => b.Height == 64);
-        Log.Add($"palette.previewBackground={((Avalonia.Media.SolidColorBrush?)preview?.Background)?.Color}");
+        Log.Add($"palette.previewBackground={(preview?.Background as ISolidColorBrush)?.Color}");
 
         // Selected-state indicator for the current colour (red).
         Log.Add($"palette.selectedRingForRed={CountSelected(picker)}");
