@@ -109,7 +109,6 @@ public partial class ZoneColorPicker : UserControl
     }
 
     private bool _editorHooked;
-    }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
