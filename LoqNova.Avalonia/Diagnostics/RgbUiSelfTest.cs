@@ -226,6 +226,7 @@ internal static class RgbUiSelfTest
     private sealed class ImmediateDispatcher : IMainThreadDispatcher
     {
         public bool IsMainThread => true;
+        public bool CheckAccess() => true;
 
         public void Post(Action action) => action();
 
@@ -234,5 +235,9 @@ internal static class RgbUiSelfTest
             action();
             return Task.CompletedTask;
         }
+
+        public Task<T> InvokeAsync<T>(Func<T> func) => Task.FromResult(func());
+
+        public Task InvokeAsync(Func<Task> func) => func();
     }
 }
