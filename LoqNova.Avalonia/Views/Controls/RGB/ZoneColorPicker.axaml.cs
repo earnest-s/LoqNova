@@ -2,11 +2,9 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
-using Avalonia.Controls.ColorPicker;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
-using LoqNova.Avalonia.Converters;
 using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Views.Controls.RGB;
