@@ -240,15 +240,16 @@ public abstract partial class FeatureWidgetViewModel<TState> : FeatureWidgetView
             failure = ex.Message;
         }
 
-        await Dispatcher.InvokeAsync(() =>
-        {
-            IsBusy = false;
-            ErrorMessage = failure;
-        }).ConfigureAwait(false);
+        await Dispatcher.InvokeAsync(() => IsBusy = false).ConfigureAwait(false);
 
         // Re-read the real state rather than assuming the write landed, so a failed
         // or refused write can never leave a stale value selected.
         await RefreshAsync().ConfigureAwait(false);
+
+        // Applied after the re-read: RefreshAsync clears ErrorMessage on a good read,
+        // which would otherwise swallow the reason a write failed.
+        if (failure is not null)
+            await Dispatcher.InvokeAsync(() => ErrorMessage = failure).ConfigureAwait(false);
     }
 
 
