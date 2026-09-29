@@ -1,12 +1,19 @@
 using LoqNova.Lib.Settings;
+using Newtonsoft.Json.Linq;
 
 namespace LoqNova.Avalonia.Settings;
 
 /// <summary>
 /// Dashboard configuration, mirroring the WPF <c>DashboardSettings</c> store so both
-/// front ends read and write the same <c>dashboard.json</c>. The type name matches
-/// WPF's because the store is serialized with <c>TypeNameHandling.Auto</c>, so
-/// changing it would orphan existing user settings.
+/// front ends read and write the same <c>dashboard.json</c>.
+/// <para>
+/// The store is deserialized with <c>TypeNameHandling.Auto</c>. WPF's
+/// <c>DashboardGroup</c> lives in the WPF assembly, so it cannot be deserialized
+/// here. <see cref="DashboardSettingsStore.Groups"/> is therefore kept as a
+/// <see cref="JArray"/>: that round-trips the existing file without losing the user's
+/// saved composition, and the typed group model is applied once the dashboard
+/// editor is ported.
+/// </para>
 /// </summary>
 public class DashboardSettings() : AbstractSettings<DashboardSettings.DashboardSettingsStore>("dashboard.json")
 {
@@ -18,10 +25,10 @@ public class DashboardSettings() : AbstractSettings<DashboardSettings.DashboardS
         public int SensorsRefreshIntervalSeconds { get; set; } = 1;
 
         /// <summary>
-        /// Dashboard group composition, serialised as WPF's <c>DashboardGroup</c>
-        /// records. Null means "use the default groups".
+        /// WPF's group composition, preserved verbatim. Written by the WPF
+        /// dashboard editor; the Avalonia editor is not implemented yet.
         /// </summary>
-        public DashboardGroupRecord[]? Groups { get; set; }
+        public JArray? Groups { get; set; }
     }
 
     protected override DashboardSettingsStore Default => new();
