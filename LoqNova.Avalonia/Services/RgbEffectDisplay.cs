@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using LoqNova.Lib;
 
 namespace LoqNova.Avalonia.Services;

@@ -1,31 +1,26 @@
 using System;
 using System.Collections.ObjectModel;
-using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
-using LoqNova.Lib;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
 /// <summary>
-/// RGB keyboard backlight, mirroring WPF's <c>RGBKeyboardBacklightControl</c>:
-/// every control change writes the whole description of the selected preset through
-/// one state write, and the authoritative state is re-read afterwards. The option
-/// lists come from the library enums, so no effect, speed or brightness level is
-/// invented here.
+/// RGB keyboard backlight, mirroring WPF's <c>RGBKeyboardBacklightControl</c>.
+/// Every control change funnels through one state write - WPF's <c>SaveState</c> -
+/// and the authoritative state is re-read afterwards, so a firmware effect is written
+/// exactly like a software effect and a zone edit never resets the other fields.
+/// The option lists are derived from the library enums.
 /// </summary>
 public partial class KeyboardBacklightViewModel : ViewModelBase
 {
     private readonly IRgbService _rgbService;
-    private readonly ISettingsService _settingsService;
+    private readonly IMainThreadDispatcher _dispatcher;
 
     /// <summary>Set while a backend state is being adopted, so it is not written back.</summary>
     private bool _applyingState;
-
-    [ObservableProperty]
-    private bool _isRgbKeyboard = true;
 
     [ObservableProperty]
     private bool _isSpectrumKeyboard;
@@ -39,6 +34,7 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
     [ObservableProperty]
     private RgbSpeed _selectedSpeed = RgbSpeed.Fast;
 
+    /// <summary>The single authoritative brightness state; the preview does not own one.</summary>
     [ObservableProperty]
     private RgbBrightness _selectedBrightness = RgbBrightness.High;
 
@@ -62,100 +58,68 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
     [ObservableProperty]
     private bool _speedEnabled;
 
-    /// <summary>Backend-reported capability: the current effect uses zone colours.</summary>
+    /// <summary>Backend-reported capability: the current effect uses per-zone colours.</summary>
     [ObservableProperty]
     private bool _zonesEnabled;
 
-    /// <summary>
-    /// One combined effect list, derived from the library's effect enum, so firmware
-    /// and software effects cannot drift apart again.
-    /// </summary>
-    public ObservableCollection<RgbEffect> Effects { get; } = BuildEffects();
-
-    public ObservableCollection<RgbSpeed> Speeds { get; } = BuildSpeeds();
-
-    public ObservableCollection<RgbBrightness> BrightnessLevels { get; } = BuildBrightness();
-
-    public KeyboardBacklightViewModel(IRgbService rgbService, ISettingsService settingsService)
-    {
-        _rgbService = rgbService;
-        _settingsService = settingsService;
-
-        SubscribeToEvents();
-    }
-
-    /// <summary>
-    /// The complete supported effect set, taken from the library enum. Ordering
-    /// follows the enum, which lists the firmware effects first and the software
-    /// effects after them.
-    /// </summary>
-    private static ObservableCollection<RgbEffect> BuildEffects()
-        =>
-        [
-            .. Enum.GetValues<RGBKeyboardBacklightEffect>()
-                .Select(RgbEffectDisplay.FromLibEffect)
-        ];
-
-    private static ObservableCollection<RgbSpeed> BuildSpeeds()
-        =>
-        [
-            .. Enum.GetValues<RGBKeyboardBacklightSpeed>()
-                .Select(RgbEffectDisplay.FromLibSpeed)
-        ];
-
-    private static ObservableCollection<RgbBrightness> BuildBrightness()
-        =>
-        [
-            .. Enum.GetValues<RGBKeyboardBacklightBrightness>()
-                .Select(RgbEffectDisplay.FromLibBrightness)
-        ];
-
-    private void SubscribeToEvents()
-    {
-        _rgbService.PresetChanged += _ => _dispatcher.Post(ApplyStateAsync);
-        _rgbService.EffectChanged += _ => _dispatcher.Post(ApplyStateAsync);
-        _rgbService.SpeedChanged += _ => _dispatcher.Post(ApplyStateAsync);
-        _rgbService.BrightnessChanged += _ => _dispatcher.Post(ApplyStateAsync);
-        _rgbService.ZoneColorChanged += (_, _) => _dispatcher.Post(ApplyStateAsync);
-
-        // Live preview: the single frame output the keyboard renders. This is the
-        // only path that updates the preview, so firmware commands, custom effects
-        // and performance-mode overrides all reach it without a second engine.
-        _rgbService.FrameRendered += (z1, z2, z3, z4) => _dispatcher.Post(() =>
-        {
-            _applyingState = true;
-            try
-            {
-                PreviewZone1 = z1;
-                PreviewZone2 = z2;
-                PreviewZone3 = z3;
-                PreviewZone4 = z4;
-            }
-            finally
-            {
-                _applyingState = false;
-            }
-        });
-    }
-
-    // Preview colours are driven by rendered frames rather than by the selected
-    // settings, so the preview cannot drift from what the hardware is showing.
+    // Preview colours follow rendered frames, so the preview cannot drift from the
+    // hardware. They are separate from the selected settings on purpose.
     [ObservableProperty] private RgbZoneColor _previewZone1;
     [ObservableProperty] private RgbZoneColor _previewZone2;
     [ObservableProperty] private RgbZoneColor _previewZone3;
     [ObservableProperty] private RgbZoneColor _previewZone4;
 
-    public IMainThreadDispatcherBridge Dispatcher => new Bridge(this);
+    /// <summary>One combined effect list, derived from the library effect enum.</summary>
+    public ObservableCollection<RgbEffect> Effects { get; } = [.. RgbEffectDisplay.AllEffects()];
 
-    private readonly ISettingsService _settings = null!;
+    public ObservableCollection<RgbSpeed> Speeds { get; } = [.. RgbEffectDisplay.AllSpeeds()];
 
-    /// <summary>Adopts the authoritative state read back from the controller.</summary>
+    /// <summary>The library exposes exactly Low and High; nothing extra is offered.</summary>
+    public ObservableCollection<RgbBrightness> BrightnessLevels { get; } = [.. RgbEffectDisplay.AllBrightness()];
+
+    /// <summary>Controls are interactive only when the hardware allows it and Vantage is not running.</summary>
+    public bool IsInteractive => _rgbService.IsSupported
+        && !IsVantageEnabled
+        && SelectedPreset != RgbPreset.Off;
+
+    public KeyboardBacklightViewModel(
+        IRgbService rgbService,
+        IMainThreadDispatcher dispatcher)
+    {
+        _rgbService = rgbService;
+        _dispatcher = dispatcher;
+
+        SubscribeToEvents();
+    }
+
+    private void SubscribeToEvents()
+    {
+        void Changed() => _dispatcher.Post(async () => await ApplyStateAsync());
+
+        _rgbService.PresetChanged += _ => Changed();
+        _rgbService.EffectChanged += _ => Changed();
+        _rgbService.SpeedChanged += _ => Changed();
+        _rgbService.BrightnessChanged += _ => Changed();
+        _rgbService.ZoneColorChanged += (_, _) => Changed();
+
+        // Live preview. This is the library's single frame output, forwarded by the
+        // service, so firmware commands, custom effects (including AudioVisualizer)
+        // and performance-mode overrides all reach the preview through one path.
+        // It may arrive on a background thread, so the update is marshalled.
+        _rgbService.FrameRendered += (z1, z2, z3, z4) => _dispatcher.Post(() =>
+        {
+            PreviewZone1 = z1;
+            PreviewZone2 = z2;
+            PreviewZone3 = z3;
+            PreviewZone4 = z4;
+        });
+    }
+
+    /// <summary>Hydrates from the authoritative state, mirroring WPF's <c>RefreshAsync</c>.</summary>
     public async Task ApplyStateAsync()
     {
         if (!_rgbService.IsSupported)
             return;
-
-        await _rgbService.InitializeAsync();
 
         _applyingState = true;
         try
@@ -175,19 +139,20 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
             SpeedEnabled = !isOff && _rgbService.SupportsSpeed(SelectedEffect);
             ZonesEnabled = !isOff && _rgbService.SupportsZoneColors(SelectedEffect);
 
-            // Firmware effects do not emit per-frame callbacks, so the preview shows
-            // a static snapshot of the zones until a frame arrives. WPF does the same.
-            if (!_rgbService.IsCustomEffect(SelectedEffect) && !isOff)
+            if (isOff)
             {
+                // Keyboard off: the preview goes black, as WPF does.
+                var black = new RgbZoneColor(0, 0, 0);
+                PreviewZone1 = PreviewZone2 = PreviewZone3 = PreviewZone4 = black;
+            }
+            else if (!_rgbService.IsCustomEffect(SelectedEffect))
+            {
+                // Firmware effects do not emit per-frame callbacks, so show a static
+                // snapshot until the dispatcher produces a frame. WPF does the same.
                 PreviewZone1 = Zone1Color;
                 PreviewZone2 = Zone2Color;
                 PreviewZone3 = Zone3Color;
                 PreviewZone4 = Zone4Color;
-            }
-            else if (isOff)
-            {
-                var off = new RgbZoneColor(0, 0, 0);
-                PreviewZone1 = PreviewZone2 = PreviewZone3 = PreviewZone4 = off;
             }
         }
         finally
@@ -198,14 +163,10 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         OnPropertyChanged(nameof(IsInteractive));
     }
 
-    /// <summary>Controls are only interactive when the hardware and Vantage allow it.</summary>
-    public bool IsInteractive => _rgbService.IsSupported && !IsVantageEnabled && SelectedPreset != RgbPreset.Off;
-
     /// <summary>
-    /// The single write path, equivalent to WPF's <c>SaveState</c>. Every control
-    /// change funnels through here, so a zone edit never resets the effect, speed,
-    /// brightness or the other zones, and a firmware effect is written just like a
-    /// software effect.
+    /// The single write path, equivalent to WPF's <c>SaveState</c>: the selected
+    /// preset's description is replaced as a whole, so the effect, speed, brightness
+    /// and all four zones are written together and no other preset is disturbed.
     /// </summary>
     [RelayCommand]
     private async Task SaveStateAsync()
@@ -213,17 +174,23 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         if (_applyingState || !_rgbService.IsSupported || IsVantageEnabled)
             return;
 
+        // WPF does not write while the Off preset is selected.
         if (SelectedPreset == RgbPreset.Off)
             return;
 
         await _rgbService.SaveStateAsync(
-            SelectedEffect, SelectedSpeed, SelectedBrightness,
-            Zone1Color, Zone2Color, Zone3Color, Zone4Color);
+            SelectedEffect,
+            SelectedSpeed,
+            SelectedBrightness,
+            Zone1Color,
+            Zone2Color,
+            Zone3Color,
+            Zone4Color);
 
         await ApplyStateAsync();
     }
 
-    /// <summary>Preset selection, mirroring WPF: switch preset, then re-read everything.</summary>
+    /// <summary>Preset selection: switch preset, then re-read every displayed field.</summary>
     [RelayCommand]
     private async Task SetPresetAsync(RgbPreset preset)
     {
@@ -235,15 +202,15 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// "Synchronise zones": an explicit action that applies the given zone's colour to
-    /// all four zones in one state write, matching WPF's context-menu item.
+    /// "Synchronise zones": an explicit action, matching WPF's context-menu item.
+    /// The chosen zone's colour is applied to all four zones in one state write. It
+    /// is not a persistent mode.
     /// </summary>
     [RelayCommand]
     private async Task SynchroniseZonesAsync(int zoneNumber)
     {
         var color = zoneNumber switch
         {
-            1 => Zone1Color,
             2 => Zone2Color,
             3 => Zone3Color,
             4 => Zone4Color,
@@ -264,7 +231,6 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         }
 
         await SaveStateAsync();
-        await ApplyStateAsync();
     }
 
     partial void OnSelectedEffectChanged(RgbEffect value)
@@ -286,20 +252,7 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
 
     partial void OnZone4ColorChanged(RgbZoneColor value) => _ = SaveStateAsync();
 
-    private sealed class Bridge(KeyboardBacklightViewModel owner)
-        : LoqNova.Avalonia.Services.IMainThreadDispatcher
-    {
-        private readonly LoqNova.Avalonia.Services.IMainThreadDispatcher _inner =
-            LoqNova.Lib.IoCContainer.Resolve<LoqNova.Avalonia.Services.IMainThreadDispatcher>();
+    partial void OnIsVantageEnabledChanged(bool value) => OnPropertyChanged(nameof(IsInteractive));
 
-        public void Post(Action action) => _inner.Post(action);
-
-        public Task InvokeAsync(Action action) => _inner.InvokeAsync(action);
-
-        public Task<T> InvokeAsync<T>(Func<T> func) => _inner.InvokeAsync(func);
-
-        public Task InvokeAsync(Func<Task> func) => _inner.InvokeAsync(func);
-
-        public bool CheckAccess() => _inner.CheckAccess();
-    }
+    partial void OnSelectedPresetChanged(RgbPreset value) => OnPropertyChanged(nameof(IsInteractive));
 }

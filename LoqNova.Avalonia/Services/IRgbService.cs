@@ -30,6 +30,8 @@ public enum RgbEffect
     Ripple = 108,
     Strobe = 109,
     Swipe = 110,
+    SwipeFill = 111,
+    SwipeCleanWithBlack = 112,
     Temperature = 111
 }
 
