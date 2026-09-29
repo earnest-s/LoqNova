@@ -1,7 +1,6 @@
 using System;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
@@ -11,7 +10,7 @@ namespace LoqNova.Avalonia.Views.Controls.RGB;
 
 /// <summary>
 /// One RGB zone: identity, a large preview of the authoritative colour, and
-/// Avalonia's native <c>ColorView</c> as the editor.
+/// Avalonia's native colour editor revealed on demand.
 /// <para>
 /// The zone colour lives in the RGB state and is edited through the built-in
 /// <see cref="ColorProperty"/> binding, so a change takes the single state-write
@@ -36,6 +35,10 @@ public partial class ZoneColorPicker : UserControl
     public static readonly StyledProperty<bool> IsInteractiveProperty =
         AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsInteractive));
 
+    /// <summary>Whether the native colour editor is expanded.</summary>
+    public static readonly StyledProperty<bool> IsPickerOpenProperty =
+        AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsPickerOpen));
+
     /// <summary>Raised when the user asks to apply this zone's colour to all four.</summary>
     public event EventHandler? SynchroniseRequested;
 
@@ -57,34 +60,30 @@ public partial class ZoneColorPicker : UserControl
         set => SetValue(IsInteractiveProperty, value);
     }
 
+    public bool IsPickerOpen
+    {
+        get => GetValue(IsPickerOpenProperty);
+        set => SetValue(IsPickerOpenProperty, value);
+    }
+
     public ZoneColorPicker()
     {
         InitializeComponent();
-        WireColourFlyout();
         BuildSynchroniseMenu();
+
+        // Editing is unavailable while the backlight is Off or Vantage is running, so
+        // the editor must not stay open across that change.
+        GetObservable(IsInteractiveProperty).Subscribe(interactive =>
+        {
+            if (!interactive)
+                IsPickerOpen = false;
+        });
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-    /// <summary>
-    /// The large preview opens Avalonia's native colour editor in a flyout, so the
-    /// heavy spectrum and hex entry stay out of the page until they are wanted.
-    /// <para>
-    /// The flyout is declared in XAML and lives in its own popup tree, so it inherits
-    /// no DataContext. Pointing its root at this control makes the editor's binding
-    /// resolve against <see cref="ColorProperty"/>, which is itself bound to the
-    /// page's zone colour. That keeps one chain: editor to control to ViewModel to
-    /// backend, with no second colour state.
-    /// </para>
-    /// </summary>
-    private void WireColourFlyout()
-    {
-        if (this.FindControl<Button>("PickButton") is not { } button)
-            return;
-
-        if (button.Flyout is ContentControl host && host.Content is Control root)
-            root.DataContext = this;
-    }
+    private void OnPickClicked(object? sender, RoutedEventArgs e)
+        => IsPickerOpen = !IsPickerOpen;
 
     /// <summary>
     /// WPF's per-zone "Synchronise zones" context-menu item, applying this zone's
@@ -97,7 +96,6 @@ public partial class ZoneColorPicker : UserControl
         item.Click += (_, _) => SynchroniseRequested?.Invoke(this, EventArgs.Empty);
 
         var menu = new ContextMenu { ItemsSource = new[] { item } };
-        menu.Opened += (_, _) => menu.DataContext = this;
 
         if (this.FindControl<Border>("Card") is { } card)
             card.ContextMenu = menu;

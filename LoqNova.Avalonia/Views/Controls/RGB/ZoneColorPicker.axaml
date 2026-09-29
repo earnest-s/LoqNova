@@ -10,10 +10,9 @@
          DataContext is the page ViewModel, which owns no Color or ZoneNumber.
          Binding to the DataContext is what previously left these cards blank.
 
-         The large colour preview is also the picker trigger: clicking it opens a
-         flyout holding Avalonia's native ColorView. Showing ColorView inline made
-         the page enormous and put four unstyled spectrum/hex editors on screen at
-         once. This mirrors WPF, where a colour button opens a popup editor.
+         The large colour preview is the picker trigger. The native editor stays
+         collapsed until the zone is clicked: showing it inline and always-open put
+         four full spectrum/hex editors on the page at once, which was unusable.
 
          WPF offers a continuous 2D colour square plus hex/RGB entry, so there is no
          discrete swatch palette to reproduce. -->
@@ -32,24 +31,22 @@
                     HorizontalContentAlignment="Stretch"
                     Background="Transparent"
                     BorderThickness="0"
+                    Click="OnPickClicked"
                     IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}">
                 <Border CornerRadius="4"
                         BorderBrush="{StaticResource BorderStrongBrush}"
                         BorderThickness="1"
                         Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
-
-                <!-- Avalonia's native colour editor, hidden until the zone is clicked.
-                     Its DataContext is pointed at this control in code, so this
-                     binding resolves against the zone colour. -->
-                <Button.Flyout>
-                    <Flyout Placement="BottomEdgeAlignedLeft">
-                        <Grid Name="FlyoutRoot" Width="280">
-                            <ColorView IsAlphaVisible="False"
-                                       Color="{Binding Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}" />
-                        </Grid>
-                    </Flyout>
-                </Button.Flyout>
             </Button>
+
+            <!-- Avalonia's native colour editor, revealed on demand. Alpha is hidden
+                 because the backend colour is RGB only. -->
+            <ColorView IsVisible="{Binding $self.IsPickerOpen, Mode=OneWay}"
+                       Width="260"
+                       HorizontalAlignment="Left"
+                       IsAlphaVisible="False"
+                       IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}"
+                       Color="{Binding $self.Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}" />
         </StackPanel>
     </Border>
 </UserControl>
