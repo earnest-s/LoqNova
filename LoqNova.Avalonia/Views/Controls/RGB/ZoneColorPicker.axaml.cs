@@ -126,7 +126,7 @@ public partial class ZoneColorPicker : UserControl
                 && swatch.Color.B == Color.B;
     }
 
-    private void OnSwatchTapped(object? sender, TappedEventArgs e)
+    private void OnSwatchTapped(object? sender, RoutedEventArgs e)
     {
         if (sender is Control { Tag: RgbZoneColor colour })
             Color = colour;
