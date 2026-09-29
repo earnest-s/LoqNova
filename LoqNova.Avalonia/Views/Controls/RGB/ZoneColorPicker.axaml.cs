@@ -134,7 +134,7 @@ public partial class ZoneColorPicker : UserControl
     /// </summary>
     private void OnEditorColorChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property != ColorView.ColorProperty || e.NewValue is not Color chosen)
+        if (e.Property != ColorView.ColorProperty || e.NewValue is not Media.Color chosen)
             return;
 
         var next = new RgbZoneColor(chosen.R, chosen.G, chosen.B);
