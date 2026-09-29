@@ -149,5 +149,34 @@
             </Grid>
         </Border>
 
+        <!-- ============================ GPU fan ============================ -->
+        <Border Grid.Column="5" Classes="SensorCard">
+            <Grid ColumnDefinitions="Auto,*">
+                <Border Grid.Column="0" Classes="SensorAccentFan" />
+
+                <StackPanel Grid.Column="1" Margin="9,0,0,0" Spacing="0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                        <PathIcon Data="{x:Static icons:IconGeometries.Fan}"
+                                  Classes="SensorIcon"
+                                  Foreground="{StaticResource SensorFanBrush}" />
+                        <TextBlock Text="GPU FAN" Classes="SensorCardTitle SensorLabelFan" TextTrimming="CharacterEllipsis" />
+                    </StackPanel>
+
+                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                        <TextBlock Text="{Binding GpuFanSpeedText}"
+                                   Classes="SensorCardValue" TextWrapping="NoWrap"
+                                   Foreground="{StaticResource SensorFanBrush}" />
+                        <TextBlock Text="RPM" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                    </StackPanel>
+
+                    <!-- Reported as-is, including zero when the machine reports none. -->
+                    <TextBlock Classes="SensorCardMeta" Margin="0,2,0,0"
+                               Text="{Binding GpuFanSpeedMaxText}" />
+
+                    <ProgressBar Value="{Binding GpuFanSpeedRatio}" Classes="FanSpeedBar" Maximum="1" />
+                </StackPanel>
+            </Grid>
+        </Border>
+
     </Grid>
 </UserControl>
