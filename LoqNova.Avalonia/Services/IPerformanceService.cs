@@ -12,8 +12,12 @@ namespace LoqNova.Avalonia.Services;
 /// </summary>
 public interface IPerformanceService
 {
-    /// <summary>Last state read from the machine.</summary>
-    PowerModeState CurrentMode { get; }
+    /// <summary>
+    /// Last state read from the machine, or <c>null</c> while it is still unknown.
+    /// A default enum value is never assumed, so the UI cannot display a mode the
+    /// hardware is not actually in.
+    /// </summary>
+    PowerModeState? CurrentMode { get; }
 
     /// <summary>True when the machine exposes the Lenovo Smart Fan mode WMI feature.</summary>
     bool IsSupported { get; }
