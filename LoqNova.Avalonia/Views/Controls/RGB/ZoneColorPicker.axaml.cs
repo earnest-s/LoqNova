@@ -28,8 +28,13 @@ namespace LoqNova.Avalonia.Views.Controls.RGB;
 /// </summary>
 public partial class ZoneColorPicker : UserControl
 {
-    /// <summary>The native colour editor, created by the XAML name generator.</summary>
-    private ColorView? ColourEditor => this.FindControl<ColorView>("Editor");
+    /// <summary>
+    /// The native colour editor. It lives inside the picker's popup, which is a
+    /// separate logical tree, so it is reached through the popup's child rather than
+    /// through this control's own name scope.
+    /// </summary>
+    private ColorView? ColourEditor =>
+        PickerPopup.Child is Control root ? root.FindControl<ColorView>("Editor") : null;
 
 
 
