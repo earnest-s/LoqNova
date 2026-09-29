@@ -100,6 +100,32 @@ public class RgbService : IRgbService
     }
 
     /// <summary>
+    /// Pushes the stored preset to the keyboard at startup, so reopening the
+    /// application restores the lighting the user last chose instead of leaving
+    /// whatever the firmware happened to be showing.
+    /// <para>
+    /// This calls the same backend re-send WPF performs on start
+    /// (<c>SetLightControlOwnerAsync(true, restorePreset: true)</c>) rather than
+    /// inventing a restore path, so firmware presets are re-sent and a custom effect
+    /// is restarted through the custom effect controller.
+    /// </para>
+    /// </summary>
+    private async Task ApplyStoredPresetAsync()
+    {
+        try
+        {
+            await Controller.SetLightControlOwnerAsync(true, true).ConfigureAwait(false);
+            _logger.LogInformation("Restored the stored keyboard backlight preset.");
+        }
+        catch (Exception ex)
+        {
+            // Not fatal: the page still shows the stored state and the user can
+            // re-apply it. Vantage being enabled, or unsupported hardware, lands here.
+            _logger.LogWarning(ex, "Could not restore the stored keyboard backlight preset on startup");
+        }
+    }
+
+    /// <summary>
     /// Starts the existing <see cref="VolumeBrightnessReactiveRgbService"/>, the
     /// backend service that turns Windows volume and display-brightness changes into
     /// a four-zone visualisation on the keyboard.
