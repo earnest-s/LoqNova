@@ -127,8 +127,8 @@ public static class DashboardFeatureRegistry
     /// <summary>WPF's default dashboard composition, in the same group order.</summary>
     public static IReadOnlyList<DashboardFeature> DefaultFeatures { get; } =
     [
-        // Power group
-        DashboardFeature.PowerMode,
+        // Power group. Power mode is deliberately absent: the dashboard presents it in
+        // the large top status area, which is the authoritative display for it.
         DashboardFeature.BatteryMode,
         DashboardFeature.BatteryNightChargeMode,
         DashboardFeature.AlwaysOnUsb,
