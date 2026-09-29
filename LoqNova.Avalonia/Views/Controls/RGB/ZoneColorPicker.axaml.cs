@@ -102,7 +102,8 @@ public partial class ZoneColorPicker : UserControl
         if (ColourEditor is not { } editor)
             return;
 
-        var target = Color.FromRgb(Color.R, Color.G, Color.B);
+        // Fully qualified: the control's own Color property shadows the Avalonia type.
+        var target = Media.Color.FromRgb(Color.R, Color.G, Color.B);
         if (editor.Color != target)
             editor.Color = target;
     }
