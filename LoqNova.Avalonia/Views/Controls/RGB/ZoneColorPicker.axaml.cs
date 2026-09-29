@@ -70,8 +70,8 @@ public partial class ZoneColorPicker : UserControl
     public static readonly StyledProperty<bool> IsSourceProperty =
         AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsSource));
 
-    /// <summary>Raised when this zone is chosen as the synchronise source.</summary>
-    public event EventHandler? SourceRequested;
+    /// <summary>Raised when the user asks to apply this zone's colour to all four.</summary>
+    public event EventHandler? SynchroniseRequested;
 
     public ObservableCollection<ZoneSwatch> Swatches { get; } = new();
 
