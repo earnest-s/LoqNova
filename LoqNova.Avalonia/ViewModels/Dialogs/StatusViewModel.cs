@@ -67,7 +67,7 @@ public partial class StatusViewModel : ViewModelBase
         _performanceService.ModeChanged += _ => _dispatcher.Post(Update);
         _batteryService.PercentageChanged += _ => _dispatcher.Post(Update);
         _batteryService.ChargingChanged += _ => _dispatcher.Post(Update);
-        _sensorsService.CpuUsageChanged += _ => _dispatcher.Post(Update);
+        _sensorsService.Updated += () => _dispatcher.Post(Update);
         _thermalService.CpuTemperatureChanged += _ => _dispatcher.Post(Update);
         _thermalService.FanSpeedChanged += _ => _dispatcher.Post(Update);
         _rgbService.PresetChanged += _ => _dispatcher.Post(Update);
