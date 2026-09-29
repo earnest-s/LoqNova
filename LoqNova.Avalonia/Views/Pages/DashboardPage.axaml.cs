@@ -25,6 +25,35 @@ public partial class DashboardPage : UserControl
 
     private void OnDataContextChanged(object? sender, EventArgs e) => ApplyVisibility();
 
+    /// <summary>
+    /// Forwards a user's combo selection to the widget. The binding is OneWay, so
+    /// the widget stays the single source of truth for what is displayed and this
+    /// is the only path that issues a backend write.
+    /// </summary>
+    private void OnWidgetSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is ComboBox { DataContext: LoqNova.Avalonia.ViewModels.Controls.FeatureWidgetViewModel widget }
+            && e.AddedItems.Count > 0
+            && e.AddedItems[0] is { } selected)
+        {
+            widget.RequestStateFrom(selected);
+        }
+    }
+
+    /// <summary>
+    /// Forwards a user's toggle. <c>Click</c> is used rather than a property-changed
+    /// callback because it unambiguously means the user acted, which is what the
+    /// widget needs in order not to write back a value it just read from the
+    /// hardware.
+    /// </summary>
+    private void OnWidgetToggleClicked(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is ToggleSwitch { IsChecked: { } checkedValue, DataContext: LoqNova.Avalonia.ViewModels.Controls.FeatureWidgetViewModel widget })
+        {
+            widget.RequestOn(checkedValue);
+        }
+    }
+
     private void ApplyVisibility()
     {
         if (DataContext is not DashboardViewModel vm)

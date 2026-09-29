@@ -121,14 +121,16 @@
                                 <!-- Two-state feature (or GPU overclock): writes through the backend. -->
                                 <ToggleSwitch IsVisible="{Binding IsToggle}"
                                               IsEnabled="{Binding !IsBusy}"
-                                              IsChecked="{Binding IsOn, Mode=TwoWay}" />
+                                              Click="OnWidgetToggleClicked"
+                                              IsChecked="{Binding IsOn, Mode=OneWay}" />
 
                                 <!-- Multi-state feature: options are read from the machine. -->
                                 <ComboBox IsVisible="{Binding IsChoice}"
                                           IsEnabled="{Binding !IsBusy}"
                                           HorizontalAlignment="Stretch"
+                                          SelectionChanged="OnWidgetSelectionChanged"
                                           ItemsSource="{Binding Options}"
-                                          SelectedItem="{Binding SelectedState, Mode=TwoWay}">
+                                          SelectedItem="{Binding SelectedState, Mode=OneWay}">
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <!-- Library state types implementing IDisplayName supply

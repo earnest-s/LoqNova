@@ -400,4 +400,14 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
 
         _ = SetStateAsync(state);
     }
+
+    /// <summary>
+    /// Entry point for a selection reported by the view, which carries the chosen
+    /// item as a plain object.
+    /// </summary>
+    public void RequestStateFrom(object? selected)
+    {
+        if (selected is TState state)
+            RequestState(state);
+    }
 }
