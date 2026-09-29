@@ -310,7 +310,13 @@ public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
             IsBusy = true;
 
             var (_, info) = _controller!.GetState();
-            _controller.SaveState(IsOn, info);
+
+            // Clamp to the same ranges the WPF sliders allow: zero to the reported
+            // maximum, since negative offsets are not selectable there.
+            var core = (int)Math.Clamp(Math.Round(CoreOffsetMhz), 0, MaxCoreOffset);
+            var memory = (int)Math.Clamp(Math.Round(MemoryOffsetMhz), 0, (int)MaxMemoryOffset);
+
+            _controller.SaveState(IsOn, new GPUOverclockInfo(core, memory));
             await _controller.ApplyStateAsync().ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -324,6 +330,38 @@ public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
 
         await RefreshAsync().ConfigureAwait(false);
     }
+
+    /// <summary>Writes the current offsets without changing the on/off state.</summary>
+    [RelayCommand]
+    private async Task ApplyOffsetsAsync()
+    {
+        if (!IsOffsetEditorEnabled || IsBusy || _controller is null)
+            return;
+
+        try
+        {
+            IsBusy = true;
+
+            var core = (int)Math.Clamp(Math.Round(CoreOffsetMhz), 0, MaxCoreOffset);
+            var memory = (int)Math.Clamp(Math.Round(MemoryOffsetMhz), 0, (int)MaxMemoryOffset);
+
+            _controller.SaveState(IsOn, new GPUOverclockInfo(core, memory));
+            await _controller.ApplyStateAsync().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            await Dispatcher.InvokeAsync(() => ErrorMessage = ex.Message).ConfigureAwait(false);
+        }
+        finally
+        {
+            IsBusy = false;
+        }
+
+        await RefreshAsync().ConfigureAwait(false);
+    }
+
+    partial void OnIsOnChanged(bool value)
+        => OnPropertyChanged(nameof(IsOffsetEditorEnabled));
 }
 
 /// <summary>
