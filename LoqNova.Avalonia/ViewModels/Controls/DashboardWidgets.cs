@@ -251,7 +251,7 @@ public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
             {
                 IsAvailable = true;
                 ErrorMessage = null;
-                IsOn = enabled;
+                SetIsOnFromBackend(enabled);
             }).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -261,7 +261,7 @@ public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
     }
 
     /// <summary>Writes the toggle through the controller, then re-reads the real state.</summary>
-    protected override void OnIsOnChangedCore(bool value)
+    protected override void OnIsOnRequested(bool value)
     {
         if (!IsAvailable || IsBusy || _controller is null)
             return;
