@@ -38,7 +38,31 @@ internal sealed class RecordingRgbService : IRgbService
     public event Action<RgbSpeed>? SpeedChanged;
     public event Action<RgbBrightness>? BrightnessChanged;
     public event Action<int, RgbZoneColor>? ZoneColorChanged;
+    public bool IsSpectrumKeyboard => false;
+    public event Action<bool>? SynchronizationChanged;
     public event Action<RgbZoneColor, RgbZoneColor, RgbZoneColor, RgbZoneColor>? FrameRendered;
+
+    public Task SetEffectAsync(RgbEffect effect) => SaveStateAsync(
+        effect, CurrentSpeed, CurrentBrightness, Zone1Color, Zone2Color, Zone3Color, Zone4Color);
+
+    public Task SetSpeedAsync(RgbSpeed speed) => SaveStateAsync(
+        CurrentEffect, speed, CurrentBrightness, Zone1Color, Zone2Color, Zone3Color, Zone4Color);
+
+    public Task SetBrightnessAsync(RgbBrightness brightness) => SaveStateAsync(
+        CurrentEffect, CurrentSpeed, brightness, Zone1Color, Zone2Color, Zone3Color, Zone4Color);
+
+    public Task SetZoneColorAsync(int zone, RgbZoneColor color)
+    {
+        var z1 = zone == 1 ? color : Zone1Color;
+        var z2 = zone == 2 ? color : Zone2Color;
+        var z3 = zone == 3 ? color : Zone3Color;
+        var z4 = zone == 4 ? color : Zone4Color;
+        return SaveStateAsync(CurrentEffect, CurrentSpeed, CurrentBrightness, z1, z2, z3, z4);
+    }
+
+    public void RaiseFrame(RgbZoneColor z1, RgbZoneColor z2, RgbZoneColor z3, RgbZoneColor z4)
+        => FrameRendered?.Invoke(z1, z2, z3, z4);
+}
 
     public Task InitializeAsync() => Task.CompletedTask;
 
