@@ -27,6 +27,24 @@ public partial class DashboardPage : UserControl
     private void OnDataContextChanged(object? sender, EventArgs e) => ApplyVisibility();
 
     /// <summary>
+    /// Forwards a user's power-mode choice. The combo is bound OneWay, so this is the
+    /// only path that issues a write, and it never compares against the already
+    /// updated property: the chosen item is sent straight to the service, which
+    /// writes to the backend and then re-reads the real state.
+    /// </summary>
+    private void OnPowerModeSelectionChanged(object? sender, SelectionChangedEventArgs e)
+    {
+        if (sender is not ComboBox { DataContext: LoqNova.Avalonia.ViewModels.Pages.DashboardViewModel vm })
+            return;
+
+        if (e.AddedItems.Count > 0 && e.AddedItems[0] is LoqNova.Lib.PowerModeState requested)
+        {
+            _ = vm.RequestPowerModeAsync(requested);
+        }
+    }
+
+
+    /// <summary>
     /// Forwards a user's combo selection to the widget. The binding is OneWay, so
     /// the widget stays the single source of truth for what is displayed and this
     /// is the only path that issues a backend write.
