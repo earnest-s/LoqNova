@@ -334,6 +334,13 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
         await RefreshAsync().ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// The offset editors only make sense while overclocking is on, so they are
+    /// re-evaluated whenever the two-state value is republished.
+    /// </summary>
+    protected override void OnTwoStateValueRepublished()
+        => OnPropertyChanged(nameof(IsOffsetEditorEnabled));
+
     /// <summary>Writes the current offsets without changing the on/off state.</summary>
     [RelayCommand]
     private async Task ApplyOffsetsAsync()
@@ -363,8 +370,6 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
         await RefreshAsync().ConfigureAwait(false);
     }
 
-    partial void OnIsOnChanged(bool value)
-        => OnPropertyChanged(nameof(IsOffsetEditorEnabled));
 }
 
 /// <summary>

@@ -78,6 +78,15 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
         // Derived widgets expose sub-editors whose usability depends on the two-state
         // value, so those are republished here.
         OnPropertyChanged(nameof(IsOn));
+        OnTwoStateValueRepublished();
+    }
+
+    /// <summary>
+    /// Called after the two-state value is republished, so derived widgets can refresh
+    /// anything gated on it.
+    /// </summary>
+    protected virtual void OnTwoStateValueRepublished()
+    {
     }
 
 
