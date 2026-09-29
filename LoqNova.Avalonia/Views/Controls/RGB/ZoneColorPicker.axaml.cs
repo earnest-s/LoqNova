@@ -27,7 +27,8 @@ namespace LoqNova.Avalonia.Views.Controls.RGB;
 /// </summary>
 public partial class ZoneColorPicker : UserControl
 {
-    private ColorView? Editor => this.FindControl<ColorView>("Editor");
+    /// <summary>The native colour editor, created by the XAML name generator.</summary>
+    private ColorView? ColourEditor => this.FindControl<ColorView>("Editor");
 
     public static readonly StyledProperty<int> ZoneNumberProperty =
         AvaloniaProperty.Register<ZoneColorPicker, int>(nameof(ZoneNumber));
