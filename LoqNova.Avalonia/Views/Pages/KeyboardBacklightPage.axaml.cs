@@ -30,23 +30,36 @@ public partial class KeyboardBacklightPage : UserControl
     }
 
     /// <summary>
-    /// Wires each zone once. The colour is edited through the built-in picker bound
-    /// straight to the ViewModel, so a change takes the single state-write path; the
-    /// context menu carries WPF's explicit "Synchronise zones" action.
+    /// Routes each zone card's "use as source" gesture to the ViewModel, which
+    /// decides the colour that the single "Synchronise All Zones" action applies.
+    /// Attaching on every DataContextChanged would multiply the handler, so each
+    /// page instance wires itself exactly once.
     /// </summary>
-    private void AttachZonePickers(KeyboardBacklightViewModel vm)
-    {
-        Wire("Zone1", 1, vm);
-        Wire("Zone2", 2, vm);
-        Wire("Zone3", 3, vm);
-        Wire("Zone4", 4, vm);
+    private void AttachZonePickers(KeyboardBacklightViewModel vm) => AttachZonePickers();
 
-        void Wire(string name, int zone, KeyboardBacklightViewModel target)
+    private bool _zonePickersAttached;
+
+    private void AttachZonePickers()
+    {
+        if (_zonePickersAttached)
+            return;
+
+        _zonePickersAttached = true;
+        Wire("Zone1", 1);
+        Wire("Zone2", 2);
+        Wire("Zone3", 3);
+        Wire("Zone4", 4);
+
+        void Wire(string name, int zone)
         {
             if (this.FindControl<ZoneColorPicker>(name) is not { } picker)
                 return;
 
-            picker.SynchroniseRequested += (_, _) => _ = target.SynchroniseZonesCommand.ExecuteAsync(zone);
+            picker.SourceRequested += (_, _) =>
+            {
+                if (DataContext is KeyboardBacklightViewModel vm)
+                    vm.SelectSourceZone(zone);
+            };
         }
     }
 }
