@@ -331,11 +331,22 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
         }
     }
 
-    partial void OnSelectedStateChanged(TState? value)
+    /// <summary>
+    /// Raised before the selection is assigned, so the previous value is still
+    /// readable. CommunityToolkit invokes this ahead of the backing-field write,
+    /// whereas <c>OnSelectedStateChanged</c> runs afterwards and therefore cannot
+    /// distinguish the previous state from the requested one - comparing the
+    /// argument against the property at that point compares the new value with
+    /// itself and would suppress the write.
+    /// </summary>
+    partial void OnSelectedStateChanging(TState? oldValue, TState? newValue)
     {
-        if (_suppressWrite || !IsAvailable || IsBusy || value is not { } state)
+        if (_suppressWrite || !IsAvailable || IsBusy || newValue is not { } requested)
             return;
 
-        _ = SetStateAsync(state);
+        if (EqualityComparer<TState?>.Default.Equals(oldValue, newValue))
+            return;
+
+        _ = SetStateAsync(requested);
     }
 }
