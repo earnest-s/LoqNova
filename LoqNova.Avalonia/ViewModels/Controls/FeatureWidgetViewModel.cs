@@ -56,6 +56,9 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<WidgetSettingViewModel> Settings { get; } = new();
 
+    /// <summary>True when the widget carries numeric sub-settings to render.</summary>
+    public bool HasSettings => Settings.Count > 0;
+
     /// <summary>State of a two-state feature. Shared by toggle features and the GPU overclock toggle.</summary>
     [ObservableProperty]
     private bool _isOn;
