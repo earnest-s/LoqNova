@@ -87,7 +87,11 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     /// </summary>
     public void RequestOn(bool value)
     {
-        if (SuppressWrite || !IsAvailable || IsBusy || IsOn == value)
+        // No comparison against IsOn here: the view has already pushed the new value
+        // into the property by the time this runs, so such a check would always
+        // reject the user's change. Echoes from the backend are prevented by
+        // SuppressWrite instead.
+        if (SuppressWrite || !IsAvailable || IsBusy)
             return;
 
         OnIsOnRequested(value);
