@@ -337,23 +337,52 @@ public partial class DashboardViewModel : ViewModelBase
         _gpuFanSpeedMetric.Update(GpuFanSpeed, GpuMaxFanSpeed);
 
         Raise();
+
+        // WPF formats CPU core clock in GHz and the GPU clocks in MHz, and renders
+        // "-" when the machine reports no value or maximum.
         CpuUtilizationText = _cpuUtilizationMetric.ValueText;
         CpuUtilizationRatio = _cpuUtilizationMetric.Ratio;
         GpuUtilizationText = _gpuUtilizationMetric.ValueText;
         GpuUtilizationRatio = _gpuUtilizationMetric.Ratio;
+
+        CpuCoreClockText = FormatCoreClock(CpuCoreClock);
+        CpuCoreClockRatio = _cpuCoreClockMetric.Ratio;
+        CpuCoreClockMaxText = FormatCoreClock(CpuMaxCoreClock);
+
         CpuTemperatureText = _cpuTemperatureMetric.ValueText;
         CpuTemperatureRatio = _cpuTemperatureMetric.Ratio;
         GpuTemperatureText = _gpuTemperatureMetric.ValueText;
         GpuTemperatureRatio = _gpuTemperatureMetric.Ratio;
+
         CpuFanSpeedText = _cpuFanSpeedMetric.ValueText;
         CpuFanSpeedRatio = _cpuFanSpeedMetric.Ratio;
-        CpuFanSpeedMaxText = _cpuFanSpeedMetric.MaximumText is { } max ? $"max {max} RPM" : null;
+        CpuFanSpeedMaxText = _cpuFanSpeedMetric.MaximumText is { } fanMax ? $"max {fanMax} RPM" : null;
+
+        GpuCoreClockText = FormatMegahertz(GpuCoreClock);
+        GpuCoreClockRatio = _gpuCoreClockMetric.Ratio;
+        GpuCoreClockMaxText = FormatMegahertz(GpuMaxCoreClock);
+
+        GpuMemoryClockText = FormatMegahertz(GpuMemoryClock);
+        GpuMemoryClockRatio = _gpuMemoryClockMetric.Ratio;
+        GpuMemoryClockMaxText = FormatMegahertz(GpuMaxMemoryClock);
+
+        GpuFanSpeedText = _gpuFanSpeedMetric.ValueText;
+        GpuFanSpeedRatio = _gpuFanSpeedMetric.Ratio;
+        GpuFanSpeedMaxText = _gpuFanSpeedMetric.MaximumText is { } gpuFanMax ? $"max {gpuFanMax} RPM" : null;
 
         void Raise()
         {
             OnPropertyChanged(nameof(SensorMetrics));
         }
     }
+
+    /// <summary>WPF renders the CPU core clock in GHz, to one decimal place.</summary>
+    private static string FormatCoreClock(int megahertz)
+        => megahertz < 0 ? "-" : $"{megahertz / 1000.0:0.0} GHz";
+
+    /// <summary>WPF renders the GPU core and memory clocks in MHz.</summary>
+    private static string FormatMegahertz(int megahertz)
+        => megahertz < 0 ? "-" : $"{megahertz} MHz";
 
     /// <summary>Clears every telemetry channel to "not reported" when the source is unsupported.</summary>
     /// <summary>
