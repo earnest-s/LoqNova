@@ -4,49 +4,55 @@
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker"
              x:DataType="local:ZoneColorPicker">
 
-    <!-- One RGB zone.
+    <!-- One RGB zone, kept deliberately small.
 
-         Every binding targets the control itself via $self, because the inherited
-         DataContext is the page ViewModel, which owns no Color or ZoneNumber.
-         Binding to the DataContext is what previously left these cards blank.
+         The colour editor is hidden by default and shown by clicking the swatch.
+         Inline and always-open, four native editors made the page unusable and gave
+         four competing colour surfaces that looked like decoration rather than
+         controls.
 
-         The large colour preview is the picker trigger. The native editor stays
-         collapsed until the zone is clicked: showing it inline and always-open put
-         four full spectrum/hex editors on the page at once, which was unusable.
+         Every binding uses $self because the inherited DataContext is the page
+         ViewModel, which has no Color or ZoneNumber. Binding to the DataContext is
+         what previously left these cards blank. -->
 
-         WPF offers a continuous 2D colour square plus hex/RGB entry, so there is no
-         discrete swatch palette to reproduce. -->
-
-    <Border Name="Card" Classes="FeatureCard" Padding="12" Background="Transparent">
-        <StackPanel Spacing="8">
+    <Border Name="Card" Classes="FeatureCard" Padding="10" Background="Transparent">
+        <StackPanel Spacing="6">
 
             <TextBlock Text="{Binding $self.ZoneNumber, StringFormat='ZONE {0}', Mode=OneWay}"
                        Classes="CardTitle" />
 
-            <!-- Large preview of the authoritative colour, and the click target -->
+            <!-- The swatch is both the current-colour readout and the editor trigger. -->
             <Button Name="PickButton"
-                    Height="52"
+                    Height="44"
                     Padding="0"
                     HorizontalAlignment="Stretch"
                     HorizontalContentAlignment="Stretch"
+                    VerticalContentAlignment="Stretch"
                     Background="Transparent"
                     BorderThickness="0"
+                    IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}"
                     Click="OnPickClicked"
-                    IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}">
+                    ToolTip.Tip="Change this zone's colour">
                 <Border CornerRadius="4"
                         BorderBrush="{StaticResource BorderStrongBrush}"
                         BorderThickness="1"
                         Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
             </Button>
 
-            <!-- Avalonia's native colour editor, revealed on demand. Alpha is hidden
-                 because the backend colour is RGB only. -->
-            <ColorView IsVisible="{Binding $self.IsPickerOpen, Mode=OneWay}"
-                       Width="260"
+            <!-- The zone's exact RGB, so the chosen value is unambiguous. -->
+            <TextBlock Text="{Binding $self.Color, Mode=OneWay}"
+                       Classes="CardSubtitle"
+                       HorizontalAlignment="Center" />
+
+            <!-- Avalonia's native colour editor. Revealed on demand; hidden entirely
+                 otherwise so only one is ever on screen. Alpha is hidden because the
+                 backend colour is RGB only. -->
+            <ColorView Name="Editor"
+                       IsVisible="False"
+                       Width="240"
                        HorizontalAlignment="Left"
                        IsAlphaVisible="False"
-                       IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}"
-                       Color="{Binding $self.Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}" />
+                       ColorChanged="OnEditorColorChanged" />
         </StackPanel>
     </Border>
 </UserControl>
