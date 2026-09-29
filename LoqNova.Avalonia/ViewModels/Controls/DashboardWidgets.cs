@@ -209,23 +209,26 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
 
         // WPF's OverclockDiscreteGPUSettingsWindow exposes exactly these two, and both
         // are ranged from zero: negative offsets are not selectable there.
-        Settings.Add(new WidgetSettingViewModel
+        var core = new WidgetSettingViewModel
         {
             Label = "Core Frequency Offset",
             Unit = "MHz",
             Minimum = 0,
             Maximum = MaxCoreOffset,
             ApplyCommand = new AsyncRelayCommand(ApplyOffsetsAsync)
-        });
+        };
 
-        Settings.Add(new WidgetSettingViewModel
+        var memory = new WidgetSettingViewModel
         {
             Label = "Memory Frequency Offset",
             Unit = "MHz",
             Minimum = 0,
             Maximum = 1500,
             ApplyCommand = new AsyncRelayCommand(ApplyOffsetsAsync)
-        });
+        };
+
+        Settings.Add(core);
+        Settings.Add(memory);
     }
 
 
