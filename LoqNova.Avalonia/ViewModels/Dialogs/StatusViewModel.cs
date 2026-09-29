@@ -88,8 +88,10 @@ public partial class StatusViewModel : ViewModelBase
 
     private void Update()
     {
-        PowerModeStatus = _performanceService.IsSupported
-            ? _performanceService.CurrentMode.ToString()
+        // CurrentMode is null until the machine has reported one, so it is never
+        // shown as a mode it is not actually in.
+        PowerModeStatus = _performanceService.CurrentMode is { } mode
+            ? mode.ToString()
             : Unknown;
 
         IsCharging = _batteryService.IsCharging;

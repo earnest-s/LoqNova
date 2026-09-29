@@ -472,5 +472,3 @@ public partial class DashboardViewModel : ViewModelBase
 }
 
 /// <summary>
-/// A dashboard control widget bound to a live backend feature. Values are only
-/// ever populated from a real reading; nothing is pre-filled.
