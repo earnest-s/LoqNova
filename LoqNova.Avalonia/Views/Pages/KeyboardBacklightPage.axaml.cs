@@ -26,7 +26,7 @@ public partial class KeyboardBacklightPage : UserControl
         // controls never start on invented defaults.
         _ = vm.ApplyStateAsync();
 
-        AttachZonePickers(vm);
+        AttachZonePickers();
     }
 
     /// <summary>
