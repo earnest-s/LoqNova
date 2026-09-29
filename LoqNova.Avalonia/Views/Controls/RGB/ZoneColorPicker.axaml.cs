@@ -88,7 +88,8 @@ public partial class ZoneColorPicker : UserControl
         // usable from here, and a binding through a converter previously lost the
         // value without any error. The editor sits inside a Popup, so it is not
         // present until the popup content is realised; hook it as the popup opens.
-        Picker!.Opened += (_, _) => HookEditor();
+        if (Picker is { } popup)
+            popup.Opened += (_, _) => HookEditor();
     }
 
     /// <summary>
