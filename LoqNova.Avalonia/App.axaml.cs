@@ -155,6 +155,9 @@ public partial class App : Application
         // its backing store from that container.
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
+            // Release the library's RGB ownership before the process goes away.
+            desktop.ShutdownRequested += OnShutdownRequested;
+
             // Create main window
             var mainWindow = new MainWindow
             {
@@ -202,8 +205,13 @@ public partial class App : Application
     /// it closes: stop the global volume/brightness reactive RGB service and hand the
     /// keyboard's light-control ownership back so firmware and other front ends can
     /// drive it again. Without this the reactive service keeps holding the keyboard.
+    /// <para>
+    /// Avalonia has no overridable OnExit, so this hangs off the lifetime's
+    /// ShutdownRequested. The handler cannot be awaited, so it is driven to
+    /// completion and only then allowed to continue the shutdown.
+    /// </para>
     /// </summary>
-    public override async void OnExit(EventArgs e)
+    private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
         try
         {
@@ -214,7 +222,5 @@ public partial class App : Application
         {
             System.Diagnostics.Debug.WriteLine($"RGB shutdown failed: {ex}");
         }
-
-        base.OnExit(e);
     }
 }

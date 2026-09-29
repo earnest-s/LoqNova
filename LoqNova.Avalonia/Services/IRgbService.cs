@@ -90,6 +90,12 @@ public interface IRgbService
     /// <summary>True when Lenovo Vantage is running and competing for keyboard control.</summary>
     bool IsVantageEnabled { get; }
 
+    /// <summary>
+    /// Why the last RGB write failed, or null after a successful one. Lets the page
+    /// explain a rejected change instead of silently reverting it.
+    /// </summary>
+    string? LastError { get; }
+
     /// <summary>True when the effect exposes a speed, matching the backend's own rule.</summary>
     bool SupportsSpeed(RgbEffect effect);
 

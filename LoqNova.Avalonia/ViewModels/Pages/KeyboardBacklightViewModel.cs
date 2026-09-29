@@ -1,5 +1,6 @@
 using System;
 using System.Collections.ObjectModel;
+using System.Threading;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -200,14 +201,28 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         if (SelectedPreset == RgbPreset.Off)
             return;
 
-        await _rgbService.SaveStateAsync(
-            SelectedEffect,
-            SelectedSpeed,
-            SelectedBrightness,
-            Zone1Color,
-            Zone2Color,
-            Zone3Color,
-            Zone4Color);
+        // One writer at a time, so a burst of edits cannot interleave and persist a
+        // half-applied state.
+        await _writeGate.WaitAsync();
+        try
+        {
+            await _rgbService.SaveStateAsync(
+                SelectedEffect,
+                SelectedSpeed,
+                SelectedBrightness,
+                Zone1Color,
+                Zone2Color,
+                Zone3Color,
+                Zone4Color);
+
+            // Surface a rejected write rather than letting the rehydration below
+            // silently snap the selection back.
+            ErrorMessage = _rgbService.LastError;
+        }
+        finally
+        {
+            _writeGate.Release();
+        }
 
         await ApplyStateAsync();
     }
@@ -258,24 +273,83 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
 
     partial void OnSelectedEffectChanged(RgbEffect value)
     {
-        SpeedEnabled = _rgbService.SupportsSpeed(value);
-        ZonesEnabled = _rgbService.SupportsZoneColors(value);
-        _ = SaveStateAsync();
+        var isOff = SelectedPreset == RgbPreset.Off;
+        SpeedEnabled = !isOff && _rgbService.SupportsSpeed(value);
+        ZonesEnabled = !isOff && _rgbService.SupportsZoneColors(value);
+        QueueSave();
     }
 
-    partial void OnSelectedSpeedChanged(RgbSpeed value) => _ = SaveStateAsync();
+    partial void OnSelectedSpeedChanged(RgbSpeed value) => QueueSave();
 
-    partial void OnSelectedBrightnessChanged(RgbBrightness value) => _ = SaveStateAsync();
+    partial void OnSelectedBrightnessChanged(RgbBrightness value) => QueueSave();
 
-    partial void OnZone1ColorChanged(RgbZoneColor value) => _ = SaveStateAsync();
+    partial void OnZone1ColorChanged(RgbZoneColor value) => QueueSave();
 
-    partial void OnZone2ColorChanged(RgbZoneColor value) => _ = SaveStateAsync();
+    partial void OnZone2ColorChanged(RgbZoneColor value) => QueueSave();
 
-    partial void OnZone3ColorChanged(RgbZoneColor value) => _ = SaveStateAsync();
+    partial void OnZone3ColorChanged(RgbZoneColor value) => QueueSave();
 
-    partial void OnZone4ColorChanged(RgbZoneColor value) => _ = SaveStateAsync();
+    partial void OnZone4ColorChanged(RgbZoneColor value) => QueueSave();
 
-    partial void OnIsVantageEnabledChanged(bool value) => OnPropertyChanged(nameof(IsInteractive));
+    partial void OnIsVantageEnabledChanged(bool value)
+    {
+        OnPropertyChanged(nameof(IsInteractive));
+        OnPropertyChanged(nameof(CanSelectPreset));
+    }
 
-    partial void OnSelectedPresetChanged(RgbPreset value) => OnPropertyChanged(nameof(IsInteractive));
+    partial void OnSelectedPresetChanged(RgbPreset value)
+    {
+        OnPropertyChanged(nameof(IsInteractive));
+        OnPropertyChanged(nameof(CanSelectPreset));
+    }
+
+    /// <summary>
+    /// Serialises state writes. Every field change funnels through here so two rapid
+    /// edits, or an edit landing while a previous write is still awaiting the
+    /// keyboard, cannot interleave and persist a half-applied state. The newest values
+    /// win, because the read happens at the point the write runs.
+    /// </summary>
+    private readonly SemaphoreSlim _writeGate = new(1, 1);
+    private int _saveQueued;
+
+    private void QueueSave()
+    {
+        // Coalesce bursts: one pending write is enough, since the write reads the
+        // current values when it runs.
+        if (Interlocked.Exchange(ref _saveQueued, 1) == 1)
+            return;
+
+        _ = RunQueuedSaveAsync();
+    }
+
+    private async Task RunQueuedSaveAsync()
+    {
+        try
+        {
+            await SaveStateAsync();
+        }
+        finally
+        {
+            Interlocked.Exchange(ref _saveQueued, 0);
+
+            // A change that arrived mid-write still needs applying.
+            if (Volatile.Read(ref _saveQueued) == 1)
+                QueueSave();
+        }
+    }
+
+    /// <summary>Explains a rejected change, so the page never silently reverts it.</summary>
+    public string? ErrorMessage
+    {
+        get => _errorMessage;
+        private set
+        {
+            if (SetProperty(ref _errorMessage, value))
+                OnPropertyChanged(nameof(HasError));
+        }
+    }
+
+    private string? _errorMessage;
+
+    public bool HasError => !string.IsNullOrEmpty(ErrorMessage);
 }

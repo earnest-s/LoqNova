@@ -130,6 +130,14 @@
                                    Text="Choose a colour per zone. Right-click a zone to apply its colour to all four." />
                     </StackPanel>
 
+                    <!-- Shown when the backend rejected a change, so a refused write is
+                         never mistaken for a successful one. -->
+                    <Border Classes="InsetPanel" IsVisible="{Binding HasError}" Padding="10">
+                        <TextBlock Text="{Binding ErrorMessage}"
+                                   TextWrapping="Wrap"
+                                   Classes="WidgetError" />
+                    </Border>
+
                     <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" Margin="0,4,0,0">
                         <controls:ZoneColorPicker Name="Zone1" Grid.Column="0" Grid.Row="0" Margin="0,0,8,8"
                                                   ZoneNumber="1"

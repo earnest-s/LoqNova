@@ -37,6 +37,13 @@ public class RgbService : IRgbService
     
     public bool ZonesSynchronized { get; private set; } = false;
 
+    /// <summary>
+    /// Why the last write failed, or null after a successful one. The backend
+    /// silently swallows some failures, which would otherwise leave the page showing
+    /// a selection the keyboard never applied.
+    /// </summary>
+    public string? LastError { get; private set; }
+
     public event Action<RgbPreset>? PresetChanged;
     public event Action<RgbEffect>? EffectChanged;
     public event Action<RgbSpeed>? SpeedChanged;
@@ -425,10 +432,25 @@ public class RgbService : IRgbService
             await Controller.SetStateAsync(SettingsStore.Store.State).ConfigureAwait(false);
 
             UpdateFromState(await Controller.GetStateAsync().ConfigureAwait(false));
+            LastError = null;
         }
         catch (Exception ex)
         {
+            // A failed write must not leave the UI showing a selection the keyboard
+            // never accepted. Re-read the authoritative state so the page reflects
+            // reality, and keep the reason so it can be shown instead of silently
+            // reverting the user's choice.
             _logger.LogError(ex, "Failed to save RGB state");
+            LastError = ex.Message;
+
+            try
+            {
+                UpdateFromState(await Controller.GetStateAsync().ConfigureAwait(false));
+            }
+            catch (Exception readEx)
+            {
+                _logger.LogError(readEx, "Failed to re-read RGB state after a failed save");
+            }
         }
     }
 
