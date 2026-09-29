@@ -354,19 +354,21 @@ public partial class DashboardViewModel : ViewModelBase
     {
         PowerModeColor = GetPowerModeColor(value);
 
-        if (_suppressModeWrite)
+        // A null selection means the backend has not reported a mode yet, and a
+        // publish from the backend must not be written back to the hardware.
+        if (_suppressModeWrite || value is not { } requested)
         {
             return;
         }
 
-        _ = _performanceService.SetModeAsync(value);
+        _ = _performanceService.SetModeAsync(requested);
     }
 
     /// <summary>
     /// Resolves the mode accent from the design system so the palette stays
-    /// defined in one place.
+    /// defined in one place. Unknown and unsupported states use the muted brush.
     /// </summary>
-    private static IBrush GetPowerModeColor(PowerModeState mode)
+    private static IBrush GetPowerModeColor(PowerModeState? mode)
     {
         var key = mode switch
         {
