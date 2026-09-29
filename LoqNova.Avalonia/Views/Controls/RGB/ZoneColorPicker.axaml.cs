@@ -71,7 +71,7 @@ public partial class ZoneColorPicker : UserControl
         // Watch the editor's colour property directly. Its ColorChanged event is not
         // usable from here, and a binding through a converter previously lost the
         // value without any error.
-        if (Editor is { } editor)
+        if (ColourEditor is { } editor)
             editor.PropertyChanged += (_, e) =>
             {
                 if (e.Property == ColorView.ColorProperty)
@@ -99,7 +99,7 @@ public partial class ZoneColorPicker : UserControl
     /// </summary>
     private void SyncEditorFromZone()
     {
-        if (Editor is not { } editor)
+        if (ColourEditor is not { } editor)
             return;
 
         var target = Color.FromRgb(Color.R, Color.G, Color.B);
@@ -109,13 +109,13 @@ public partial class ZoneColorPicker : UserControl
 
     private void OnPickClicked(object? sender, RoutedEventArgs e)
     {
-        if (Editor is { } editor)
+        if (ColourEditor is { } editor)
             SetEditorVisible(!editor.IsVisible);
     }
 
     private void SetEditorVisible(bool visible)
     {
-        if (Editor is not { } editor)
+        if (ColourEditor is not { } editor)
             return;
 
         editor.IsVisible = visible;
