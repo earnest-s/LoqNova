@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib;
 using LoqNova.Lib.Features;
+using LoqNova.Lib.Listeners;
 using Microsoft.Extensions.Logging;
 
 namespace LoqNova.Avalonia.Services;
