@@ -15,7 +15,7 @@
 		<Nullable>enable</Nullable>
 		<ImplicitUsings>disable</ImplicitUsings>
 		<BuiltInComInteropSupport>true</BuiltInComInteropSupport>
-		<ApplicationManifest>app.asInvoker.manifest</ApplicationManifest>
+		<ApplicationManifest>app.manifest</ApplicationManifest>
 		<AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 		<!-- Satellite languages -->
 		<NeutralLanguage>en</NeutralLanguage>

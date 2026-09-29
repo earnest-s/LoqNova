@@ -183,18 +183,6 @@ public partial class App : Application
         {
             await LibContainer.Initialization;
 
-            // TEMP-WRITEPATH-DIAG
-            try
-            {
-                var __r = await WritePathVerify.RunAsync();
-                System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\writepath.txt", __r);
-            }
-            catch (Exception ex)
-            {
-                System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\writepath.txt", "FATAL " + ex);
-            }
-            // END-TEMP-WRITEPATH-DIAG
-
             // The shared container is up. Hydrate the adapters that read settings or
             // hardware so the shell renders real state on its first paint.
             await Container.Resolve<ISettingsService>().InitializeAsync();
