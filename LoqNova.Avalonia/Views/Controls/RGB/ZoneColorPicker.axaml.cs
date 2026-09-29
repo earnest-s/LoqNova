@@ -86,13 +86,29 @@ public partial class ZoneColorPicker : UserControl
 
         // Watch the editor's colour property directly. Its ColorChanged event is not
         // usable from here, and a binding through a converter previously lost the
-        // value without any error.
-        if (ColourEditor is { } editor)
-            editor.PropertyChanged += (_, e) =>
-            {
-                if (e.Property == ColorView.ColorProperty)
-                    OnEditorColorChanged(editor, e);
-            };
+        // value without any error. The editor sits inside a Popup, so it is not
+        // present until the popup content is realised; hook it as the popup opens.
+        Picker!.Opened += (_, _) => HookEditor();
+    }
+
+    /// <summary>
+    /// Subscribes to the editor's colour property once the popup content exists. The
+    /// popup is a separate visual tree, so the editor only materialises on first open.
+    /// </summary>
+    private void HookEditor()
+    {
+        if (ColourEditor is not { } editor || _editorHooked)
+            return;
+
+        _editorHooked = true;
+        editor.PropertyChanged += (_, e) =>
+        {
+            if (e.Property == ColorView.ColorProperty)
+                OnEditorColorChanged(editor, e);
+        };
+    }
+
+    private bool _editorHooked;
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
