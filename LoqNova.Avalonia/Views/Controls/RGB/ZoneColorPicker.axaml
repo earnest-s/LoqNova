@@ -37,6 +37,18 @@
                         BorderBrush="{StaticResource BorderStrongBrush}"
                         BorderThickness="1"
                         Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+
+                <!-- Avalonia's native colour editor, hidden until the zone is clicked.
+                     Its DataContext is pointed at this control in code, so this
+                     binding resolves against the zone colour. -->
+                <Button.Flyout>
+                    <Flyout Placement="BottomEdgeAlignedLeft">
+                        <Grid Name="FlyoutRoot" Width="280">
+                            <ColorView IsAlphaVisible="False"
+                                       Color="{Binding Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}" />
+                        </Grid>
+                    </Flyout>
+                </Button.Flyout>
             </Button>
         </StackPanel>
     </Border>
