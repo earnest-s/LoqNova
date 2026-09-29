@@ -25,9 +25,11 @@ public sealed class RgbZoneColorConverter : IValueConverter
 
     public object ConvertBack(object? value, Type targetType, object? parameter, CultureInfo culture)
     {
+        // ColorView.Color is nullable. A null means "no colour chosen yet", not black,
+        // so it must not be written back as black and overwrite the real zone colour.
         if (value is Color colour)
             return new RgbZoneColor(colour.R, colour.G, colour.B);
 
-        return new RgbZoneColor(0, 0, 0);
+        return Avalonia.Data.BindingOperations.DoNothing;
     }
 }

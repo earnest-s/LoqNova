@@ -112,39 +112,42 @@
                 </StackPanel>
             </Border>
 
-            <!-- Zone colors: four equal cards showing the authoritative colour per
-                 zone, each with a compact palette, plus one shared synchronisation
-                 action. Changing a swatch writes the whole selected preset through
-                 the backend controller without disturbing the other zones, effect,
-                 speed, brightness or preset. -->
+            <!-- Zone colors: one card per zone, each with a large preview of the
+                 authoritative colour and Avalonia's native colour editor. Changing a
+                 colour writes the whole selected preset through the backend
+                 controller without disturbing the other zones, effect, speed,
+                 brightness or preset. WPF exposes "Synchronise zones" as a per-zone
+                 context-menu item, so right-click a card rather than using a button.
+
+                 Two columns rather than four: the native editor needs real width,
+                 and four abreast left the controls unusably cramped. -->
             <Border Classes="ContentCard">
                 <StackPanel Spacing="14">
 
                     <StackPanel Spacing="2">
                         <TextBlock Text="Zone Colors" Classes="SectionHeader" />
                         <TextBlock Classes="CardSubtitle"
-                                   Text="Choose a colour per zone, or apply one zone's colour to all four." />
+                                   Text="Choose a colour per zone. Right-click a zone to apply its colour to all four." />
                     </StackPanel>
 
-                    <Grid ColumnDefinitions="*,*,*,*" Margin="0,4,0,0">
-                        <controls:ZoneColorPicker Name="Zone1" Grid.Column="0" Margin="0,0,8,0"
+                    <Grid ColumnDefinitions="*,*" RowDefinitions="*,*" Margin="0,4,0,0">
+                        <controls:ZoneColorPicker Name="Zone1" Grid.Column="0" Grid.Row="0" Margin="0,0,8,8"
                                                   ZoneNumber="1"
                                                   IsInteractive="{Binding IsInteractive}"
                                                   Color="{Binding Zone1Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Name="Zone2" Grid.Column="1" Margin="0,0,8,0"
+                        <controls:ZoneColorPicker Name="Zone2" Grid.Column="1" Grid.Row="0" Margin="0,0,0,8"
                                                   ZoneNumber="2"
                                                   IsInteractive="{Binding IsInteractive}"
                                                   Color="{Binding Zone2Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Name="Zone3" Grid.Column="2" Margin="0,0,8,0"
+                        <controls:ZoneColorPicker Name="Zone3" Grid.Column="0" Grid.Row="1" Margin="0,0,8,0"
                                                   ZoneNumber="3"
                                                   IsInteractive="{Binding IsInteractive}"
                                                   Color="{Binding Zone3Color, Mode=TwoWay}" />
-                        <controls:ZoneColorPicker Name="Zone4" Grid.Column="3"
+                        <controls:ZoneColorPicker Name="Zone4" Grid.Column="1" Grid.Row="1" Margin="0,0,0,0"
                                                   ZoneNumber="4"
                                                   IsInteractive="{Binding IsInteractive}"
                                                   Color="{Binding Zone4Color, Mode=TwoWay}" />
                     </Grid>
-
                 </StackPanel>
             </Border>
         </StackPanel>

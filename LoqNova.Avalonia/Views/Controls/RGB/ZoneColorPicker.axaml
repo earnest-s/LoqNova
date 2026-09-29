@@ -1,73 +1,37 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:cp="using:Avalonia.Controls.ColorPicker"
              xmlns:local="clr-namespace:LoqNova.Avalonia.Views.Controls.RGB"
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker"
              x:DataType="local:ZoneColorPicker">
 
-    <!-- Zone card. Every binding here targets the control itself via $self, because
-         the inherited DataContext is the page ViewModel, which owns no Color,
-         Swatches or ZoneNumber. Binding to the DataContext is what previously left
-         these cards blank. -->
+    <!-- One RGB zone.
+         Every binding targets the control itself via $self, because the inherited
+         DataContext is the page ViewModel, which owns no Color or ZoneNumber.
+         Binding to the DataContext is what previously left these cards blank.
 
-    <Border Classes="FeatureCard" Padding="12">
-        <StackPanel Spacing="10">
+         The picker is Avalonia's own ColorView rather than a fixed swatch list,
+         matching the decision that there is no discrete palette to reproduce. WPF
+         offers a continuous 2D colour square plus hex/RGB entry, so no fixed set
+         of swatch values is authoritative to copy. -->
 
-            <!-- Zone identity -->
+    <Border Name="Card" Classes="FeatureCard" Padding="12">
+        <StackPanel Spacing="8">
+
             <TextBlock Text="{Binding $self.ZoneNumber, StringFormat='ZONE {0}', Mode=OneWay}"
                        Classes="CardTitle" />
 
             <!-- Large preview of the zone's authoritative colour -->
-            <Border Height="64"
+            <Border Height="52"
                     CornerRadius="4"
                     BorderBrush="{StaticResource BorderStrongBrush}"
                     BorderThickness="1"
                     Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
 
-            <!-- Compact palette. Each swatch is a real Button, so it is focusable
-                 and clickable rather than a painted Border. -->
-            <ItemsControl ItemsSource="{Binding $self.Swatches, Mode=OneWay}"
-                          IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}">
-                <ItemsControl.ItemsPanel>
-                    <ItemsPanelTemplate>
-                        <WrapPanel Orientation="Horizontal" />
-                    </ItemsPanelTemplate>
-                </ItemsControl.ItemsPanel>
-                <ItemsControl.ItemTemplate>
-                    <DataTemplate x:DataType="local:ZoneSwatch">
-                        <Button Width="26" Height="26" Margin="0,0,6,6"
-                                Padding="0"
-                                Background="Transparent"
-                                BorderThickness="0"
-                                Tag="{Binding Color}"
-                                Click="OnSwatchClick">
-                            <Panel>
-                                <Border Width="20" Height="20"
-                                        CornerRadius="10"
-                                        Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}"
-                                        BorderBrush="{StaticResource BorderStrongBrush}"
-                                        BorderThickness="1" />
-
-                                <!-- Single restrained selection treatment: an accent ring -->
-                                <Border IsVisible="{Binding IsSelected}"
-                                        BorderBrush="{StaticResource AccentBrush}"
-                                        BorderThickness="2"
-                                        CornerRadius="13"
-                                        Margin="-3" />
-                            </Panel>
-                        </Button>
-                    </DataTemplate>
-                </ItemsControl.ItemTemplate>
-            </ItemsControl>
-
-            <!-- WPF exposes "Synchronise zones" on the zone itself, applying that
-                 zone's colour to all four in a single state write. -->
-            <Button Content="Synchronise zones"
-                    Classes="GhostButton"
-                    FontSize="11"
-                    HorizontalAlignment="Left"
-                    Padding="8,3"
-                    IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}"
-                    Click="OnSynchroniseClick" />
+            <!-- Native colour editor. Alpha is hidden: the backend colour is RGB only. -->
+            <cp:ColorView Color="{Binding $self.Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}"
+                          IsAlphaVisible="False"
+                          IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}" />
         </StackPanel>
     </Border>
 </UserControl>
