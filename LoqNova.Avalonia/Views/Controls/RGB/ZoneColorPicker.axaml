@@ -68,7 +68,6 @@
             <Popup Name="PickerPopup"
                    PlacementTarget="PickButton"
                    Placement="BottomEdgeAlignedLeft"
-                   AllowsTransparency="True"
                    IsLightDismissEnabled="True">
                 <Border Background="{StaticResource SurfaceRaisedBrush}"
                         BorderBrush="{StaticResource BorderBrush}"
