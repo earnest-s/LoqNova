@@ -113,10 +113,16 @@ public interface IRgbService
         RgbZoneColor zone3,
         RgbZoneColor zone4);
 
-    /// <summary>Applies one colour to all four zones in a single state write.</summary>
-    Task SynchroniseZonesAsync(RgbZoneColor color);
+  /// <summary>Applies one colour to all four zones in a single state write.</summary>
+  Task SynchroniseZonesAsync(RgbZoneColor color);
 
-    Task InitializeAsync();
+  /// <summary>
+  /// Releases the global reactive-RGB service and the library's RGB hardware
+  /// ownership on shutdown. Mirrors what WPF does when it closes.
+  /// </summary>
+  Task ShutdownAsync();
+
+  Task InitializeAsync();
     Task SetPresetAsync(RgbPreset preset);
     Task SetEffectAsync(RgbEffect effect);
     Task SetSpeedAsync(RgbSpeed speed);
