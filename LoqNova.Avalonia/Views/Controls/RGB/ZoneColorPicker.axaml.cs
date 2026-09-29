@@ -30,6 +30,14 @@ public partial class ZoneColorPicker : UserControl
     /// <summary>The native colour editor, created by the XAML name generator.</summary>
     private ColorView? ColourEditor => this.FindControl<ColorView>("Editor");
 
+    /// <summary>
+    /// The editor's host popup. The editor lives inside a Popup, so it is a separate
+    /// visual tree and has to be reached through the popup's child rather than the
+    /// control's own resource lookup.
+    /// </summary>
+    private Popup PickerPopup => this.FindControl<Popup>("PickerPopup")
+        ?? throw new InvalidOperationException("ZoneColorPicker is missing its picker popup.");
+
     public static readonly StyledProperty<int> ZoneNumberProperty =
         AvaloniaProperty.Register<ZoneColorPicker, int>(nameof(ZoneNumber));
 
