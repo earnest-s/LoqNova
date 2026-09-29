@@ -8,7 +8,7 @@
          Every value is read from the library sensor controller; a channel the
          machine does not report is rendered as a dash by the bound text
          properties, and each bar is driven by the machine-reported maximum. -->
-    <Grid ColumnDefinitions="*,*,*,*,*">
+    <Grid ColumnDefinitions="*,*,*,*,*,*">
 
         <!-- ============================ CPU utilisation ============================ -->
         <Border Grid.Column="0" Classes="SensorCard" Margin="0,0,6,0">
@@ -29,6 +29,10 @@
                                    Foreground="{StaticResource SensorCpuBrush}" />
                         <TextBlock Text="%" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
+
+                    <!-- WPF shows the CPU core clock in GHz under the utilisation. -->
+                    <TextBlock Classes="SensorCardMeta" Margin="0,2,0,0"
+                               Text="{Binding CpuCoreClockText}" />
 
                     <ProgressBar Value="{Binding CpuUtilizationRatio}" Classes="CpuUsageBar" Maximum="1" />
                 </StackPanel>
@@ -54,6 +58,12 @@
                                    Foreground="{StaticResource SensorGpuBrush}" />
                         <TextBlock Text="%" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
+
+                    <!-- WPF shows the GPU core and memory clocks in MHz. -->
+                    <TextBlock Classes="SensorCardMeta" Margin="0,2,0,0"
+                               Text="{Binding GpuCoreClockText}" />
+                    <TextBlock Classes="SensorCardMeta" Margin="0,1,0,0"
+                               Text="{Binding GpuMemoryClockText}" />
 
                     <ProgressBar Value="{Binding GpuUtilizationRatio}" Classes="GpuUsageBar" Maximum="1" />
                 </StackPanel>
