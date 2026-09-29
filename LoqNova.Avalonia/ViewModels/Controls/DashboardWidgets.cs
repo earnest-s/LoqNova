@@ -285,6 +285,9 @@ public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
                 MemoryOffsetMhz = info.MemoryDeltaMhz;
                 OnPropertyChanged(nameof(MaxCoreOffset));
                 OnPropertyChanged(nameof(MaxMemoryOffset));
+
+                // SetIsOnFromBackend may have just changed the toggle, so this has to
+                // be republished after the state is known.
                 OnPropertyChanged(nameof(IsOffsetEditorEnabled));
             }).ConfigureAwait(false);
         }
