@@ -8,6 +8,7 @@ using LoqNova.Lib.Controllers.CustomRGBEffects;
 using LoqNova.Lib.SoftwareDisabler;
 using LoqNova.Lib.Extensions;
 using LoqNova.Lib.Settings;
+using LoqNova.Lib.Services;
 using LoqNova.Lib;
 using Microsoft.Extensions.Logging;
 
@@ -84,6 +85,66 @@ public class RgbService : IRgbService
         {
             _logger.LogError(ex, "Failed to initialize RGB service");
             IsSupported = false;
+        }
+
+        await StartReactiveRgbAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Starts the existing <see cref="VolumeBrightnessReactiveRgbService"/>, the
+    /// backend service that turns Windows volume and display-brightness changes into
+    /// a four-zone visualisation on the keyboard.
+    /// <para>
+    /// This is deliberately the library's own service rather than anything new: it
+    /// already owns temporary RGB ownership via <c>RgbFrameDispatcher.IsOverrideActive</c>,
+    /// yields to the performance-mode strobe, and restores the previous preset or
+    /// effect when the event ends. Starting it here is what WPF does at startup, and
+    /// it must stay alive for the whole session rather than following page navigation,
+    /// because it is a global background service and not a page feature.
+    /// </para>
+    /// </summary>
+    private async Task StartReactiveRgbAsync()
+    {
+        try
+        {
+            _reactiveRgb = LoqNova.Lib.IoCContainer.Resolve<VolumeBrightnessReactiveRgbService>();
+            await _reactiveRgb.StartStopIfNeededAsync().ConfigureAwait(false);
+            _logger.LogInformation("Volume/brightness reactive RGB service started");
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not start the volume/brightness reactive RGB service");
+        }
+    }
+
+    /// <summary>
+    /// Releases the reactive RGB service and the library's RGB hardware ownership on
+    /// shutdown, mirroring WPF. Kept on the service so the application does not have
+    /// to know about backend types.
+    /// </summary>
+    public async Task ShutdownAsync()
+    {
+        if (_reactiveRgb is not null)
+        {
+            try
+            {
+                await _reactiveRgb.StopAsync().ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not stop the volume/brightness reactive RGB service");
+            }
+        }
+
+        // Hand the keyboard back so firmware and other front ends regain control.
+        try
+        {
+            if (IsSupported)
+                await Controller.SetLightControlOwnerAsync(false).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            _logger.LogWarning(ex, "Could not release RGB light control ownership");
         }
     }
 
