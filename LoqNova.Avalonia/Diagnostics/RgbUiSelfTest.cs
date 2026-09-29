@@ -98,8 +98,6 @@ internal sealed class RecordingRgbService : IRgbService
     public bool IsCustomEffect(RgbEffect effect) => effect >= RgbEffect.Ambient;
     public RgbEffect GetDisplayEffect(RgbEffect effect) => effect;
 
-    public void RaiseFrame(RgbZoneColor z1, RgbZoneColor z2, RgbZoneColor z3, RgbZoneColor z4)
-        => FrameRendered?.Invoke(z1, z2, z3, z4);
 }
 
 /// <summary>
