@@ -404,8 +404,8 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private Task OpenCustomModeSettingsAsync()
     {
-        _ = _notificationService.ShowAsync(new LoqNova.Lib.Messaging.Messages.NotificationMessage(
-            LoqNova.Lib.NotificationType.Warning,
+        _ = _notificationService.ShowAsync(new NotificationMessage(
+            NotificationType.Warning,
             "Custom Mode settings",
             "The Custom Mode settings window is not available in the Avalonia UI yet. "
             + "Use the power mode selector to switch to Custom Mode."));
