@@ -275,6 +275,8 @@ public partial class DashboardViewModel : ViewModelBase
             _suppressModeWrite = false;
         }
 
+        EnsurePowerModeIsListed(CurrentPowerMode);
+
         IsSensorsSupported = _sensorsService.IsSupported;
         IsRefreshing = _sensorsService.IsRefreshing;
 
@@ -341,6 +343,32 @@ public partial class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>Clears every telemetry channel to "not reported" when the source is unsupported.</summary>
+    /// <summary>
+    /// Applies a power mode the user chose in the selector. The write goes through
+    /// the existing service to the existing backend feature, and the resulting state
+    /// is re-read, so the display reflects the machine rather than the request.
+    /// </summary>
+    public async Task RequestPowerModeAsync(PowerModeState requested)
+    {
+        await _performanceService.SetModeAsync(requested);
+        SyncTelemetry();
+    }
+
+    /// <summary>
+    /// Guarantees the reported mode is present in the selector. Without this the
+    /// combo renders an empty item when the mode arrives before the list is
+    /// populated, which is how it previously displayed "--" beside a correct large
+    /// status.
+    /// </summary>
+    private void EnsurePowerModeIsListed(PowerModeState? mode)
+    {
+        if (mode is not { } value)
+            return;
+
+        if (!PowerModeItems.Contains(value))
+            PowerModeItems.Add(value);
+    }
+
     private void ResetTelemetry()
     {
         CpuUtilization = CpuMaxUtilization = CpuCoreClock = CpuMaxCoreClock = -1;
@@ -395,24 +423,6 @@ public partial class DashboardViewModel : ViewModelBase
         await _performanceService.RefreshAsync();
         await _batteryService.RefreshAsync();
         SyncTelemetry();
-    }
-
-    /// <summary>
-    /// Opens the Custom Mode (backend: God Mode) settings surface. WPF opens
-    /// <c>GodModeSettingsWindow</c>, a full preset editor. That window is not ported
-    /// yet and Avalonia has no dialog window infrastructure, so this reports the gap
-    /// instead of silently re-selecting the power mode or inventing a settings form.
-    /// </summary>
-    [RelayCommand]
-    private Task OpenCustomModeSettingsAsync()
-    {
-        _ = _notificationService.ShowAsync(new LoqNova.Avalonia.Services.NotificationMessage(
-            LoqNova.Avalonia.Services.NotificationType.Warning,
-            "Custom Mode settings",
-            "The Custom Mode settings window is not available in the Avalonia UI yet. "
-            + "Use the power mode selector to switch to Custom Mode."));
-
-        return Task.CompletedTask;
     }
 
     [RelayCommand]
