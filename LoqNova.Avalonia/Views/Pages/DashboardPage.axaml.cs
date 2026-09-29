@@ -14,7 +14,9 @@ public partial class DashboardPage : UserControl
 
         // Mirrors WPF's SensorsControl: the refresh loop only runs while the page is
         // actually visible.
-        IsVisibleChanged += OnPageVisibilityChanged;
+        GetObservable(Visual.IsVisibleProperty)
+            .Subscribe(_ => ApplyVisibility());
+
         DataContextChanged += OnDataContextChanged;
     }
 
