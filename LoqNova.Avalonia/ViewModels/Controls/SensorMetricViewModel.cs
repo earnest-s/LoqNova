@@ -49,20 +49,28 @@ public partial class SensorMetricViewModel : ViewModelBase
         private set => SetProperty(ref _maximumText, value);
     }
 
-    /// <summary>Applies one reading. Never displays -1 as a value.</summary>
+    /// <summary>
+    /// Applies one reading. Mirrors WPF's <c>UpdateValue</c>, which collapses the
+    /// channel only when the maximum or the value is negative and otherwise renders
+    /// the value, the bar and the maximum - so a genuine zero is shown as a reading
+    /// rather than blanked.
+    /// </summary>
     public void Update(int value, int maximum)
     {
-        var reported = value >= 0 && maximum > 0;
+        var reported = value >= 0 && maximum >= 0;
 
         IsReported = reported;
         ValueText = reported
             ? value.ToString("F0", CultureInfo.CurrentCulture)
-            : "--";
+            : "-";
 
-        // WPF drives the bar from value/maximum, not a fixed 100.
-        Ratio = reported ? Math.Clamp((double)value / maximum, 0d, 1d) : 0d;
+        // WPF drives the bar from value/maximum. A zero maximum yields a degenerate
+        // bar, so the ratio is pinned to 0 rather than dividing.
+        Ratio = reported && maximum > 0
+            ? Math.Clamp((double)value / maximum, 0d, 1d)
+            : 0d;
 
-        MaximumText = maximum > 0
+        MaximumText = maximum >= 0
             ? maximum.ToString("F0", CultureInfo.CurrentCulture)
             : null;
     }
