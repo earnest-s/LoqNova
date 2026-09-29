@@ -70,36 +70,20 @@ public partial class ZoneColorPicker : UserControl
     /// The large preview opens Avalonia's native colour editor in a flyout, so the
     /// heavy spectrum and hex entry stay out of the page until they are wanted.
     /// <para>
-    /// The flyout's editor is bound straight to this control's
-    /// <see cref="ColorProperty"/>, which is itself bound to the page's zone colour.
-    /// That keeps one chain: editor to control to ViewModel to backend. The flyout
-    /// is outside the visual tree, so the binding names this instance as its source
-    /// rather than relying on an inherited DataContext.
+    /// The flyout is declared in XAML and lives in its own popup tree, so it inherits
+    /// no DataContext. Pointing its root at this control makes the editor's binding
+    /// resolve against <see cref="ColorProperty"/>, which is itself bound to the
+    /// page's zone colour. That keeps one chain: editor to control to ViewModel to
+    /// backend, with no second colour state.
     /// </para>
     /// </summary>
-    private void BuildColourFlyout()
+    private void WireColourFlyout()
     {
         if (this.FindControl<Button>("PickButton") is not { } button)
             return;
 
-        var editor = new ColorView
-        {
-            IsAlphaVisible = false,
-            Width = 260
-        };
-
-        editor.Bind(ColorView.ColorProperty, new Binding(nameof(Color))
-        {
-            Source = this,
-            Mode = BindingMode.TwoWay,
-            Converter = RgbZoneColorConverter.Instance
-        });
-
-        button.Flyout = new Flyout
-        {
-            Content = editor,
-            Placement = FlyoutPlacementMode.BottomEdgeAlignedLeft
-        };
+        if (button.Flyout?.Child is { } root)
+            root.DataContext = this;
     }
 
     /// <summary>
