@@ -1,8 +1,8 @@
 using System;
+using System.Collections.ObjectModel;
 using Avalonia;
 using Avalonia.Controls;
-using Avalonia.Controls.Templates;
-using Avalonia.Controls.Shapes;
+using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
@@ -12,16 +12,34 @@ using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Views.Controls.RGB;
 
+/// <summary>One palette entry, with the selected state tracked so the ring can bind to it.</summary>
+public sealed class ZoneSwatch
+{
+    public RgbZoneColor Color { get; }
+
+    /// <summary>True when this entry matches the zone's current colour.</summary>
+    public bool IsSelected { get; internal set; }
+
+    public ZoneSwatch(RgbZoneColor color) => Color = color;
+}
+
 /// <summary>
-/// One RGB zone. The palette swatches set the zone's colour through the TwoWay
-/// <see cref="ColorProperty"/> binding, so the change takes the ViewModel's single
-/// state-write path into the backend. "Synchronise zones" is the explicit action WPF
-/// exposes from the zone colour picker's context menu, not a persistent mode.
+/// One RGB zone, presented as a card: a large preview of the zone's current colour,
+/// a compact palette and a single accent ring marking the selected entry.
+/// <para>
+/// The colour is the authoritative backend value. Selecting a swatch writes it
+/// through the TwoWay <see cref="ColorProperty"/> binding, which the ViewModel sends
+/// to the RGB controller in a single state write. The control holds no RGB state of
+/// its own, and renders no animation.
+/// </para>
 /// </summary>
 public partial class ZoneColorPicker : UserControl
 {
-    /// <summary>Palette offered per zone. Chosen once here, never per render.</summary>
-    private static readonly RgbZoneColor[] Palette =
+    /// <summary>
+    /// Palette offered per zone. These are the colours the control has always
+    /// offered; no new RGB values are introduced here.
+    /// </summary>
+    private static readonly RgbZoneColor[] PaletteValues =
     [
         new(255, 255, 255),
         new(255, 0, 0),
@@ -41,14 +59,23 @@ public partial class ZoneColorPicker : UserControl
         AvaloniaProperty.Register<ZoneColorPicker, int>(nameof(ZoneNumber));
 
     public static readonly StyledProperty<RgbZoneColor> ColorProperty =
-        AvaloniaProperty.Register<ZoneColorPicker, RgbZoneColor>(nameof(Color), defaultBindingMode: BindingMode.TwoWay);
+        AvaloniaProperty.Register<ZoneColorPicker, RgbZoneColor>(
+            nameof(Color),
+            defaultBindingMode: BindingMode.TwoWay,
+            coerce: CoerceColor);
 
     /// <summary>Mirrors the page's availability rule, which comes from the backend.</summary>
     public static readonly StyledProperty<bool> IsInteractiveProperty =
         AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsInteractive));
 
-    /// <summary>Raised when the user asks to apply this zone's colour to all zones.</summary>
-    public event EventHandler? SynchroniseRequested;
+    /// <summary>True for the zone that "Synchronise All Zones" takes its colour from.</summary>
+    public static readonly StyledProperty<bool> IsSourceProperty =
+        AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsSource));
+
+    /// <summary>Raised when this zone is chosen as the synchronise source.</summary>
+    public event EventHandler? SourceRequested;
+
+    public ObservableCollection<ZoneSwatch> Swatches { get; } = new(12);
 
     public int ZoneNumber
     {
@@ -68,44 +95,43 @@ public partial class ZoneColorPicker : UserControl
         set => SetValue(IsInteractiveProperty, value);
     }
 
+    public bool IsSource
+    {
+        get => GetValue(IsSourceProperty);
+        set => SetValue(IsSourceProperty, value);
+    }
+
     public ZoneColorPicker()
     {
+        foreach (var colour in PaletteValues)
+            Swatches.Add(new ZoneSwatch(colour));
+
         InitializeComponent();
-        BuildPalette();
+
+        GetObservable(ColorProperty).Subscribe(_ => UpdateSelection());
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-    /// <summary>Creates the swatch row once, in code, so no external control is needed.</summary>
-    private void BuildPalette()
+    /// <summary>A zone colour is never null, so an unset value becomes a neutral black.</summary>
+    private static RgbZoneColor CoerceColor(AvaloniaObject _, RgbZoneColor value)
+        => value;
+
+    /// <summary>Marks exactly one palette entry as selected.</summary>
+    private void UpdateSelection()
     {
-        if (this.FindControl<Panel>("PaletteHost") is not { } host)
-            return;
-
-        var wrap = new WrapPanel { ItemWidth = 22, ItemHeight = 22 };
-
-        foreach (var colour in Palette)
-        {
-            var button = new Button
-            {
-                Width = 18,
-                Height = 18,
-                Margin = new Thickness(2),
-                CornerRadius = new CornerRadius(3),
-                Background = new SolidColorBrush(global::Avalonia.Media.Color.FromRgb(colour.R, colour.G, colour.B)),
-                BorderBrush = Brushes.Gray,
-                BorderThickness = new Thickness(1),
-                Tag = colour
-            };
-
-            button.Click += (_, _) => Color = colour;
-
-            wrap.Children.Add(button);
-        }
-
-        host.Children.Add(wrap);
+        foreach (var swatch in Swatches)
+            swatch.IsSelected = swatch.Color.R == Color.R
+                && swatch.Color.G == Color.G
+                && swatch.Color.B == Color.B;
     }
 
-    private void OnSynchroniseClick(object? sender, RoutedEventArgs e)
-        => SynchroniseRequested?.Invoke(this, EventArgs.Empty);
+    private void OnSwatchTapped(object? sender, TappedEventArgs e)
+    {
+        if (sender is Control { Tag: RgbZoneColor colour })
+            Color = colour;
+    }
+
+    private void OnSelectAsSource(object? sender, RoutedEventArgs e)
+        => SourceRequested?.Invoke(this, EventArgs.Empty);
 }

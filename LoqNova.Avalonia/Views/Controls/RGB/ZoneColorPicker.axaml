@@ -1,25 +1,68 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker">
+             xmlns:local="clr-namespace:LoqNova.Avalonia.Views.Controls.RGB"
+             x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker"
+             x:DataType="local:ZoneColorPicker">
 
-    <!-- Zone colour. The swatch shows the current colour, the palette sets it, and
-         the TwoWay Color binding carries the change through the ViewModel's single
-         state-write path into the backend. "Synchronise zones" is the explicit action
-         WPF exposes, not a persistent mode. -->
-    <StackPanel Spacing="6">
-        <TextBlock Text="{Binding ZoneNumber, StringFormat='Zone {0}'}" Classes="Label" />
+    <!-- Zone card: identity, a large preview of the authoritative colour, then a
+         compact palette. The selected entry is marked with one accent ring. -->
+    <Border Classes="FeatureCard" Padding="12">
+        <StackPanel Spacing="10">
 
-        <Border Width="72" Height="20" CornerRadius="4"
-                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
-                Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+            <!-- Zone identity. The header doubles as the "use this zone as the
+                 synchronise source" affordance. -->
+            <Button Background="Transparent"
+                    BorderThickness="0"
+                    Padding="0"
+                    HorizontalAlignment="Left"
+                    IsEnabled="{Binding IsInteractive}"
+                    Click="OnSelectAsSource">
+                <StackPanel Orientation="Horizontal" Spacing="6">
+                    <Border Width="3" Height="12" CornerRadius="2"
+                            Background="{StaticResource AccentBrush}"
+                            IsVisible="{Binding IsSource}"
+                            VerticalAlignment="Center" />
+                    <TextBlock Text="{Binding ZoneNumber, StringFormat='ZONE {0}'}"
+                               Classes="CardTitle" />
+                </StackPanel>
+            </Button>
 
-        <Panel Name="PaletteHost" />
+            <!-- Large current-colour preview: the dominant element, driven by the
+                 same state the keyboard uses. -->
+            <Border Height="72"
+                    CornerRadius="4"
+                    BorderBrush="{StaticResource BorderStrongBrush}"
+                    BorderThickness="1"
+                    Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
 
-        <Button Classes="GhostButton"
-                Content="Synchronise"
-                Padding="6,2"
-                FontSize="11"
-                IsEnabled="{Binding IsInteractive}"
-                Click="OnSynchroniseClick" />
-    </StackPanel>
+            <!-- Compact palette. -->
+            <ItemsControl ItemsSource="{Binding Swatches}" IsEnabled="{Binding IsInteractive}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate x:DataType="local:ZoneSwatch">
+                        <Panel Width="26" Height="26" Margin="0,0,6,6">
+                            <Border Tag="{Binding Color}"
+                                    Width="20" Height="20"
+                                    CornerRadius="10"
+                                    Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}"
+                                    BorderBrush="{StaticResource BorderStrongBrush}"
+                                    BorderThickness="1"
+                                    Tapped="OnSwatchTapped" />
+
+                            <!-- Single restrained selection treatment: an accent ring. -->
+                            <Border IsVisible="{Binding IsSelected}"
+                                    BorderBrush="{StaticResource AccentBrush}"
+                                    BorderThickness="2"
+                                    CornerRadius="13"
+                                    Margin="-3" />
+                        </Panel>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </StackPanel>
+    </Border>
 </UserControl>
