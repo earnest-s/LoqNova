@@ -190,24 +190,6 @@ public partial class App : Application
             await Container.Resolve<IRgbService>().InitializeAsync();
             await Container.Resolve<IPerformanceService>().InitializeAsync();
             await Container.Resolve<IBatteryService>().InitializeAsync();
-            var __sn = new System.Text.StringBuilder();
-            var __ss = Container.Resolve<ISensorsService>();
-            __sn.AppendLine($"SensorsService: intervalFromSettings={__ss.RefreshIntervalSeconds}s supported={__ss.IsSupported} refreshing={__ss.IsRefreshing}");
-            var __ds = Container.Resolve<LoqNova.Avalonia.Settings.DashboardSettings>();
-            __sn.AppendLine($"DashboardSettings: ShowSensors={__ds.Store.ShowSensors} interval={__ds.Store.SensorsRefreshIntervalSeconds} groups={__ds.Store.Groups?.Count.ToString() ?? "null"}");
-            var __dvm = Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.DashboardViewModel>();
-            await __dvm.ResumeSensorsAsync();
-            __sn.AppendLine($"after Start: refreshing={__ss.IsRefreshing}");
-            await Task.Delay(5000);
-            __sn.AppendLine($"metrics: cpuUtil={__dvm.CpuUtilization}/{__dvm.CpuMaxUtilization} '{__dvm.CpuUtilizationText}' ratio={__dvm.CpuUtilizationRatio}");
-            __sn.AppendLine($"         cpuClock={__dvm.CpuCoreClock}/{__dvm.CpuMaxCoreClock} gpuUtil={__dvm.GpuUtilization}/{__dvm.GpuMaxUtilization}");
-            __sn.AppendLine($"         gpuClock={__dvm.GpuCoreClock}/{__dvm.GpuMaxCoreClock} gpuMem={__dvm.GpuMemoryClock}/{__dvm.GpuMaxMemoryClock}");
-            __sn.AppendLine($"         cpuTemp={__dvm.CpuTemperature}/{__dvm.CpuMaxTemperature} gpuTemp={__dvm.GpuTemperature}/{__dvm.GpuMaxTemperature}");
-            __sn.AppendLine($"         cpuFan={__dvm.CpuFanSpeed}/{__dvm.CpuMaxFanSpeed} gpuFan={__dvm.GpuFanSpeed}/{__dvm.GpuMaxFanSpeed}");
-            __sn.AppendLine($"         supported={__dvm.IsSensorsSupported} cards={__dvm.SensorMetrics.Count}");
-            __dvm.PauseSensors();
-            __sn.AppendLine($"after Pause: refreshing={__ss.IsRefreshing}");
-            System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\diagS.txt", __sn.ToString());
         }
         catch (Exception ex)
         {
