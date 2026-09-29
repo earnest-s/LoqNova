@@ -89,7 +89,7 @@ public partial class ZoneColorPicker : UserControl
         // Editing is unavailable while the backlight is Off or Vantage is running, so
         // the editor must not stay open across that change.
         if (e.Property == IsInteractiveProperty && !IsInteractive)
-            SetEditorVisible(false);
+            SetPickerOpen(false);
     }
 
     /// <summary>
@@ -110,22 +110,19 @@ public partial class ZoneColorPicker : UserControl
 
     private void OnPickClicked(object? sender, RoutedEventArgs e)
     {
-        if (ColourEditor is { } editor)
-            SetEditorVisible(!editor.IsVisible);
-    }
-
-    private void SetEditorVisible(bool visible)
-    {
-        if (ColourEditor is not { } editor)
+        if (ColourEditor is null)
             return;
 
-        editor.IsVisible = visible;
-        if (visible)
-        {
+        var open = !PickerPopup.IsOpen;
+
+        // Show the real colour before the popup is measured, so it never flashes empty.
+        if (open)
             SyncEditorFromZone();
-            editor.Focus();
-        }
+
+        PickerPopup.IsOpen = open;
     }
+
+    private void SetPickerOpen(bool open) => PickerPopup.IsOpen = open;
 
     /// <summary>
     /// The editor's chosen colour becomes this zone's colour. The zone colour is then
