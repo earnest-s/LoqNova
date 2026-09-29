@@ -32,8 +32,8 @@ public enum RgbEffect
     Swipe = 110,
     SwipeFill = 111,
     SwipeCleanWithBlack = 112,
-    Temperature = 111
-}
+    Temperature = 113
+  }
 
 public enum RgbSpeed
 {
