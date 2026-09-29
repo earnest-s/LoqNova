@@ -66,6 +66,16 @@ public partial class ZoneColorPicker : UserControl
         BuildSynchroniseMenu();
 
         PropertyChanged += OnSelfPropertyChanged;
+
+        // Watch the editor's colour property directly. Its ColorChanged event is not
+        // usable from here, and a binding through a converter previously lost the
+        // value without any error.
+        if (Editor is { } editor)
+            editor.PropertyChanged += (_, e) =>
+            {
+                if (e.Property == ColorView.ColorProperty)
+                    OnEditorColorChanged(editor, e);
+            };
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
@@ -98,13 +108,13 @@ public partial class ZoneColorPicker : UserControl
 
     private void OnPickClicked(object? sender, RoutedEventArgs e)
     {
-        if (this.FindControl<ColorView>("Editor") is { } editor)
+        if (Editor is { } editor)
             SetEditorVisible(!editor.IsVisible);
     }
 
     private void SetEditorVisible(bool visible)
     {
-        if (this.FindControl<ColorView>("Editor") is not { } editor)
+        if (Editor is not { } editor)
             return;
 
         editor.IsVisible = visible;
