@@ -32,10 +32,10 @@ public partial class KeyboardBacklightPage : UserControl
     private bool _zonePickersAttached;
 
     /// <summary>
-    /// Routes each zone card's "use as source" gesture to the ViewModel, which
-    /// decides the colour that the single "Synchronise All Zones" action applies.
-    /// Attaching on every DataContextChanged would multiply the handler, so each
-    /// page instance wires itself exactly once.
+    /// Routes each zone's "Synchronise zones" action to the ViewModel. WPF exposes
+    /// this per zone and applies the clicked zone's colour to all four in one state
+    /// write. Handlers are attached once per page instance, so navigating back and
+    /// forth cannot multiply them.
     /// </summary>
     private void AttachZonePickers()
     {
@@ -53,10 +53,10 @@ public partial class KeyboardBacklightPage : UserControl
             if (this.FindControl<ZoneColorPicker>(name) is not { } picker)
                 return;
 
-            picker.SourceRequested += (_, _) =>
+            picker.SynchroniseRequested += (_, _) =>
             {
                 if (DataContext is KeyboardBacklightViewModel vm)
-                    vm.SelectSourceZone(zone);
+                    _ = vm.SynchroniseZonesCommand.ExecuteAsync(zone);
             };
         }
     }

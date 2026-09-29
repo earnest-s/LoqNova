@@ -64,24 +64,11 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         : $"{SelectedEffect} has no adjustable speed.";
 
     /// <summary>
-    /// The zone "Synchronise All Zones" takes its colour from. Chosen by the user
-    /// from a zone card, so the single action is deterministic rather than implied.
+    /// Which zone "Synchronise zones" was last invoked on. Presenting only; the
+    /// authoritative colours always come from the service.
     /// </summary>
     [ObservableProperty]
     private int _sourceZone = 1;
-
-    public bool IsSourceZone1 => SourceZone == 1;
-    public bool IsSourceZone2 => SourceZone == 2;
-    public bool IsSourceZone3 => SourceZone == 3;
-    public bool IsSourceZone4 => SourceZone == 4;
-
-    partial void OnSourceZoneChanged(int value)
-    {
-        OnPropertyChanged(nameof(IsSourceZone1));
-        OnPropertyChanged(nameof(IsSourceZone2));
-        OnPropertyChanged(nameof(IsSourceZone3));
-        OnPropertyChanged(nameof(IsSourceZone4));
-    }
 
     /// <summary>Backend-reported capability: the current effect uses per-zone colours.</summary>
     [ObservableProperty]
@@ -195,6 +182,7 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         }
 
         OnPropertyChanged(nameof(IsInteractive));
+        OnPropertyChanged(nameof(CanSelectPreset));
     }
 
     /// <summary>
@@ -235,20 +223,14 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         await ApplyStateAsync();
     }
 
-    /// <summary>Chooses which zone card feeds the single synchronise action.</summary>
-    [RelayCommand]
-    public void SelectSourceZone(int zoneNumber) => SourceZone = zoneNumber;
-
     /// <summary>
-    /// The one synchronisation action. Applies the source zone's colour to all four
-    /// zones in a single state write, then re-reads, so the keyboard, the
-    /// authoritative state and the zone cards agree. This reproduces WPF's
-    /// "synchronise zones" behaviour without duplicating a control per zone.
+    /// WPF's per-zone "Synchronise zones" action: the given zone's colour is applied
+    /// to all four zones in a single state write, then the authoritative state is
+    /// re-read. Only the selected preset's description is replaced, so the effect,
+    /// speed, brightness and the other presets are untouched.
     /// </summary>
     [RelayCommand]
-    public async Task SynchroniseAllZonesAsync() => await SynchroniseZonesAsync(SourceZone);
-
-    private async Task SynchroniseZonesAsync(int zoneNumber)
+    public async Task SynchroniseZonesAsync(int zoneNumber)
     {
         var color = zoneNumber switch
         {

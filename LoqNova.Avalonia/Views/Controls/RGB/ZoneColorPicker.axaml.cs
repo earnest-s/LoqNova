@@ -93,10 +93,6 @@ public partial class ZoneColorPicker : UserControl
         set => SetValue(IsInteractiveProperty, value);
     }
 
-    /// <summary>True for the zone the user last asked to synchronise from.</summary>
-    public static readonly StyledProperty<bool> IsSourceProperty =
-        AvaloniaProperty.Register<ZoneColorPicker, bool>(nameof(IsSource));
-
     public bool IsSource
     {
         get => GetValue(IsSourceProperty);
