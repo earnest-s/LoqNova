@@ -27,12 +27,10 @@
                     Background="{Binding $parent[UserControl].Zone4Color, Converter={StaticResource RgbZoneColorToBrushConverter}}">
                 <TextBlock Text="Zone 4" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
-            
-            <!-- Brightness indicator -->
-            <StackPanel Canvas.Left="20" Canvas.Top="170" Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Brightness:" Classes="Caption" VerticalAlignment="Center" />
-                <ProgressBar Width="200" Height="8" Value="{Binding $parent[UserControl].Brightness, Converter={StaticResource EnumToDisplayConverter}}" Maximum="2" />
-            </StackPanel>
+
+            <!-- The preview is a read-only display of rendered frames. It contains no
+                 settings control: brightness is edited once, in the Brightness card on
+                 the page, so there is a single authoritative brightness state. -->
         </Canvas>
     </Border>
 </UserControl>
