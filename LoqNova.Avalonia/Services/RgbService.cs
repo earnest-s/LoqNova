@@ -13,6 +13,7 @@ namespace LoqNova.Avalonia.Services;
 public class RgbService : IRgbService
 {
     private RGBKeyboardBacklightController? _controller;
+    private RgbFrameDispatcher? _frameDispatcher;
     private RGBKeyboardSettings? _settings;
     private readonly ILogger<RgbService> _logger;
 
@@ -57,8 +58,8 @@ public class RgbService : IRgbService
         // Live preview source. This is the single central frame output the keyboard
         // itself renders, so the preview follows firmware commands, custom effects
         // and performance-mode overrides without a second animation engine.
-        var frameDispatcher = LoqNova.Lib.IoCContainer.Resolve<RgbFrameDispatcher>();
-        frameDispatcher.FrameRendered += OnFrameRendered;
+        _frameDispatcher = LoqNova.Lib.IoCContainer.Resolve<RgbFrameDispatcher>();
+        _frameDispatcher.FrameRendered += OnFrameRendered;
 
         try
         {
