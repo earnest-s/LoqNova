@@ -27,7 +27,7 @@ namespace LoqNova.Avalonia.Views.Controls.RGB;
 /// </summary>
 public partial class ZoneColorPicker : UserControl
 {
-    private static readonly RgbZoneColor Empty = new(0, 0, 0);
+    private ColorView? Editor => this.FindControl<ColorView>("Editor");
 
     public static readonly StyledProperty<int> ZoneNumberProperty =
         AvaloniaProperty.Register<ZoneColorPicker, int>(nameof(ZoneNumber));
@@ -88,7 +88,7 @@ public partial class ZoneColorPicker : UserControl
     /// </summary>
     private void SyncEditorFromZone()
     {
-        if (this.FindControl<ColorView>("Editor") is not { } editor)
+        if (Editor is not { } editor)
             return;
 
         var target = Color.FromRgb(Color.R, Color.G, Color.B);
