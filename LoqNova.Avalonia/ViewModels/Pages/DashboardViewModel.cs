@@ -259,7 +259,18 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>Copies the live backend state onto the view model. Never invents values.</summary>
     private void SyncTelemetry()
     {
-        CurrentPowerMode = _performanceService.CurrentMode;
+        // Publishing a reading must never be mistaken for a user change: without
+        // this guard the 1 Hz sensor publish would call SetModeAsync (a WMI write)
+        // on every tick.
+        _suppressModeWrite = true;
+        try
+        {
+            CurrentPowerMode = _performanceService.CurrentMode;
+        }
+        finally
+        {
+            _suppressModeWrite = false;
+        }
 
         IsSensorsSupported = _sensorsService.IsSupported;
         IsRefreshing = _sensorsService.IsRefreshing;
