@@ -90,6 +90,10 @@ public partial class ZoneColorPicker : UserControl
         // present until the popup content is realised; hook it as the popup opens.
         if (Picker is { } popup)
             popup.Opened += (_, _) => HookEditor();
+
+        // Paint the initial state. The page sets Color and ZoneNumber through bindings
+        // that may already have run, and both also repaint on change.
+        RenderZone();
     }
 
     /// <summary>
