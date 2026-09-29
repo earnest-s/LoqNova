@@ -6,28 +6,31 @@
 
     <!-- One RGB zone, laid out the way WPF does it.
 
-         WPF's ColorPickerControl is a small 38x38 colour button that opens a popup
-         containing a 2D colour square plus hex/RGB entry. This mirrors that: a
-         compact row of small swatch, zone name, hex value and a synchronise action,
-         with the picker in a popup rather than expanding the card. Expanding inline
-         made one card grow to the height of the colour square and left the section
-         looking broken.
+         WPF's ColorPickerControl is a small colour button showing the current colour,
+         which opens a popup containing a 2D colour square plus hex entry. This mirrors
+         that: a compact row of small colour box, zone name, hex value and a
+         synchronise action, with the picker in a popup so the card keeps its height.
+
+         The colour box, zone number and hex value are all set in code-behind rather
+         than bound. The bindings on $self for these did not resolve, so the cards
+         rendered with an empty box and no label.
 
          The picker keeps only what WPF's control offers. The native ColorView also
          carries colour-model radios, per-component sliders, R/G/B text boxes and a
-             palette, all switched off below. -->
+         palette, all switched off below. -->
 
     <Border Name="Card" Classes="FeatureCard" Padding="10" Background="Transparent">
         <StackPanel Spacing="8">
 
-            <Grid ColumnDefinitions="Auto,*,Auto">
+            <Grid>
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="Auto" />
                     <ColumnDefinition Width="*" />
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <!-- Small current-colour box, and the trigger that opens the picker -->
+                <!-- Small current-colour box, and the trigger that opens the picker.
+                     The fill is applied in code-behind from the zone colour. -->
                 <Button Name="PickButton"
                         Grid.Column="0"
                         Width="34"
@@ -38,18 +41,15 @@
                         IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}"
                         Click="OnPickClicked"
                         ToolTip.Tip="Change this zone's colour">
-                    <Border CornerRadius="4"
+                    <Border Name="SwatchBox"
+                            CornerRadius="4"
                             BorderBrush="{StaticResource BorderStrongBrush}"
-                            BorderThickness="1"
-                            Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+                            BorderThickness="1" />
                 </Button>
 
                 <StackPanel Grid.Column="1" Margin="10,0,10,0" Spacing="1" VerticalAlignment="Center">
-                    <TextBlock Text="{Binding $self.ZoneNumber, StringFormat='ZONE {0}', Mode=OneWay}"
-                               Classes="CardTitle" />
-                    <TextBlock Text="{Binding $self.Color, Mode=OneWay}"
-                               FontSize="11"
-                               Opacity="0.7" />
+                    <TextBlock Name="ZoneLabel" Classes="CardTitle" Text="ZONE" />
+                    <TextBlock Name="HexLabel" FontSize="11" Opacity="0.7" Text="#" />
                 </StackPanel>
 
                 <Button Grid.Column="2"
@@ -61,10 +61,10 @@
                         Click="OnSyncClicked" />
             </Grid>
 
-            <!-- WPF opens the colour editor in a popup anchored to the swatch, so the
-                 card keeps its height. The editor is given no binding: the code-behind
-                 pushes the zone colour in on open and reads the result back, which
-                 keeps one path to the backend and avoids a silent converter failure. -->
+            <!-- WPF opens the colour editor in a popup anchored to the colour box, so
+                 the card keeps its height. The editor is given no binding: the
+                 code-behind pushes the zone colour in on open and reads the result back,
+                 which keeps one path to the backend. -->
             <Popup Name="PickerPopup"
                    PlacementTarget="PickButton"
                    Placement="BottomEdgeAlignedLeft"

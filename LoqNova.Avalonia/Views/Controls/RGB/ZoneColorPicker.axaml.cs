@@ -116,12 +116,38 @@ public partial class ZoneColorPicker : UserControl
     private void OnSelfPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
         if (e.Property == ColorProperty)
+        {
+            // The colour box, zone number and hex value are written directly rather
+            // than bound: the $self bindings for these did not resolve and left the
+            // cards showing an empty box with no label.
+            RenderZone();
             SyncEditorFromZone();
+        }
+
+        if (e.Property == ZoneNumberProperty)
+            RenderZone();
 
         // Editing is unavailable while the backlight is Off or Vantage is running, so
         // the editor must not stay open across that change.
         if (e.Property == IsInteractiveProperty && !IsInteractive)
             SetPickerOpen(false);
+    }
+
+    /// <summary>
+    /// Paints the small colour box and writes the zone number and hex value. This is
+    /// the zone's authoritative colour, the same value the keyboard is sent.
+    /// </summary>
+    private void RenderZone()
+    {
+        if (this.FindControl<Border>("SwatchBox") is { } swatch)
+            swatch.Background = new SolidColorBrush(
+                global::Avalonia.Media.Color.FromRgb(Color.R, Color.G, Color.B));
+
+        if (this.FindControl<TextBlock>("ZoneLabel") is { } label)
+            label.Text = $"ZONE {ZoneNumber}";
+
+        if (this.FindControl<TextBlock>("HexLabel") is { } hex)
+            hex.Text = Color.ToString();
     }
 
     /// <summary>
