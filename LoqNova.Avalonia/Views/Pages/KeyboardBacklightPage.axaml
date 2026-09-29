@@ -18,12 +18,10 @@
                 <Button Classes="GhostButton" Content="Spectrum" IsVisible="{Binding IsSpectrumKeyboard}" Margin="0,8,0,0" />
             </StackPanel>
 
-            <!-- Keyboard Preview -->
+            <!-- Keyboard Preview: read-only output of RgbFrameDispatcher frames.
+                 It contains no settings control; brightness, effect, speed and zone
+                 colours are edited once in the cards below. -->
             <Border Classes="ContentCard" HorizontalAlignment="Center">
-                <!-- Preview colours follow RgbFrameDispatcher.FrameRendered, so they
-                     represent what the keyboard is actually showing. There is no
-                     brightness control here: the Brightness card below is the single
-                     authoritative one. -->
                 <controls:KeyboardPreviewControl Zone1Color="{Binding PreviewZone1}"
                                                  Zone2Color="{Binding PreviewZone2}"
                                                  Zone3Color="{Binding PreviewZone3}"
@@ -49,7 +47,7 @@
                 </StackPanel>
             </Border>
 
-            <!-- Brightness: the only brightness control on the page -->
+            <!-- Brightness: the one authoritative brightness control -->
             <Border Classes="ContentCard">
                 <StackPanel>
                     <TextBlock Text="Brightness" Classes="SectionHeader" />
@@ -60,16 +58,17 @@
                               Margin="0,8,0,0"
                               Background="{StaticResource SurfaceBrush}"
                               BorderBrush="{StaticResource BorderBrush}"
-                              <ItemTemplate>
-                                  <DataTemplate>
-                                      <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
-                                  </DataTemplate>
-                              </ItemTemplate>
-                              Foreground="{StaticResource TextPrimaryBrush}" />
+                              Foreground="{StaticResource TextPrimaryBrush}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Border>
 
-            <!-- Effects: one combined list, firmware and software effects together -->
+            <!-- Effects: one combined selector, firmware and software effects together -->
             <Border Classes="ContentCard">
                 <StackPanel>
                     <TextBlock Text="Effects" Classes="SectionHeader" />
@@ -80,20 +79,21 @@
                               Margin="0,8,0,0"
                               Background="{StaticResource SurfaceBrush}"
                               BorderBrush="{StaticResource BorderBrush}"
-                              <ItemTemplate>
-                                  <DataTemplate>
-                                      <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
-                                  </DataTemplate>
-                              </ItemTemplate>
-                              Foreground="{StaticResource TextPrimaryBrush}" />
+                              Foreground="{StaticResource TextPrimaryBrush}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Border>
 
-              <!-- Speed: always present. It is disabled, not hidden, when the backend
-                   reports the selected effect has no adjustable speed. -->
-              <Border Classes="ContentCard">
-                  <StackPanel>
-                      <TextBlock Text="Speed" Classes="SectionHeader" />
+            <!-- Speed: always present; disabled rather than hidden when the backend
+                 reports the selected effect has no adjustable speed. -->
+            <Border Classes="ContentCard">
+                <StackPanel>
+                    <TextBlock Text="Speed" Classes="SectionHeader" />
                     <ComboBox ItemsSource="{Binding Speeds}"
                               SelectedItem="{Binding SelectedSpeed, Mode=TwoWay}"
                               IsEnabled="{Binding SpeedEnabled}"
@@ -102,17 +102,20 @@
                               Margin="0,8,0,0"
                               Background="{StaticResource SurfaceBrush}"
                               BorderBrush="{StaticResource BorderBrush}"
-                              <ItemTemplate>
-                                  <DataTemplate>
-                                      <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
-                                  </DataTemplate>
-                              </ItemTemplate>
-                              Foreground="{StaticResource TextPrimaryBrush}" />
+                              Foreground="{StaticResource TextPrimaryBrush}">
+                        <ComboBox.ItemTemplate>
+                            <DataTemplate>
+                                <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
+                            </DataTemplate>
+                        </ComboBox.ItemTemplate>
+                    </ComboBox>
                 </StackPanel>
             </Border>
 
-            <!-- Zone Colors -->
-            <Border Classes="ContentCard" IsVisible="{Binding ZonesEnabled}">
+            <!-- Zone Colors: four real state controls. Changing one writes the whole
+                 selected preset through the backend controller without disturbing
+                 the other zones, effect, speed, brightness or preset. -->
+            <Border Classes="ContentCard">
                 <StackPanel>
                     <TextBlock Text="Zone Colors" Classes="SectionHeader" />
 
