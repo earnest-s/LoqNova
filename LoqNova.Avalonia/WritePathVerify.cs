@@ -63,14 +63,20 @@ internal static class WritePathVerify
 
         vm.SelectedState = AlwaysOnUSBState.OnAlways;
         await Task.Delay(150);
+        vm.RequestState(AlwaysOnUSBState.OnAlways);
+        await Task.Delay(150);
         log.Add($"select OnAlways -> writes=[{string.Join(",", usb.Writes)}] backend={usb.State} (expect 1 write)");
 
         vm.SelectedState = AlwaysOnUSBState.OnWhenSleeping;
+        await Task.Delay(150);
+        vm.RequestState(AlwaysOnUSBState.OnWhenSleeping);
         await Task.Delay(150);
         log.Add($"select OnWhenSleeping -> writes=[{string.Join(",", usb.Writes)}] (expect 2 writes)");
 
         var before = usb.Writes.Count;
         vm.SelectedState = AlwaysOnUSBState.OnWhenSleeping;
+        await Task.Delay(120);
+        vm.RequestState(AlwaysOnUSBState.OnWhenSleeping);
         await Task.Delay(120);
         log.Add($"same value reselected -> newWrites={usb.Writes.Count - before} (expect 0)");
 
@@ -82,6 +88,8 @@ internal static class WritePathVerify
 
         usb.ThrowOnWrite = true;
         vm.SelectedState = AlwaysOnUSBState.Off;
+        await Task.Delay(250);
+        vm.RequestState(AlwaysOnUSBState.Off);
         await Task.Delay(250);
         log.Add($"failed write -> selected={vm.SelectedState} backend={usb.State} errorSet={!string.IsNullOrEmpty(vm.ErrorMessage)} (expect selected=OnAlways, no fake success)");
 
@@ -97,6 +105,8 @@ internal static class WritePathVerify
         await Task.Delay(120);
         log.Add($"toggle adopt -> IsOn={toggle.IsOn} newWrites={hdr.Writes.Count - tw} (expect 0)");
         toggle.IsOn = false;
+        await Task.Delay(200);
+        toggle.RequestOn(false);
         await Task.Delay(200);
         log.Add($"toggle user off -> writes=[{string.Join(",", hdr.Writes)}] (expect Off)");
 
