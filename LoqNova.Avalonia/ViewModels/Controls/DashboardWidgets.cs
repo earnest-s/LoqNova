@@ -269,8 +269,9 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
 
             var (enabled, info) = _controller.GetState();
 
-            // Read the vendor-dependent memory ceiling off the UI thread: it
-            // initialises NVAPI to work out which memory the machine has.
+            // The memory ceiling depends on the installed memory vendor, so it is read
+            // here rather than assumed. That call initialises NVAPI, which is why it is
+            // never called from a property initialiser.
             var maxMemory = GPUOverclockController.GetMaxMemoryDeltaMhz();
 
             await Dispatcher.InvokeAsync(() =>
@@ -278,15 +279,14 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
                 IsAvailable = true;
                 ErrorMessage = null;
                 SetIsOnFromBackend(enabled);
-                MaxMemoryOffset = maxMemory;
-                CoreOffsetMhz = info.CoreDeltaMhz;
-                MemoryOffsetMhz = info.MemoryDeltaMhz;
-                OnPropertyChanged(nameof(MaxCoreOffset));
-                OnPropertyChanged(nameof(MaxMemoryOffset));
 
-                // SetIsOnFromBackend may have just changed the toggle, so this has to
-                // be republished after the state is known.
-                OnPropertyChanged(nameof(IsOffsetEditorEnabled));
+                // [0] is the core offset, [1] the memory offset, in the order added.
+                if (Settings.Count >= 2)
+                {
+                    Settings[1].Maximum = maxMemory;
+                    Settings[0].Value = info.CoreDeltaMhz;
+                    Settings[1].Value = info.MemoryDeltaMhz;
+                }
             }).ConfigureAwait(false);
         }
         catch (Exception ex)
