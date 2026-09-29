@@ -29,12 +29,20 @@ namespace LoqNova.Avalonia.Views.Controls.RGB;
 public partial class ZoneColorPicker : UserControl
 {
     /// <summary>
+    /// The picker popup, looked up by name each time. The XAML name generator also
+    /// emits a member for it, but that member is only populated once the template is
+    /// applied, and reaching it before then threw a NullReferenceException on the
+    /// first click. A direct lookup with a null guard cannot fail that way.
+    /// </summary>
+    private Popup? Picker => this.FindControl<Popup>("PickerPopup");
+
+    /// <summary>
     /// The native colour editor. It lives inside the picker's popup, which is a
     /// separate logical tree, so it is reached through the popup's child rather than
     /// through this control's own name scope.
     /// </summary>
     private ColorView? ColourEditor =>
-        PickerPopup.Child is Control root ? root.FindControl<ColorView>("Editor") : null;
+        Picker?.Child is Control root ? root.FindControl<ColorView>("Editor") : null;
 
 
 
