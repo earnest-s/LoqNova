@@ -183,6 +183,18 @@ public partial class App : Application
         {
             await LibContainer.Initialization;
 
+            // TEMP-VERIFY-DIAG
+            try
+            {
+                var __r = await VerifyRun.RunAsync();
+                System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\verify.txt", __r);
+            }
+            catch (Exception ex)
+            {
+                System.IO.File.WriteAllText(@"C:\Users\earni\AppData\Local\Temp\opencode\verify.txt", "FATAL " + ex);
+            }
+            // END-TEMP-VERIFY-DIAG
+
             // The shared container is up. Hydrate the adapters that read settings or
             // hardware so the shell renders real state on its first paint.
             await Container.Resolve<ISettingsService>().InitializeAsync();
