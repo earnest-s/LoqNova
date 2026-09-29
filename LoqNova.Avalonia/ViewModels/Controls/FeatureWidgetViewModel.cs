@@ -409,8 +409,6 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
         _ = SetStateAsync(state);
     }
 
-    }
-
     public override void RequestStateFrom(object? selected)
     {
         if (selected is TState state)
