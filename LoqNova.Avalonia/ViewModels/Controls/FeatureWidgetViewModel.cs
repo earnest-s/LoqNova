@@ -48,6 +48,13 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     /// <summary>True for a widget that presents a read-only status string.</summary>
     public bool IsStatus { get; protected init; }
 
+    /// <summary>
+    /// Optional numeric sub-settings, used by widgets that own more than one value.
+    /// WPF puts these in a settings window; here they render inline under the widget's
+    /// own control, which keeps the value and its toggle on one card.
+    /// </summary>
+    public ObservableCollection<WidgetSettingViewModel> Settings { get; } = new();
+
     /// <summary>State of a two-state feature. Shared by toggle features and the GPU overclock toggle.</summary>
     [ObservableProperty]
     private bool _isOn;
