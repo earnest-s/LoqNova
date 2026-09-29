@@ -29,16 +29,14 @@ public partial class KeyboardBacklightPage : UserControl
         AttachZonePickers();
     }
 
+    private bool _zonePickersAttached;
+
     /// <summary>
     /// Routes each zone card's "use as source" gesture to the ViewModel, which
     /// decides the colour that the single "Synchronise All Zones" action applies.
     /// Attaching on every DataContextChanged would multiply the handler, so each
     /// page instance wires itself exactly once.
     /// </summary>
-    private void AttachZonePickers(KeyboardBacklightViewModel vm) => AttachZonePickers();
-
-    private bool _zonePickersAttached;
-
     private void AttachZonePickers()
     {
         if (_zonePickersAttached)
