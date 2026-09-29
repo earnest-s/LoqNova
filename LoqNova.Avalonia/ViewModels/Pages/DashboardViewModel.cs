@@ -56,7 +56,7 @@ public partial class DashboardViewModel : ViewModelBase
     private bool _isRefreshing;
     
     [ObservableProperty]
-    private PowerModeState _currentPowerMode = PowerModeState.Balance;
+    private PowerModeState? _currentPowerMode;
     
     /// <summary>
     /// Brush for the active power mode. Typed as <see cref="IBrush"/> because
@@ -350,7 +350,7 @@ public partial class DashboardViewModel : ViewModelBase
         GpuFanSpeed = GpuMaxFanSpeed = -1;
     }
 
-    partial void OnCurrentPowerModeChanged(PowerModeState value)
+    partial void OnCurrentPowerModeChanged(PowerModeState? value)
     {
         PowerModeColor = GetPowerModeColor(value);
 

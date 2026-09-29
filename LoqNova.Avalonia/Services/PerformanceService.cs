@@ -22,6 +22,9 @@ public class PerformanceService : IPerformanceService
     private readonly IMainThreadDispatcher _dispatcher;
     private readonly ILogger<PerformanceService> _logger;
 
+    /// <summary>MessagingCenter subscription token.</summary>
+    private readonly object _subscriber = new();
+
     private PowerModeFeature? _powerModeFeature;
     private PowerModeState[] _availableStates = NoStates;
 
