@@ -103,7 +103,7 @@ public partial class ZoneColorPicker : UserControl
             return;
 
         // Fully qualified: the control's own Color property shadows the Avalonia type.
-        var target = Media.Color.FromRgb(Color.R, Color.G, Color.B);
+        var target = global::Avalonia.Media.Color.FromRgb(Color.R, Color.G, Color.B);
         if (editor.Color != target)
             editor.Color = target;
     }
@@ -134,7 +134,7 @@ public partial class ZoneColorPicker : UserControl
     /// </summary>
     private void OnEditorColorChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.Property != ColorView.ColorProperty || e.NewValue is not Media.Color chosen)
+        if (e.Property != ColorView.ColorProperty || e.NewValue is not global::Avalonia.Media.Color chosen)
             return;
 
         var next = new RgbZoneColor(chosen.R, chosen.G, chosen.B);
