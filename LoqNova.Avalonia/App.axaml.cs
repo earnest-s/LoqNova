@@ -77,6 +77,8 @@ public partial class App : Application
         // synthesised: power mode, battery modes, sensors and settings are read
         // from and written to the machine / persisted configuration.
         builder.RegisterType<PerformanceService>().As<IPerformanceService>().SingleInstance();
+        // Shared dashboard.json, same store shape as the WPF front end.
+        builder.RegisterType<LoqNova.Avalonia.Settings.DashboardSettings>().SingleInstance();
         builder.RegisterType<SensorsService>().As<ISensorsService>().SingleInstance();
         builder.RegisterType<ThermalService>().As<IThermalService>().SingleInstance();
         builder.RegisterType<BatteryService>().As<IBatteryService>().SingleInstance();

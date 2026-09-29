@@ -23,25 +23,35 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly IMainThreadDispatcher _dispatcher;
     private bool _suppressModeWrite;
     
-    // Sensor channels start as "unknown" (-1) and are only ever set from a real
-    // reading. Placeholder percentages or temperatures are never displayed.
+    // Telemetry: every value and its maximum come from the library sensor
+    // controller. -1 means "not reported" and is rendered as "--", never as a value.
+    [ObservableProperty] private int _cpuUtilization = -1;
+    [ObservableProperty] private int _cpuMaxUtilization = -1;
+    [ObservableProperty] private int _cpuCoreClock = -1;
+    [ObservableProperty] private int _cpuMaxCoreClock = -1;
+    [ObservableProperty] private int _cpuTemperature = -1;
+    [ObservableProperty] private int _cpuMaxTemperature = -1;
+    [ObservableProperty] private int _cpuFanSpeed = -1;
+    [ObservableProperty] private int _cpuMaxFanSpeed = -1;
+
+    [ObservableProperty] private int _gpuUtilization = -1;
+    [ObservableProperty] private int _gpuMaxUtilization = -1;
+    [ObservableProperty] private int _gpuCoreClock = -1;
+    [ObservableProperty] private int _gpuMaxCoreClock = -1;
+    [ObservableProperty] private int _gpuMemoryClock = -1;
+    [ObservableProperty] private int _gpuMaxMemoryClock = -1;
+    [ObservableProperty] private int _gpuTemperature = -1;
+    [ObservableProperty] private int _gpuMaxTemperature = -1;
+    [ObservableProperty] private int _gpuFanSpeed = -1;
+    [ObservableProperty] private int _gpuMaxFanSpeed = -1;
+
+    /// <summary>False when the machine reports no supported sensor source.</summary>
     [ObservableProperty]
-    private double _cpuUsage = -1;
-    
+    private bool _isSensorsSupported;
+
+    /// <summary>True while the sensor refresh loop is running.</summary>
     [ObservableProperty]
-    private double _gpuUsage = -1;
-    
-    [ObservableProperty]
-    private double _cpuTemperature = -1;
-    
-    [ObservableProperty]
-    private double _gpuTemperature = -1;
-    
-    [ObservableProperty]
-    private int _fanSpeedRpm = -1;
-    
-    [ObservableProperty]
-    private int _fanSpeedPercent = -1;
+    private bool _isRefreshing;
     
     [ObservableProperty]
     private PowerModeState _currentPowerMode = PowerModeState.Balance;
@@ -74,6 +84,23 @@ public partial class DashboardViewModel : ViewModelBase
     /// </summary>
     public ObservableCollection<LoqNova.Avalonia.ViewModels.Controls.FeatureWidgetViewModel> ControlWidgets { get; } = new();
 
+    /// <summary>Telemetry cards, in WPF's SensorsControl order.</summary>
+    public ObservableCollection<LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel> SensorMetrics { get; } = new();
+
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuUtilizationMetric = New("CPU", "%", "SensorCpuBrush", "Cpu");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuCoreClockMetric = New("CPU CLOCK", "MHz", "SensorCpuBrush", "Cpu");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuTemperatureMetric = New("CPU TEMP", "°C", "SensorTempBrush", "Thermometer");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuFanSpeedMetric = New("CPU FAN", "RPM", "SensorFanBrush", "Fan");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _gpuUtilizationMetric = New("GPU", "%", "SensorGpuBrush", "Gpu");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _gpuCoreClockMetric = New("GPU CLOCK", "MHz", "SensorGpuBrush", "Gpu");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _gpuMemoryClockMetric = New("GPU MEM", "MHz", "SensorGpuBrush", "Gpu");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _gpuTemperatureMetric = New("GPU TEMP", "°C", "SensorTempBrush", "Thermometer");
+    private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _gpuFanSpeedMetric = New("GPU FAN", "RPM", "SensorFanBrush", "Fan");
+
+    private static LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel New(
+        string label, string unit, string accent, string icon) =>
+        new() { Label = label, Unit = unit, AccentKey = accent, IconKey = icon };
+
     public DashboardViewModel(
         IPerformanceService performanceService,
         IRgbService rgbService,
@@ -93,7 +120,7 @@ public partial class DashboardViewModel : ViewModelBase
 
         InitializeWidgets();
         SubscribeToEvents();
-        SyncFromService();
+        SyncTelemetry();
         _ = InitializeServicesAsync();
     }
 
@@ -167,51 +194,73 @@ public partial class DashboardViewModel : ViewModelBase
 
     private void SubscribeToEvents()
     {
-        _performanceService.ModeChanged += mode => 
-        {
-            _suppressModeWrite = true;
-            CurrentPowerMode = mode;
-            _suppressModeWrite = false;
-            PowerModeColor = GetPowerModeColor(mode);
-        };
-        
-        _thermalService.CpuTemperatureChanged += temp => CpuTemperature = temp;
-        _thermalService.GpuTemperatureChanged += temp => GpuTemperature = temp;
-        _thermalService.FanSpeedChanged += _ =>
-        {
-            FanSpeedRpm = _thermalService.FanSpeedRpm;
-            FanSpeedPercent = _thermalService.FanSpeedPercent;
-        };
+        _performanceService.ModeChanged += _ => _dispatcher.Post(SyncTelemetry);
 
-        _sensorsService.CpuUsageChanged += usage => CpuUsage = usage;
-        _sensorsService.GpuUsageChanged += usage => GpuUsage = usage;
+        // One publish per read, matching WPF's single UpdateValues call.
+        _sensorsService.Updated += () => _dispatcher.Post(SyncTelemetry);
+        _sensorsService.SupportChanged += () => _dispatcher.Post(SyncTelemetry);
     }
 
-    /// <summary>Adopts whatever the backends already report.</summary>
-    private void SyncFromService()
+    /// <summary>Copies the live backend state onto the view model. Never invents values.</summary>
+    private void SyncTelemetry()
     {
-        _suppressModeWrite = true;
         CurrentPowerMode = _performanceService.CurrentMode;
-        _suppressModeWrite = false;
-        PowerModeColor = GetPowerModeColor(CurrentPowerMode);
 
-        if (_sensorsService.CpuUsage >= 0)
-            CpuUsage = _sensorsService.CpuUsage;
+        IsSensorsSupported = _sensorsService.IsSupported;
+        IsRefreshing = _sensorsService.IsRefreshing;
 
-        if (_sensorsService.GpuUsage >= 0)
-            GpuUsage = _sensorsService.GpuUsage;
-
-        if (_thermalService.CpuTemperature >= 0)
-            CpuTemperature = _thermalService.CpuTemperature;
-
-        if (_thermalService.GpuTemperature >= 0)
-            GpuTemperature = _thermalService.GpuTemperature;
-
-        if (_thermalService.FanSpeedRpm >= 0)
+        if (!_sensorsService.IsSupported)
         {
-            FanSpeedRpm = _thermalService.FanSpeedRpm;
-            FanSpeedPercent = _thermalService.FanSpeedPercent;
+            ResetTelemetry();
+            return;
         }
+
+        CpuUtilization = _sensorsService.CpuUtilization;
+        CpuMaxUtilization = _sensorsService.CpuMaxUtilization;
+        CpuCoreClock = _sensorsService.CpuCoreClock;
+        CpuMaxCoreClock = _sensorsService.CpuMaxCoreClock;
+        CpuTemperature = _sensorsService.CpuTemperature;
+        CpuMaxTemperature = _sensorsService.CpuMaxTemperature;
+        CpuFanSpeed = _sensorsService.CpuFanSpeed;
+        CpuMaxFanSpeed = _sensorsService.CpuMaxFanSpeed;
+
+        GpuUtilization = _sensorsService.GpuUtilization;
+        GpuMaxUtilization = _sensorsService.GpuMaxUtilization;
+        GpuCoreClock = _sensorsService.GpuCoreClock;
+        GpuMaxCoreClock = _sensorsService.GpuMaxCoreClock;
+        GpuMemoryClock = _sensorsService.GpuMemoryClock;
+        GpuMaxMemoryClock = _sensorsService.GpuMaxMemoryClock;
+        GpuTemperature = _sensorsService.GpuTemperature;
+        GpuMaxTemperature = _sensorsService.GpuMaxTemperature;
+        GpuFanSpeed = _sensorsService.GpuFanSpeed;
+        GpuMaxFanSpeed = _sensorsService.GpuMaxFanSpeed;
+
+        PublishMetrics();
+    }
+
+    /// <summary>Mirrors the readings into the metric cards the sensors panel renders.</summary>
+    private void PublishMetrics()
+    {
+        _cpuUtilizationMetric.Update(CpuUtilization, CpuMaxUtilization);
+        _cpuCoreClockMetric.Update(CpuCoreClock, CpuMaxCoreClock);
+        _cpuTemperatureMetric.Update(CpuTemperature, CpuMaxTemperature);
+        _cpuFanSpeedMetric.Update(CpuFanSpeed, CpuMaxFanSpeed);
+
+        _gpuUtilizationMetric.Update(GpuUtilization, GpuMaxUtilization);
+        _gpuCoreClockMetric.Update(GpuCoreClock, GpuMaxCoreClock);
+        _gpuMemoryClockMetric.Update(GpuMemoryClock, GpuMaxMemoryClock);
+        _gpuTemperatureMetric.Update(GpuTemperature, GpuMaxTemperature);
+        _gpuFanSpeedMetric.Update(GpuFanSpeed, GpuMaxFanSpeed);
+    }
+
+    /// <summary>Clears every telemetry channel to "not reported" when the source is unsupported.</summary>
+    private void ResetTelemetry()
+    {
+        CpuUtilization = CpuMaxUtilization = CpuCoreClock = CpuMaxCoreClock = -1;
+        CpuTemperature = CpuMaxTemperature = CpuFanSpeed = CpuMaxFanSpeed = -1;
+        GpuUtilization = GpuMaxUtilization = GpuCoreClock = GpuMaxCoreClock = -1;
+        GpuMemoryClock = GpuMaxMemoryClock = GpuTemperature = GpuMaxTemperature = -1;
+        GpuFanSpeed = GpuMaxFanSpeed = -1;
     }
 
     partial void OnCurrentPowerModeChanged(PowerModeState value)
@@ -256,7 +305,7 @@ public partial class DashboardViewModel : ViewModelBase
     {
         await _performanceService.RefreshAsync();
         await _batteryService.RefreshAsync();
-        SyncFromService();
+        SyncTelemetry();
     }
 
     [RelayCommand]
