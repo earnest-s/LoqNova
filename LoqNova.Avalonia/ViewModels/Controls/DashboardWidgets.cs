@@ -269,13 +269,23 @@ public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
                 return;
             }
 
-            var (enabled, _) = _controller.GetState();
+            var (enabled, info) = _controller.GetState();
+
+            // Read the vendor-dependent memory ceiling off the UI thread: it
+            // initialises NVAPI to work out which memory the machine has.
+            var maxMemory = GPUOverclockController.GetMaxMemoryDeltaMhz();
 
             await Dispatcher.InvokeAsync(() =>
             {
                 IsAvailable = true;
                 ErrorMessage = null;
                 SetIsOnFromBackend(enabled);
+                MaxMemoryOffset = maxMemory;
+                CoreOffsetMhz = info.CoreDeltaMhz;
+                MemoryOffsetMhz = info.MemoryDeltaMhz;
+                OnPropertyChanged(nameof(MaxCoreOffset));
+                OnPropertyChanged(nameof(MaxMemoryOffset));
+                OnPropertyChanged(nameof(IsOffsetEditorEnabled));
             }).ConfigureAwait(false);
         }
         catch (Exception ex)
