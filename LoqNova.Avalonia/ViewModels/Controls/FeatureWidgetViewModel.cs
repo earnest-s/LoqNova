@@ -90,13 +90,6 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     }
 
 
-    /// <summary>Invoked when the shared two-state <c>IsOn</c> property changes.</summary>
-    protected virtual void OnIsOnChangedCore(bool value)
-    {
-    }
-
-    partial void OnIsOnChanged(bool value) => OnIsOnChangedCore(value);
-
     /// <summary>Read-only status text, shown for widgets that report rather than set state.</summary>
     [ObservableProperty]
     private string? _statusText;
@@ -287,12 +280,12 @@ public sealed partial class FeatureToggleWidgetViewModel<TState> : FeatureWidget
 
     protected override void ApplyState(TState state)
     {
-        IsOn = EqualityComparer<TState>.Default.Equals(state, _onState);
+        SetIsOnFromBackend(EqualityComparer<TState>.Default.Equals(state, _onState));
         StateLabel = state.ToString()!;
     }
 
     /// <summary>Writes the requested state through the library feature.</summary>
-    protected override void OnIsOnChangedCore(bool value)
+    protected override void OnIsOnRequested(bool value)
     {
         if (!IsAvailable || IsBusy)
             return;
@@ -327,8 +320,6 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
     private TState? _selectedState;
 
     /// <summary>Set while a backend read is being published, so the UI never writes back what it just read.</summary>
-    private bool _suppressWrite;
-
     public override async Task InitializeAsync()
     {
         await base.InitializeAsync().ConfigureAwait(false);
@@ -358,14 +349,14 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
         if (!Options.Contains(state))
             Options.Add(state);
 
-        _suppressWrite = true;
+        SuppressWrite = true;
         try
         {
             SelectedState = state;
         }
         finally
         {
-            _suppressWrite = false;
+            SuppressWrite = false;
         }
     }
 
@@ -379,7 +370,7 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
     /// </summary>
     partial void OnSelectedStateChanging(TState? oldValue, TState? newValue)
     {
-        if (_suppressWrite || !IsAvailable || IsBusy || newValue is not { } requested)
+        if (SuppressWrite || !IsAvailable || IsBusy || newValue is not { } requested)
             return;
 
         if (EqualityComparer<TState?>.Default.Equals(oldValue, newValue))
