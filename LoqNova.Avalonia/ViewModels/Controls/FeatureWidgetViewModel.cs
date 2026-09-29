@@ -58,7 +58,11 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     /// </summary>
     protected bool SuppressWrite { get; set; }
 
-    /// <summary>Assigns the two-state property from a backend reading without triggering a write.</summary>
+    /// <summary>
+    /// Assigns the two-state property from a backend reading without triggering a
+    /// write. Also used to suppress the view's change event that the assignment
+    /// itself causes.
+    /// </summary>
     protected void SetIsOnFromBackend(bool value)
     {
         SuppressWrite = true;
@@ -72,16 +76,21 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
         }
     }
 
+    /// <summary>True while a backend reading is being applied, so the view's change event is ignored.</summary>
+    protected bool IsAdoptingBackendState => SuppressWrite;
+
     /// <summary>
-    /// Raised before the two-state property is assigned, so the previous value is
-    /// still readable and a no-op assignment is not treated as a request.
+    /// Applies a two-state change requested by the user. The view calls this from
+    /// its change event rather than relying on a property-changed callback, because
+    /// those run after the value is assigned and cannot tell a user change from a
+    /// backend publish.
     /// </summary>
-    partial void OnIsOnChanging(bool oldValue, bool newValue)
+    public void RequestOn(bool value)
     {
-        if (SuppressWrite || !IsAvailable || IsBusy || oldValue == newValue)
+        if (SuppressWrite || !IsAvailable || IsBusy || IsOn == value)
             return;
 
-        OnIsOnRequested(newValue);
+        OnIsOnRequested(value);
     }
 
     /// <summary>Invoked when the user, rather than the backend, changed the two-state property.</summary>
