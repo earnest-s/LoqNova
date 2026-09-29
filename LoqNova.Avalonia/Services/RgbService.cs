@@ -54,6 +54,12 @@ public class RgbService : IRgbService
         _controller = LoqNova.Lib.IoCContainer.Resolve<RGBKeyboardBacklightController>();
         _settings = LoqNova.Lib.IoCContainer.Resolve<RGBKeyboardSettings>();
 
+        // Live preview source. This is the single central frame output the keyboard
+        // itself renders, so the preview follows firmware commands, custom effects
+        // and performance-mode overrides without a second animation engine.
+        var frameDispatcher = LoqNova.Lib.IoCContainer.Resolve<RgbFrameDispatcher>();
+        frameDispatcher.FrameRendered += OnFrameRendered;
+
         try
         {
             IsSupported = await Controller.IsSupportedAsync().ConfigureAwait(false);
