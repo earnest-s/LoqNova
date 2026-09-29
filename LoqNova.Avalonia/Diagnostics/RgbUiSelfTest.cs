@@ -8,6 +8,8 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Interactivity;
 using Avalonia.Layout;
+using Avalonia.Media;
+using Avalonia.VisualTree;
 using Avalonia.VisualTree;
 using Avalonia.Threading;
 using LoqNova.Avalonia.Services;
