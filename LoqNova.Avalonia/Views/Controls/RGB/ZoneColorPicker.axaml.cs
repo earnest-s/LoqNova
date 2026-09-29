@@ -82,7 +82,7 @@ public partial class ZoneColorPicker : UserControl
         if (this.FindControl<Button>("PickButton") is not { } button)
             return;
 
-        if (button.Flyout?.Child is { } root)
+        if (button.Flyout?.Content is Control root)
             root.DataContext = this;
     }
 
