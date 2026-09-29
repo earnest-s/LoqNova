@@ -359,9 +359,6 @@ public sealed class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
 
         await RefreshAsync().ConfigureAwait(false);
     }
-
-    partial void OnIsOnChanged(bool value)
-        => OnPropertyChanged(nameof(IsOffsetEditorEnabled));
 }
 
 /// <summary>
