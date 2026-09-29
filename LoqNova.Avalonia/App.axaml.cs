@@ -34,7 +34,7 @@ public partial class App : Application
         {
             try
             {
-                await LoqNova.Avalonia.Diagnostics.RgbUiSelfTest.RunAsync();
+                LoqNova.Avalonia.Diagnostics.RgbUiSelfTest.Run();
             }
             catch (Exception ex)
             {

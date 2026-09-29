@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -117,12 +118,12 @@ internal static class RgbUiSelfTest
 {
     private static readonly List<string> Log = new();
 
-    public static async Task RunAsync()
+    public static void Run()
     {
         var dispatcher = new ImmediateDispatcher();
         var service = new RecordingRgbService();
         var vm = new KeyboardBacklightViewModel(service, dispatcher);
-        await vm.ApplyStateAsync();
+        vm.ApplyStateAsync().GetAwaiter().GetResult();
 
         // ---- Zone palette -------------------------------------------------
         var picker = new ZoneColorPicker { ZoneNumber = 1, IsInteractive = true, Color = new RgbZoneColor(255, 0, 0) };
@@ -154,7 +155,6 @@ internal static class RgbUiSelfTest
         if (green is not null)
         {
             green.RaiseEvent(new RoutedEventArgs(Button.ClickEvent));
-            await Task.Yield();
         }
 
         Log.Add($"click.pickerColorAfter={picker.Color}");
@@ -185,8 +185,6 @@ internal static class RgbUiSelfTest
             foreach (var item in itemsSource)
             {
                 effects.SelectedItem = item;
-                await Task.Yield();
-                await Task.Yield();
                 var shown = effects.SelectedItem as RgbEffect? ?? RgbEffect.Static;
                 traversal.Add(shown.ToString() ?? "?");
             }
@@ -197,7 +195,7 @@ internal static class RgbUiSelfTest
         Log.Add($"effects.traversalDistinct={traversal.Distinct().Count()}");
         Log.Add($"effects.allReachable={traversal.Distinct().Count() == itemsSource.Count && traversal.Count == itemsSource.Count}");
 
-        await File.WriteAllLinesAsync(
+        File.WriteAllLines(
             Path.Combine(Path.GetTempPath(), "rgbselftest.txt"), Log);
     }
 
