@@ -4,39 +4,29 @@
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.ZoneColorPicker"
              x:DataType="local:ZoneColorPicker">
 
-    <!-- Zone card: identity, a large preview of the authoritative colour, then a
-         compact palette. The selected entry is marked with one accent ring. -->
+    <!-- Zone card. Every binding here targets the control itself via $self, because
+         the inherited DataContext is the page ViewModel, which owns no Color,
+         Swatches or ZoneNumber. Binding to the DataContext is what previously left
+         these cards blank. -->
+
     <Border Classes="FeatureCard" Padding="12">
         <StackPanel Spacing="10">
 
-            <!-- Zone identity. The header doubles as the "use this zone as the
-                 synchronise source" affordance. -->
-            <Button Background="Transparent"
-                    BorderThickness="0"
-                    Padding="0"
-                    HorizontalAlignment="Left"
-                    IsEnabled="{Binding IsInteractive}"
-                    Click="OnSelectAsSource">
-                <StackPanel Orientation="Horizontal" Spacing="6">
-                    <Border Width="3" Height="12" CornerRadius="2"
-                            Background="{StaticResource AccentBrush}"
-                            IsVisible="{Binding IsSource}"
-                            VerticalAlignment="Center" />
-                    <TextBlock Text="{Binding ZoneNumber, StringFormat='ZONE {0}'}"
-                               Classes="CardTitle" />
-                </StackPanel>
-            </Button>
+            <!-- Zone identity -->
+            <TextBlock Text="{Binding $self.ZoneNumber, StringFormat='ZONE {0}', Mode=OneWay}"
+                       Classes="CardTitle" />
 
-            <!-- Large current-colour preview: the dominant element, driven by the
-                 same state the keyboard uses. -->
-            <Border Height="72"
+            <!-- Large preview of the zone's authoritative colour -->
+            <Border Height="64"
                     CornerRadius="4"
                     BorderBrush="{StaticResource BorderStrongBrush}"
                     BorderThickness="1"
-                    Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+                    Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
 
-            <!-- Compact palette. -->
-            <ItemsControl ItemsSource="{Binding Swatches}" IsEnabled="{Binding IsInteractive}">
+            <!-- Compact palette. Each swatch is a real Button, so it is focusable
+                 and clickable rather than a painted Border. -->
+            <ItemsControl ItemsSource="{Binding $self.Swatches, Mode=OneWay}"
+                          IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
                         <WrapPanel Orientation="Horizontal" />
@@ -44,25 +34,40 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="local:ZoneSwatch">
-                        <Panel Width="26" Height="26" Margin="0,0,6,6">
-                            <Border Tag="{Binding Color}"
-                                    Width="20" Height="20"
-                                    CornerRadius="10"
-                                    Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}"
-                                    BorderBrush="{StaticResource BorderStrongBrush}"
-                                    BorderThickness="1"
-                                    Tapped="OnSwatchTapped" />
+                        <Button Width="26" Height="26" Margin="0,0,6,6"
+                                Padding="0"
+                                Background="Transparent"
+                                BorderThickness="0"
+                                Tag="{Binding Color}"
+                                Click="OnSwatchClick">
+                            <Panel>
+                                <Border Width="20" Height="20"
+                                        CornerRadius="10"
+                                        Background="{Binding Color, Converter={StaticResource RgbZoneColorToBrushConverter}}"
+                                        BorderBrush="{StaticResource BorderStrongBrush}"
+                                        BorderThickness="1" />
 
-                            <!-- Single restrained selection treatment: an accent ring. -->
-                            <Border IsVisible="{Binding IsSelected}"
-                                    BorderBrush="{StaticResource AccentBrush}"
-                                    BorderThickness="2"
-                                    CornerRadius="13"
-                                    Margin="-3" />
-                        </Panel>
+                                <!-- Single restrained selection treatment: an accent ring -->
+                                <Border IsVisible="{Binding IsSelected}"
+                                        BorderBrush="{StaticResource AccentBrush}"
+                                        BorderThickness="2"
+                                        CornerRadius="13"
+                                        Margin="-3" />
+                            </Panel>
+                        </Button>
                     </DataTemplate>
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
+
+            <!-- WPF exposes "Synchronise zones" on the zone itself, applying that
+                 zone's colour to all four in a single state write. -->
+            <Button Content="Synchronise zones"
+                    Classes="GhostButton"
+                    FontSize="11"
+                    HorizontalAlignment="Left"
+                    Padding="8,3"
+                    IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}"
+                    Click="OnSynchroniseClick" />
         </StackPanel>
     </Border>
 </UserControl>
