@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data;
 using Avalonia.Interactivity;
+using Avalonia.Markup.Xaml;
 using LoqNova.Avalonia.Services;
 
 namespace LoqNova.Avalonia.Views.Controls.RGB;
