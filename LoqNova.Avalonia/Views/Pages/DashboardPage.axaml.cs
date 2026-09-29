@@ -3,7 +3,6 @@ using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
-using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels.Pages;
 
 namespace LoqNova.Avalonia.Views.Pages;
@@ -14,9 +13,9 @@ public partial class DashboardPage : UserControl
     {
         InitializeComponent();
 
-        // Mirrors WPF's SensorsControl: the refresh loop only runs while the page is
-        // actually visible.
-        GetObservable(Visual.IsVisibleProperty)
+        // Mirrors WPF's SensorsControl: the sensor refresh loop only runs while the
+        // page is actually visible, and is stopped when the page is hidden.
+        this.GetObservable(Visual.IsVisibleProperty)
             .Subscribe(_ => ApplyVisibility());
 
         DataContextChanged += OnDataContextChanged;
@@ -26,20 +25,14 @@ public partial class DashboardPage : UserControl
 
     private void OnDataContextChanged(object? sender, EventArgs e) => ApplyVisibility();
 
-    private void OnPageVisibilityChanged(object? sender, EventArgs e) => ApplyVisibility();
-
     private void ApplyVisibility()
     {
         if (DataContext is not DashboardViewModel vm)
             return;
 
         if (IsVisible)
-        {
             _ = vm.ResumeSensorsAsync();
-        }
         else
-        {
             vm.PauseSensors();
-        }
     }
 }
