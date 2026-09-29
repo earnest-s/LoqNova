@@ -157,6 +157,7 @@
     <local:EnumToDisplayConverter x:Key="EnumToDisplayConverter" />
     <local:RgbZoneColorToBrushConverter x:Key="RgbZoneColorToBrushConverter" />
   <local:RgbZoneColorConverter x:Key="RgbZoneColorConverter" />
+  <local:RgbDisplayNameConverter x:Key="RgbDisplayNameConverter" />
     <local:IntNotEqualConverter x:Key="IntNotEqualConverter" />
     <local:StringEqualityConverter x:Key="StringEqualityConverter" />
     <local:IconNameToGeometryConverter x:Key="IconNameToGeometryConverter" />

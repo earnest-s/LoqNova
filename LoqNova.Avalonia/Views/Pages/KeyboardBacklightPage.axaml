@@ -60,6 +60,11 @@
                               Margin="0,8,0,0"
                               Background="{StaticResource SurfaceBrush}"
                               BorderBrush="{StaticResource BorderBrush}"
+                              <ItemTemplate>
+                                  <DataTemplate>
+                                      <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
+                                  </DataTemplate>
+                              </ItemTemplate>
                               Foreground="{StaticResource TextPrimaryBrush}" />
                 </StackPanel>
             </Border>
@@ -75,6 +80,11 @@
                               Margin="0,8,0,0"
                               Background="{StaticResource SurfaceBrush}"
                               BorderBrush="{StaticResource BorderBrush}"
+                              <ItemTemplate>
+                                  <DataTemplate>
+                                      <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
+                                  </DataTemplate>
+                              </ItemTemplate>
                               Foreground="{StaticResource TextPrimaryBrush}" />
                 </StackPanel>
             </Border>
@@ -92,6 +102,11 @@
                               Margin="0,8,0,0"
                               Background="{StaticResource SurfaceBrush}"
                               BorderBrush="{StaticResource BorderBrush}"
+                              <ItemTemplate>
+                                  <DataTemplate>
+                                      <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
+                                  </DataTemplate>
+                              </ItemTemplate>
                               Foreground="{StaticResource TextPrimaryBrush}" />
                 </StackPanel>
             </Border>
