@@ -199,35 +199,33 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
     private GPUOverclockController? _controller;
     private NativeWindowsMessageListener? _listener;
 
-    /// <summary>
-    /// Core frequency offset in MHz, as WPF's <c>OverclockDiscreteGPUSettingsWindow</c>
-    /// exposes it. The range starts at zero because that is the range the WPF slider
-    /// uses; negative offsets are not selectable there.
-    /// </summary>
-    [ObservableProperty]
-    private double _coreOffsetMhz;
-
-    /// <summary>Memory frequency offset in MHz, same range rules as the core offset.</summary>
-    [ObservableProperty]
-    private double _memoryOffsetMhz;
-
-    /// <summary>The offsets only apply while overclocking is switched on.</summary>
-    public bool IsOffsetEditorEnabled => IsAvailable && IsOn;
-
     public double MaxCoreOffset => GPUOverclockController.GetMaxCoreDeltaMhz();
-
-    /// <summary>
-    /// The memory ceiling depends on the installed memory vendor, so it is read from
-    /// the controller rather than assumed. That call initialises NVAPI, so it is read
-    /// once during refresh and never from a property initialiser.
-    /// </summary>
-    public double MaxMemoryOffset { get; private set; } = 1500;
 
     public OverclockGpuWidgetViewModel(IMainThreadDispatcher dispatcher) : base(dispatcher)
     {
         Title = "GPU Overclock";
         Icon = "SpeedHigh64";
         IsToggle = true;
+
+        // WPF's OverclockDiscreteGPUSettingsWindow exposes exactly these two, and both
+        // are ranged from zero: negative offsets are not selectable there.
+        Settings.Add(new WidgetSettingViewModel
+        {
+            Label = "Core Frequency Offset",
+            Unit = "MHz",
+            Minimum = 0,
+            Maximum = MaxCoreOffset,
+            ApplyCommand = new AsyncRelayCommand(ApplyOffsetsAsync)
+        });
+
+        Settings.Add(new WidgetSettingViewModel
+        {
+            Label = "Memory Frequency Offset",
+            Unit = "MHz",
+            Minimum = 0,
+            Maximum = 1500,
+            ApplyCommand = new AsyncRelayCommand(ApplyOffsetsAsync)
+        });
     }
 
 
