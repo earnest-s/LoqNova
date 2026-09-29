@@ -32,9 +32,9 @@ public partial class ZoneColorPicker : UserControl
     private ColorView? ColourEditor => this.FindControl<ColorView>("Editor");
 
     /// <summary>
-    /// The editor's host popup. The editor lives inside a Popup, so it is a separate
-    /// visual tree and has to be reached through the popup's child rather than the
-    /// control's own resource lookup.
+    /// The editor's host popup, generated from the XAML name. The editor lives inside
+    /// a Popup, so it is a separate visual tree and is not reachable through the
+    /// control's own resource lookup once the popup is realised.
     /// </summary>
     private Popup PickerPopup => this.FindControl<Popup>("PickerPopup")
         ?? throw new InvalidOperationException("ZoneColorPicker is missing its picker popup.");
