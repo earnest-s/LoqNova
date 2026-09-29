@@ -52,6 +52,44 @@ public abstract partial class FeatureWidgetViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isOn;
 
+    /// <summary>
+    /// Set while a backend read is being published, so adopting a reading is never
+    /// mistaken for a user change (which would write straight back to the hardware).
+    /// </summary>
+    protected bool SuppressWrite { get; set; }
+
+    /// <summary>Assigns the two-state property from a backend reading without triggering a write.</summary>
+    protected void SetIsOnFromBackend(bool value)
+    {
+        SuppressWrite = true;
+        try
+        {
+            IsOn = value;
+        }
+        finally
+        {
+            SuppressWrite = false;
+        }
+    }
+
+    /// <summary>
+    /// Raised before the two-state property is assigned, so the previous value is
+    /// still readable and a no-op assignment is not treated as a request.
+    /// </summary>
+    partial void OnIsOnChanging(bool oldValue, bool newValue)
+    {
+        if (SuppressWrite || !IsAvailable || IsBusy || oldValue == newValue)
+            return;
+
+        OnIsOnRequested(newValue);
+    }
+
+    /// <summary>Invoked when the user, rather than the backend, changed the two-state property.</summary>
+    protected virtual void OnIsOnRequested(bool value)
+    {
+    }
+
+
     /// <summary>Invoked when the shared two-state <c>IsOn</c> property changes.</summary>
     protected virtual void OnIsOnChangedCore(bool value)
     {
