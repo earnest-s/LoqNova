@@ -213,13 +213,18 @@ public partial class KeyboardBacklightViewModel : ViewModelBase
         await ApplyStateAsync();
     }
 
+    /// <summary>Chooses which zone card feeds the single synchronise action.</summary>
+    [RelayCommand]
+    public void SelectSourceZone(int zoneNumber) => SourceZone = zoneNumber;
+
     /// <summary>
-    /// "Synchronise zones": an explicit action, matching WPF's context-menu item.
-    /// The chosen zone's colour is applied to all four zones in one state write. It
-    /// is not a persistent mode.
+    /// The one synchronisation action. Applies the source zone's colour to all four
+    /// zones in a single state write, then re-reads, so the keyboard, the
+    /// authoritative state and the zone cards agree. This reproduces WPF's
+    /// "synchronise zones" behaviour without duplicating a control per zone.
     /// </summary>
     [RelayCommand]
-    private async Task SynchroniseZonesAsync(int zoneNumber)
+    public async Task SynchroniseAllZonesAsync() => await SynchroniseZonesAsync(SourceZone);
     {
         var color = zoneNumber switch
         {
