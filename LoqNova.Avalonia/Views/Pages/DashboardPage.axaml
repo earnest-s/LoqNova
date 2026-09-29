@@ -55,25 +55,25 @@
                           </StackPanel>
                       </StackPanel>
 
-                      <!-- Mode selector + Custom Mode settings. The backend enum is
-                           PowerModeState.GodMode; it is presented as "Custom Mode"
-                           to match the WPF resource strings. -->
+                      <!-- Mode selector. The backend enum is PowerModeState.GodMode;
+                           it is presented as "Custom Mode" to match the WPF resource
+                           strings. The selection is OneWay so the combo reflects the
+                           authoritative VM state and can never write back a null it
+                           produces while ItemsSource is being populated; user changes
+                           are routed through the explicit handler below. -->
                       <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
                                   VerticalAlignment="Center">
                           <ComboBox Classes="Control"
                                     Width="200"
+                                    SelectionChanged="OnPowerModeSelectionChanged"
                                     ItemsSource="{Binding PowerModeItems}"
-                                    SelectedItem="{Binding CurrentPowerMode}">
+                                    SelectedItem="{Binding CurrentPowerMode, Mode=OneWay}">
                               <ComboBox.ItemTemplate>
                                   <DataTemplate>
                                       <TextBlock Text="{Binding Converter={StaticResource PowerModeDisplayNameConverter}}" />
                                   </DataTemplate>
                               </ComboBox.ItemTemplate>
                           </ComboBox>
-                          <Button Classes="SecondaryButton"
-                                  Content="Custom Mode"
-                                  Command="{Binding OpenCustomModeSettingsCommand}"
-                                  IsVisible="{Binding IsGodModeSupported}" />
                       </StackPanel>
                 </Grid>
             </Border>
