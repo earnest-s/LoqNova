@@ -2,6 +2,7 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Data;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Media;
 using Avalonia.Media.Imaging;
@@ -56,12 +57,12 @@ public partial class ZoneColorPicker : UserControl
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-    private void OnSwatchClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnSwatchClick(object? sender, RoutedEventArgs e)
         => ColourRequested?.Invoke(this, EventArgs.Empty);
 
-    private void OnPickColourClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnPickColourClick(object? sender, RoutedEventArgs e)
         => ColourRequested?.Invoke(this, EventArgs.Empty);
 
-    private void OnSynchroniseClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private void OnSynchroniseClick(object? sender, RoutedEventArgs e)
         => SynchroniseRequested?.Invoke(this, EventArgs.Empty);
 }
