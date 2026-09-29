@@ -12,7 +12,10 @@
 
     <Application.Styles>
         <FluentTheme />
-        <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Fluent/Fluent.xaml" />
+        <!-- The ColorPicker package ships only the Simple theme. Including a Fluent path
+       that does not exist leaves ColorView with no template, which throws as soon as
+       the editor is realised, so this path must match the package exactly. -->
+  <StyleInclude Source="avares://Avalonia.Controls.ColorPicker/Themes/Simple/Simple.xaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Typography.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Layout.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Buttons.axaml" />
