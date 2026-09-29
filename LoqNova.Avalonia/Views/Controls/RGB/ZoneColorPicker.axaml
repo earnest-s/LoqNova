@@ -20,7 +20,12 @@
     <Border Name="Card" Classes="FeatureCard" Padding="10" Background="Transparent">
         <StackPanel Spacing="8">
 
-            <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="10">
+            <Grid ColumnDefinitions="Auto,*,Auto">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
                 <!-- Small current-colour box, and the trigger that opens the picker -->
                 <Button Name="PickButton"
@@ -39,7 +44,7 @@
                             Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
                 </Button>
 
-                <StackPanel Grid.Column="1" Spacing="1" VerticalAlignment="Center">
+                <StackPanel Grid.Column="1" Margin="10,0,10,0" Spacing="1" VerticalAlignment="Center">
                     <TextBlock Text="{Binding $self.ZoneNumber, StringFormat='ZONE {0}', Mode=OneWay}"
                                Classes="CardTitle" />
                     <TextBlock Text="{Binding $self.Color, Mode=OneWay}"
