@@ -181,23 +181,32 @@ public abstract partial class FeatureWidgetViewModel<TState> : FeatureWidgetView
         if (_feature is null)
             return;
 
+        // Every property below is bound, so it must be set on the UI thread. The
+        // backend call is awaited off-thread, hence the explicit marshalling.
+        await Dispatcher.InvokeAsync(() => IsBusy = true).ConfigureAwait(false);
+
+        string? failure = null;
+
         try
         {
-            IsBusy = true;
             await _feature.SetStateAsync(state).ConfigureAwait(false);
-            ErrorMessage = null;
         }
         catch (Exception ex)
         {
-            await Dispatcher.InvokeAsync(() => ErrorMessage = ex.Message).ConfigureAwait(false);
-        }
-        finally
-        {
-            IsBusy = false;
+            failure = ex.Message;
         }
 
+        await Dispatcher.InvokeAsync(() =>
+        {
+            IsBusy = false;
+            ErrorMessage = failure;
+        }).ConfigureAwait(false);
+
+        // Re-read the real state rather than assuming the write landed, so a failed
+        // or refused write can never leave a stale value selected.
         await RefreshAsync().ConfigureAwait(false);
     }
+
 
     private void OnFeatureStateMessage(FeatureStateMessage<TState> message)
     {
