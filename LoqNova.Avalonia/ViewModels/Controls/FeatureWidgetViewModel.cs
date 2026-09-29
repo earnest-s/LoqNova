@@ -386,4 +386,3 @@ public partial class FeatureChoiceWidgetViewModel<TState> : FeatureWidgetViewMod
         _ = SetStateAsync(state);
     }
 }
-}
