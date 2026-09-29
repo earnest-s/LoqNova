@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib;
 using LoqNova.Lib.Features;
@@ -453,11 +454,11 @@ public partial class WidgetSettingViewModel : ViewModelBase
     /// <summary>Writes the edited value back through the owning widget.</summary>
     public IAsyncRelayCommand? ApplyCommand { get; init; }
 
-    public double Minimum { get; init; }
+    public double Minimum { get; set; }
 
-    public double Maximum { get; init; }
+    public double Maximum { get; set; }
 
-    public double TickFrequency { get; init; } = 1;
+    public double TickFrequency { get; set; } = 1;
 
     /// <summary>The value with its unit, matching WPF's "+0;-0;0 MHz" label format.</summary>
     public string ValueText => Unit.Length == 0

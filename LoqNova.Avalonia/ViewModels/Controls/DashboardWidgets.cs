@@ -199,7 +199,7 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
     private GPUOverclockController? _controller;
     private NativeWindowsMessageListener? _listener;
 
-    public double MaxCoreOffset => GPUOverclockController.GetMaxCoreDeltaMhz();
+    public int MaxCoreOffset => GPUOverclockController.GetMaxCoreDeltaMhz();
 
     public OverclockGpuWidgetViewModel(IMainThreadDispatcher dispatcher) : base(dispatcher)
     {
@@ -417,5 +417,6 @@ public sealed class TurnOffMonitorsWidgetViewModel : FeatureWidgetViewModel
         }
         finally
         {
-            IsBusy = false;
+        }
+    }
 }
