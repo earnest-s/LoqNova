@@ -3,6 +3,8 @@ using System;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using Autofac;
+using LoqNova.Avalonia.Services;
 using LoqNova.Lib;
 using LoqNova.Lib.Features;
 
@@ -15,7 +17,7 @@ internal static class VerifyRun
         var log = new System.Collections.Generic.List<string>();
 
         // ---- Sensor display semantics (WPF UpdateValue parity) ----
-        var dvm = Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.DashboardViewModel>();
+        var dvm = App.Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.DashboardViewModel>();
         await dvm.ResumeSensorsAsync();
         await Task.Delay(500);
 
@@ -53,10 +55,10 @@ internal static class VerifyRun
         log.Add($"zero fan  : cpuFan='{dvm.CpuFanSpeedText}' gpuFan='{dvm.GpuFanSpeedText}'  (0 must be displayed as a reading)");
 
         // ---- Power mode combo hydration ----
-        var perf = Container.Resolve<IPerformanceService>();
+        var perf = App.Container.Resolve<IPerformanceService>();
         log.Add($"power: supported={perf.IsSupported} current={perf.CurrentMode?.ToString() ?? "null"} items=[{string.Join(",", dvm.PowerModeItems)}]");
         log.Add($"power: current listed in combo items = {dvm.PowerModeItems.Contains(dvm.CurrentPowerMode!.Value)} (prevents '--' in the combo)");
-        var conv = Container.Resolve<LoqNova.Avalonia.Converters.PowerModeDisplayNameConverter>();
+        var conv = App.Container.Resolve<LoqNova.Avalonia.Converters.PowerModeDisplayNameConverter>();
         log.Add($"mapping: GodMode -> '{conv.Convert(PowerModeState.GodMode, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture)}'");
         log.Add($"mapping: null   -> '{conv.Convert(null, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture)}'");
         log.Add($"mapping: Quiet  -> '{conv.Convert(PowerModeState.Quiet, typeof(string), null, System.Globalization.CultureInfo.CurrentCulture)}'");
