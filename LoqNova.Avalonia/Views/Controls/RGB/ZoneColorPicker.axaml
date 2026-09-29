@@ -51,8 +51,7 @@
                        IsVisible="False"
                        Width="240"
                        HorizontalAlignment="Left"
-                       IsAlphaVisible="False"
-                       ColorChanged="OnEditorColorChanged" />
+                       IsAlphaVisible="False" />
         </StackPanel>
     </Border>
 </UserControl>

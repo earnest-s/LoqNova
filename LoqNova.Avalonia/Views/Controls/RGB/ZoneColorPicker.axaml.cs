@@ -120,13 +120,13 @@ public partial class ZoneColorPicker : UserControl
     /// bound by the page to the ViewModel, which performs the single state write, so
     /// there is one path from the editor to the keyboard.
     /// </summary>
-    private void OnEditorColorChanged(object? sender, ColorChangedEventArgs e)
+    private void OnEditorColorChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
     {
-        if (e.NewValue is not Color chosen || chosen.A == 0)
+        if (e.Property != ColorView.ColorProperty || e.NewValue is not Color chosen)
             return;
 
         var next = new RgbZoneColor(chosen.R, chosen.G, chosen.B);
-        if (next == Color || next == Empty && Color == Empty)
+        if (next == Color)
             return;
 
         Color = next;
