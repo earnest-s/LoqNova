@@ -126,19 +126,23 @@ public partial class ZoneColorPicker : UserControl
 
     private void OnPickClicked(object? sender, RoutedEventArgs e)
     {
-        if (ColourEditor is null)
+        if (Picker is not { } popup)
             return;
 
-        var open = !PickerPopup.IsOpen;
+        var open = !popup.IsOpen;
 
         // Show the real colour before the popup is measured, so it never flashes empty.
         if (open)
             SyncEditorFromZone();
 
-        PickerPopup.IsOpen = open;
+        popup.IsOpen = open;
     }
 
-    private void SetPickerOpen(bool open) => PickerPopup.IsOpen = open;
+    private void SetPickerOpen(bool open)
+    {
+        if (Picker is { } popup)
+            popup.IsOpen = open;
+    }
 
     /// <summary>
     /// The editor's chosen colour becomes this zone's colour. The zone colour is then
