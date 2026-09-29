@@ -21,6 +21,7 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly ISensorsService _sensorsService;
     private readonly INavigationService _navigationService;
     private readonly IMainThreadDispatcher _dispatcher;
+    private readonly INotificationService _notificationService;
     private bool _suppressModeWrite;
     private bool _sensorsInitialized;
     
@@ -125,7 +126,8 @@ public partial class DashboardViewModel : ViewModelBase
         IBatteryService batteryService,
         ISensorsService sensorsService,
         INavigationService navigationService,
-        IMainThreadDispatcher dispatcher)
+        IMainThreadDispatcher dispatcher,
+        INotificationService notificationService)
     {
         _performanceService = performanceService;
         _rgbService = rgbService;
@@ -134,6 +136,7 @@ public partial class DashboardViewModel : ViewModelBase
         _sensorsService = sensorsService;
         _navigationService = navigationService;
         _dispatcher = dispatcher;
+        _notificationService = notificationService;
 
         InitializeWidgets();
         InitializeSensorMetrics();
