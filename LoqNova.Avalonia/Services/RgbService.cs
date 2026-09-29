@@ -82,6 +82,8 @@ public class RgbService : IRgbService
                 var state = await Controller.GetStateAsync().ConfigureAwait(false);
                 UpdateFromState(state);
                 _logger.LogInformation("RGB service initialized. Preset: {Preset}", CurrentPreset);
+
+                await ApplyStoredPresetAsync().ConfigureAwait(false);
             }
             else
             {
