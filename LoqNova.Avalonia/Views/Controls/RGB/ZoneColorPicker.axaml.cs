@@ -60,9 +60,7 @@ public partial class ZoneColorPicker : UserControl
 
     public static readonly StyledProperty<RgbZoneColor> ColorProperty =
         AvaloniaProperty.Register<ZoneColorPicker, RgbZoneColor>(
-            nameof(Color),
-            defaultBindingMode: BindingMode.TwoWay,
-            coerce: CoerceColor);
+            nameof(Color), defaultBindingMode: BindingMode.TwoWay);
 
     /// <summary>Mirrors the page's availability rule, which comes from the backend.</summary>
     public static readonly StyledProperty<bool> IsInteractiveProperty =
@@ -75,7 +73,7 @@ public partial class ZoneColorPicker : UserControl
     /// <summary>Raised when this zone is chosen as the synchronise source.</summary>
     public event EventHandler? SourceRequested;
 
-    public ObservableCollection<ZoneSwatch> Swatches { get; } = new(12);
+    public ObservableCollection<ZoneSwatch> Swatches { get; } = new();
 
     public int ZoneNumber
     {
@@ -108,14 +106,17 @@ public partial class ZoneColorPicker : UserControl
 
         InitializeComponent();
 
-        GetObservable(ColorProperty).Subscribe(_ => UpdateSelection());
+        PropertyChanged += OnSelfPropertyChanged;
     }
 
     private void InitializeComponent() => AvaloniaXamlLoader.Load(this);
 
-    /// <summary>A zone colour is never null, so an unset value becomes a neutral black.</summary>
-    private static RgbZoneColor CoerceColor(AvaloniaObject _, RgbZoneColor value)
-        => value;
+    /// <summary>Keeps the selected ring in step with the authoritative zone colour.</summary>
+    private void OnSelfPropertyChanged(object? sender, AvaloniaPropertyChangedEventArgs e)
+    {
+        if (e.Property == ColorProperty)
+            UpdateSelection();
+    }
 
     /// <summary>Marks exactly one palette entry as selected.</summary>
     private void UpdateSelection()
