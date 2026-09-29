@@ -78,7 +78,42 @@ public interface IRgbService
     event Action<RgbBrightness>? BrightnessChanged;
     event Action<int, RgbZoneColor>? ZoneColorChanged;
     event Action<bool>? SynchronizationChanged;
-    
+
+    /// <summary>
+    /// Raised for every frame the keyboard actually renders, forwarded from the
+    /// library's frame dispatcher. May arrive on a background thread.
+    /// </summary>
+    event Action<RgbZoneColor, RgbZoneColor, RgbZoneColor, RgbZoneColor>? FrameRendered;
+
+    /// <summary>True when Lenovo Vantage is running and competing for keyboard control.</summary>
+    bool IsVantageEnabled { get; }
+
+    /// <summary>True when the effect exposes a speed, matching the backend's own rule.</summary>
+    bool SupportsSpeed(RgbEffect effect);
+
+    /// <summary>True when the effect uses per-zone colours, matching the backend's own rule.</summary>
+    bool SupportsZoneColors(RgbEffect effect);
+
+    /// <summary>True for the software effects driven by the custom effect controller.</summary>
+    bool IsCustomEffect(RgbEffect effect);
+
+    /// <summary>
+    /// Writes the supplied values into the selected preset in a single state write,
+    /// leaving the other presets and the other fields of the current preset intact,
+    /// then re-reads the authoritative state.
+    /// </summary>
+    Task SaveStateAsync(
+        RgbEffect effect,
+        RgbSpeed speed,
+        RgbBrightness brightness,
+        RgbZoneColor zone1,
+        RgbZoneColor zone2,
+        RgbZoneColor zone3,
+        RgbZoneColor zone4);
+
+    /// <summary>Applies one colour to all four zones in a single state write.</summary>
+    Task SynchroniseZonesAsync(RgbZoneColor color);
+
     Task InitializeAsync();
     Task SetPresetAsync(RgbPreset preset);
     Task SetEffectAsync(RgbEffect effect);

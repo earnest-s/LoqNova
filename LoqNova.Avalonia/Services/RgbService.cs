@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib.Controllers;
+using LoqNova.Lib.Controllers.CustomRGBEffects;
+using LoqNova.Lib.SoftwareDisabler;
 using LoqNova.Lib.Extensions;
 using LoqNova.Lib.Settings;
 using LoqNova.Lib;
@@ -395,8 +397,8 @@ public class RgbService : IRgbService
     {
         try
         {
-            var vantage = LoqNova.Lib.IoCContainer.Resolve<VantageDisabler>();
-            IsVantageEnabled = await vantage.GetStatusAsync().ConfigureAwait(false) == LoqNova.Lib.SoftwareDisabler.SoftwareStatus.Enabled;
+            var vantage = LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.SoftwareDisabler.VantageDisabler>();
+            IsVantageEnabled = await vantage.GetStatusAsync().ConfigureAwait(false) == SoftwareStatus.Enabled;
         }
         catch (Exception ex)
         {
