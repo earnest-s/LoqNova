@@ -5,33 +5,39 @@
              x:DataType="local:ZoneColorPicker">
 
     <!-- One RGB zone.
+
          Every binding targets the control itself via $self, because the inherited
          DataContext is the page ViewModel, which owns no Color or ZoneNumber.
          Binding to the DataContext is what previously left these cards blank.
 
-         The picker is Avalonia's own ColorView rather than a fixed swatch list,
-         matching the decision that there is no discrete palette to reproduce. WPF
-         offers a continuous 2D colour square plus hex/RGB entry, so no fixed set
-         of swatch values is authoritative to copy. -->
+         The large colour preview is also the picker trigger: clicking it opens a
+         flyout holding Avalonia's native ColorView. Showing ColorView inline made
+         the page enormous and put four unstyled spectrum/hex editors on screen at
+         once. This mirrors WPF, where a colour button opens a popup editor.
 
-    <Border Name="Card" Classes="FeatureCard" Padding="12">
+         WPF offers a continuous 2D colour square plus hex/RGB entry, so there is no
+         discrete swatch palette to reproduce. -->
+
+    <Border Name="Card" Classes="FeatureCard" Padding="12" Background="Transparent">
         <StackPanel Spacing="8">
 
             <TextBlock Text="{Binding $self.ZoneNumber, StringFormat='ZONE {0}', Mode=OneWay}"
                        Classes="CardTitle" />
 
-            <!-- Large preview of the zone's authoritative colour -->
-            <Border Height="52"
-                    CornerRadius="4"
-                    BorderBrush="{StaticResource BorderStrongBrush}"
-                    BorderThickness="1"
-                    Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
-
-            <!-- Native colour editor, resolved from Avalonia's default namespace.
-                 Alpha is hidden: the backend colour is RGB only. -->
-            <ColorView Color="{Binding $self.Color, Mode=TwoWay, Converter={StaticResource RgbZoneColorConverter}}"
-                       IsAlphaVisible="False"
-                       IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}" />
+            <!-- Large preview of the authoritative colour, and the click target -->
+            <Button Name="PickButton"
+                    Height="52"
+                    Padding="0"
+                    HorizontalAlignment="Stretch"
+                    HorizontalContentAlignment="Stretch"
+                    Background="Transparent"
+                    BorderThickness="0"
+                    IsEnabled="{Binding $self.IsInteractive, Mode=OneWay}">
+                <Border CornerRadius="4"
+                        BorderBrush="{StaticResource BorderStrongBrush}"
+                        BorderThickness="1"
+                        Background="{Binding $self.Color, Mode=OneWay, Converter={StaticResource RgbZoneColorToBrushConverter}}" />
+            </Button>
         </StackPanel>
     </Border>
 </UserControl>
