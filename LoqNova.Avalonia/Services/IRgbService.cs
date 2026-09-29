@@ -50,14 +50,30 @@ public enum RgbBrightness
     High = 2
 }
 
-public struct RgbZoneColor
+/// <summary>
+/// A zone colour. Immutable and value-comparable, which matters: a mutable struct with
+/// no equality override compares by reference once boxed, so TwoWay bindings and the
+/// observable-property setters fail to register a genuine colour change and the value
+/// never reaches the ViewModel.
+/// </summary>
+public readonly struct RgbZoneColor : IEquatable<RgbZoneColor>
 {
-    public byte R, G, B;
-    
+    public byte R { get; }
+    public byte G { get; }
+    public byte B { get; }
+
     public RgbZoneColor(byte r, byte g, byte b) { R = r; G = g; B = b; }
-    
+
     public static RgbZoneColor FromArgb(int argb) => new((byte)(argb >> 16), (byte)(argb >> 8), (byte)argb);
     public int ToArgb() => (R << 16) | (G << 8) | B;
+
+    public bool Equals(RgbZoneColor other) => R == other.R && G == other.G && B == other.B;
+    public override bool Equals(object? obj) => obj is RgbZoneColor other && Equals(other);
+    public override int GetHashCode() => (R << 16) | (G << 8) | B;
+    public override string ToString() => $"#{R:X2}{G:X2}{B:X2}";
+
+    public static bool operator ==(RgbZoneColor left, RgbZoneColor right) => left.Equals(right);
+    public static bool operator !=(RgbZoneColor left, RgbZoneColor right) => !left.Equals(right);
 }
 
 public interface IRgbService
