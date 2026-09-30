@@ -40,6 +40,10 @@ public partial class AutomationViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isDirty;
 
+    /// <summary>Last failure from an editor operation, shown to the user.</summary>
+    [ObservableProperty]
+    private string? _errorMessage;
+
     public ObservableCollection<AutomationPipelineViewModel> AutomaticPipelines { get; } = [];
 
     public ObservableCollection<AutomationPipelineViewModel> ManualPipelines { get; } = [];
@@ -424,7 +428,17 @@ public partial class AutomationPipelineViewModel : ViewModelBase
             return;
         }
 
-        var trigger = await Task.Run(SelectedTrigger.Create).ConfigureAwait(true);
+        IAutomationPipelineTrigger trigger;
+
+        try
+        {
+            trigger = await Task.Run(SelectedTrigger.Create).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _owner.ReportError($"Could not change trigger: {ex.Message}");
+            return;
+        }
 
         await _service.SetTriggerAsync(Model, trigger);
         OnPropertyChanged(nameof(TriggerDisplayName));
@@ -474,7 +488,18 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     /// <summary>Applies a new configuration to one of this pipeline's real steps.</summary>
     public async Task ReconfigureStepAsync(AutomationStepViewModel step, object? state)
     {
-        var replacement = await Task.Run(() => StepConfiguration.WithState(step.Model, state)).ConfigureAwait(true);
+        IAutomationStep? replacement;
+
+        try
+        {
+            replacement = await Task.Run(() => StepConfiguration.WithState(step.Model, state))
+                .ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _owner.ReportError($"Could not reconfigure {step.DisplayName}: {ex.Message}");
+            return;
+        }
 
         if (replacement is null)
         {
