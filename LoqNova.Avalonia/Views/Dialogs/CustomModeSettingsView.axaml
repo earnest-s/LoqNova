@@ -140,7 +140,7 @@
                                                             <TextBlock Grid.Column="1" Text="{Binding Description}"
                                                                        MinWidth="140" Margin="8,0" VerticalAlignment="Center"
                                                                        Opacity="0.7" FontSize="11" />
-                                                            <Slider Grid.Column="2" Minimum="0" Maximum="{Binding MaxSpeedIndex}"
+                                                            <Slider Grid.Column="2" Minimum="0" Maximum="{Binding EffectiveMaxSpeedIndex}"
                                                                     TickFrequency="1" IsSnapToTickEnabled="True"
                                                                     VerticalAlignment="Center"
                                                                     Value="{Binding SpeedIndex, Mode=TwoWay}" />

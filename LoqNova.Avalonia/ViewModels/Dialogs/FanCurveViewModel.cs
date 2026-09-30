@@ -146,15 +146,17 @@ public partial class FanCurveViewModel : ViewModelBase
         }
 
         // The table is wider than the data set, so start from what the machine has and
-        // only overwrite the slots this dialog actually edits.
+        // only overwrite the slots this dialog actually edits. Slots with no reported
+        // ladder keep WPF's 0-10 range and write straight back.
         var tableValues = source.Table.GetTable().ToArray();
 
         for (var i = 0; i < Points.Count && i < tableValues.Length; i++)
         {
             var stepCount = data[i].FanSpeeds?.Length ?? 0;
             var index = Points[i].SpeedIndex;
+            var max = stepCount > 0 ? stepCount - 1 : 10;
 
-            tableValues[i] = stepCount > 0 && index >= 0 && index < stepCount
+            tableValues[i] = index >= 0 && index <= max
                 ? (ushort)index
                 : tableValues[i];
         }
