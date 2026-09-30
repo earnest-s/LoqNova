@@ -195,6 +195,19 @@
                                                                HorizontalAlignment="Right"
                                                                FontSize="11" />
                                                 </Grid>
+
+                                                <!-- A slider drag only moves a local value.
+                                                     WPF's settings window commits with an
+                                                     explicit Apply, and so does this card,
+                                                     so nothing reaches the GPU until it
+                                                     is pressed. -->
+                                                <Button Classes="GhostButton"
+                                                        FontSize="11"
+                                                        Margin="0,4,0,0"
+                                                        HorizontalAlignment="Right"
+                                                        Content="Apply"
+                                                        IsEnabled="{Binding ApplyCommand}"
+                                                        Command="{Binding ApplyCommand}" />
                                             </StackPanel>
                                         </DataTemplate>
                                     </ItemsControl.ItemTemplate>

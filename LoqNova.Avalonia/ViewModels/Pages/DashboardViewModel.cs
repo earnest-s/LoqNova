@@ -407,6 +407,9 @@ public partial class DashboardViewModel : ViewModelBase
     /// populated, which is how it previously displayed "--" beside a correct large
     /// status.
     /// </summary>
+    /// <summary>Mirrors the machine's AI Chip capability, which gates Balance settings.</summary>
+    public bool IsAIModeSupported => _performanceService.IsAIModeSupported;
+
     /// <summary>
     /// True when the selected mode has settings worth opening. WPF only offers its
     /// settings button for Balance and Custom Mode, and only when the machine reports
@@ -479,6 +482,10 @@ public partial class DashboardViewModel : ViewModelBase
      // The settings entry point is gated on which mode is selected, so it has to be
      // recomputed whenever the mode changes. Without this the button keeps whatever
      // visibility it had when the page was built and never appears.
+     // Also covers the AI Chip capability becoming known after the first mode set:
+     // the service reads it during initialisation, and this republish recomputes the
+     // gate from whatever it now reports.
+     OnPropertyChanged(nameof(IsAIModeSupported));
      OnPropertyChanged(nameof(HasPowerModeSettings));
 
      // A null selection means the backend has not reported a mode yet, and a

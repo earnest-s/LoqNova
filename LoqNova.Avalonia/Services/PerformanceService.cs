@@ -62,8 +62,6 @@ public class PerformanceService : IPerformanceService
      _logger.LogWarning(ex, "Could not read the AI Chip capability.");
      IsAIModeSupported = false;
      }
-
-     await _dispatcher.InvokeAsync(() => OnPropertyChanged(nameof(IsAIModeSupported))).ConfigureAwait(false);
     }
 
     public bool IsGodModeEnabled => IsSupported && CurrentMode == PowerModeState.GodMode;
