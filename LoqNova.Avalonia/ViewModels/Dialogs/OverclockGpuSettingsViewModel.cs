@@ -75,17 +75,8 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 // NVAPI GPU check with a Lenovo WMI capability check and reports only
                 // the result, so a generic "unsupported" left it impossible to tell a
                 // driver problem from a firmware capability flag.
-                var nvapi = await Task.Run(() =>
-                {
-                    try
-                    {
-                        return NvAPI.NvAPI.IsInitialized().ToString();
-                    }
-                    catch (Exception ex)
-                    {
-                        return "threw " + ex.GetType().Name;
-                    }
-                }).ConfigureAwait(false);
+                var nvapi = "not probed";
+                _ = nvapi;
 
                 var wmi = await Task.Run(async () =>
                 {
@@ -102,7 +93,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 
                 var message =
                     "The backend reports no discrete GPU overclock support. "
-                    + $"NVAPI initialised: {nvapi}. Lenovo IsSupportGpuOC value: {wmi} (must be > 0). "
+                    + $"Lenovo IsSupportGpuOC value: {wmi} (must be greater than 0). "
                     + "A value of 0 is the firmware's own capability flag, not a driver fault.";
 
                 await _dispatcher.InvokeAsync(() =>
