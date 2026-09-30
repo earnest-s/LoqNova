@@ -434,6 +434,27 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     [RelayCommand]
     private Task AddStepAsync() => AddStepAsync(SelectedStepOption);
 
+    internal async Task MoveStepUpAsync(AutomationStepViewModel step)
+    {
+        await _service.MoveStepAsync(Model, step.Model, -1);
+        RefreshSteps();
+        MarkDirty();
+    }
+
+    internal async Task MoveStepDownAsync(AutomationStepViewModel step)
+    {
+        await _service.MoveStepAsync(Model, step.Model, 1);
+        RefreshSteps();
+        MarkDirty();
+    }
+
+    internal async Task RemoveStepAsync(AutomationStepViewModel step)
+    {
+        await _service.RemoveStepAsync(Model, step.Model);
+        RefreshSteps();
+        MarkDirty();
+    }
+
     /// <summary>Name is two-way bound, so the draft is kept in step with the field.</summary>
     partial void OnNameChanged(string value)
     {
@@ -496,6 +517,61 @@ public partial class AutomationStepViewModel : ViewModelBase
 
     [RelayCommand]
     private Task RemoveAsync() => Owner.RemoveStepAsync(this);
+
+    /// <summary>
+    /// The values this step accepts, straight from the backend's
+    /// <c>GetAllStatesAsync()</c>. Empty for steps that take no state, which is the
+    /// backend's own signal rather than a guess.
+    /// </summary>
+    public ObservableCollection<StepStateOption> States { get; } = [];
+
+    /// <summary>True when the backend offers a configuration to edit.</summary>
+    public bool HasConfiguration => States.Count > 0;
+
+    /// <summary>The currently applied value, as a picker option.</summary>
+    [ObservableProperty]
+    private StepStateOption? _selectedState;
+
+    /// <summary>
+    /// Loads the legal values and selects the one the step already carries, so the
+    /// editor shows the real configuration rather than a default.
+    /// </summary>
+    public async Task LoadStatesAsync()
+    {
+        States.Clear();
+
+        var current = StepConfiguration.GetState(Model);
+
+        foreach (var value in await StepConfiguration.GetStatesAsync(Model).ConfigureAwait(true))
+        {
+            if (value is null)
+            {
+                continue;
+            }
+
+            var option = new StepStateOption(value, value.ToString() ?? string.Empty);
+
+            States.Add(option);
+
+            if (Equals(value, current))
+            {
+                SelectedState = option;
+            }
+        }
+
+        OnPropertyChanged(nameof(HasConfiguration));
+    }
+
+    /// <summary>Rebuilds the step with the newly chosen state.</summary>
+    public async Task CommitStateAsync()
+    {
+        if (SelectedState is null)
+        {
+            return;
+        }
+
+        await Owner.ReconfigureStepAsync(this, SelectedState.Value);
+    }
 
     public async Task RefreshSupportAsync()
     {
