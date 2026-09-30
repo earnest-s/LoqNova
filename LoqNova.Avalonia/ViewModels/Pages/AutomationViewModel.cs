@@ -233,15 +233,20 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task RenamePipelineAsync(AutomationPipelineViewModel? pipeline, string? name)
+    private async Task RenamePipelineAsync(PipelineRenameRequest? request)
     {
-        if (pipeline is null || string.IsNullOrWhiteSpace(name))
+        if (request is null || string.IsNullOrWhiteSpace(request.Name))
         {
             return;
         }
 
         await _automationService.UpdatePipelineAsync(
-            new AutomationPipeline { Id = pipeline.Id, Name = name, Icon = pipeline.Icon })
+            new AutomationPipeline
+            {
+                Id = request.PipelineId,
+                Name = request.Name,
+                Icon = request.Icon
+            })
             .ConfigureAwait(true);
 
         IsDirty = true;
