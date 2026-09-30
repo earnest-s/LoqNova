@@ -25,6 +25,11 @@ public partial class AutomationViewModel : ViewModelBase
 {
     private readonly IAutomationService _automationService;
 
+    /// <summary>Exposed so the per-pipeline wrapper can mutate the draft directly.</summary>
+    internal IAutomationService Service => _automationService;
+
+    internal void SetDirty() => IsDirty = true;
+
     [ObservableProperty]
     private bool _isAutomationEnabled;
 
@@ -331,6 +336,7 @@ public partial class AutomationViewModel : ViewModelBase
 public partial class AutomationPipelineViewModel : ViewModelBase
 {
     private readonly AutomationViewModel _owner;
+    private readonly IAutomationService _service;
 
     /// <summary>The real backend object. Never a copy; edits mutate the draft.</summary>
     public AutomationPipeline Model { get; }
@@ -397,7 +403,9 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     public async Task CommitNameAsync()
     {
         Model.Name = Name;
-        await _owner.RenamePipelineCommand.ExecuteAsync(this);
+
+        await _service.RenamePipelineAsync(Model, Name);
+        MarkDirty();
     }
 
     /// <summary>Applies a newly chosen trigger to the real backend object.</summary>
@@ -408,15 +416,40 @@ public partial class AutomationPipelineViewModel : ViewModelBase
             return;
         }
 
-        await _owner.SetTriggerCommand.ExecuteAsync(this);
+        await _service.SetTriggerAsync(Model, SelectedTrigger.Create());
+        TriggerDisplayName = Model.Trigger?.DisplayName ?? string.Empty;
+
+        MarkDirty();
     }
 
     /// <summary>Adds a real backend step of the chosen type.</summary>
-    public Task AddStepAsync(AutomationStepOption? option) =>
-        _owner.AddStepCommand.ExecuteAsync((this, option));
+    public async Task AddStepAsync(AutomationStepOption? option)
+    {
+        if (option is null)
+        {
+            return;
+        }
 
-    public Task AddManualStepAsync(AutomationStepOption? option) =>
-        _owner.AddStepCommand.ExecuteAsync((this, option));
+        await _service.AddStepAsync(Model, option.Create());
+        RefreshSteps();
+        MarkDirty();
+    }
+
+    /// <summary>Applies a new configuration to one of this pipeline's real steps.</summary>
+    public async Task ReconfigureStepAsync(AutomationStepViewModel step, object? state)
+    {
+        if (StepConfiguration.WithState(step.Model, state) is not { } replacement)
+        {
+            return;
+        }
+
+        await _service.ReplaceStepAsync(Model, step.Model, replacement);
+
+        RefreshSteps();
+        MarkDirty();
+    }
+
+    private void MarkDirty() => _owner.SetDirty();
 }
 
 /// <summary>A thin binding wrapper around a live backend <see cref="IAutomationStep"/>.</summary>
