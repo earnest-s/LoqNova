@@ -17,7 +17,7 @@ public partial class BatteryPage : UserControl
 
         // WPF refreshes the battery on a timer that runs only while the page is visible
         // and is cancelled the moment it is hidden (BatteryPage.xaml.cs:25-49). The
-        // interval there is two seconds; this is one, so the readouts track the machine
+        // interval there is two seconds; this is 1.5, so the readouts track the machine
         // closely without a manual Refresh.
         _timer.Tick += OnTick;
 
