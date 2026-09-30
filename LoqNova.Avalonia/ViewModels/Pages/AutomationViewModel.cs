@@ -495,7 +495,7 @@ public partial class AutomationStepViewModel : ViewModelBase
         TypeName = model.GetType().Name;
         DisplayName = StepFactoryAccess.Humanize(TypeName);
 
-        ConfigurationSummary = StepConfiguration.Describe(model);
+        _configurationSummary = StepConfiguration.Describe(model);
         _ = LoadStatesAsync();
     }
 
@@ -509,7 +509,8 @@ public partial class AutomationStepViewModel : ViewModelBase
     /// The step's current configuration, as text, taken from the real state where the
     /// step exposes one via <c>IAutomationStep&lt;T&gt;</c>.
     /// </summary>
-    public string ConfigurationSummary => StepConfiguration.Describe(Model);
+    [ObservableProperty]
+    private string _configurationSummary = string.Empty;
 
     /// <summary>False when the backend reports the hardware for this step is absent.</summary>
     public bool IsSupported { get; private set; } = true;
