@@ -150,8 +150,8 @@
                 </Border>
             </Grid>
             
-            <!-- Refresh Button -->
-            <Button Classes="PrimaryButton" Content="Refresh" Command="{Binding RefreshCommand}" HorizontalAlignment="Center" Margin="0,16,0,0" />
+            <!-- No manual refresh: the page polls on a timer while it is visible,
+                 matching WPF's BatteryPage, so the readouts are always current. -->
         </StackPanel>
     </ScrollViewer>
 </UserControl>
