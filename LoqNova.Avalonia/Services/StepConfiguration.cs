@@ -35,31 +35,53 @@ internal static class StepConfiguration
         return stateProperty?.GetValue(step);
     }
 
-    /// <summary>Every value the step accepts, taken from the backend.</summary>
+    /// <summary>
+    /// Every value the step accepts, taken from the backend.
+    ///
+    /// GetAllStatesAsync is asynchronous and returns Task&lt;T[]&gt;, so the result is
+    /// awaited rather than treated as a collection. Reflection is confined to the
+    /// backend's own contract; a step that throws is reported as having no selectable
+    /// values rather than taking the page down with it.
+    /// </summary>
     public static async Task<IReadOnlyList<object?>> GetStatesAsync(IAutomationStep step)
     {
-        var method = FindStatesMethod(step.GetType());
-
-        if (method is null)
+        if (FindStatesMethod(step.GetType()) is not { } method)
         {
             return [];
         }
 
-        if (method.Invoke(step, null) is not System.Collections.IEnumerable values)
+        try
         {
+            if (method.Invoke(step, null) is not Task task)
+            {
+                return [];
+            }
+
+            await task.ConfigureAwait(false);
+
+            // The awaited result carries the array; reflection cannot type it for us.
+            var property = task.GetType().GetProperty("Result");
+            var result = property?.GetValue(task);
+
+            if (result is not System.Collections.IEnumerable values)
+            {
+                return [];
+            }
+
+            var list = new List<object?>();
+
+            foreach (var value in values)
+            {
+                list.Add(value);
+            }
+
+            return list;
+        }
+        catch (Exception)
+        {
+            // A step that cannot enumerate its states simply offers no configuration.
             return [];
         }
-
-        var result = new List<object?>();
-
-        foreach (var value in values)
-        {
-            result.Add(value);
-        }
-
-        await Task.CompletedTask;
-
-        return result;
     }
 
     /// <summary>
