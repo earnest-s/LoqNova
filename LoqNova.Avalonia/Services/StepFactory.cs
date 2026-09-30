@@ -16,6 +16,11 @@ namespace LoqNova.Avalonia.Services;
 /// constructs a genuine <see cref="IAutomationStep"/> or
 /// <see cref="IAutomationPipelineTrigger"/> with a valid, runnable default state, so
 /// nothing the editor creates can be rejected by the engine.
+///
+/// The catalogues are lazy and their entries hold factories, never instances. Building a
+/// step resolves its feature from the global IoC container, and resolving 38 of them
+/// eagerly - 28 more for triggers - happens under that container's lock and froze the
+/// window when the page was opened.
 /// </summary>
 internal static class StepFactory
 {
