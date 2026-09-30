@@ -65,7 +65,7 @@ public partial class FanCurveViewModel : ViewModelBase
     {
         Points.Clear();
 
-        if (fanTableInfo?.Data is not { Length: > 0 } data)
+        if (fanTableInfo is not { } info || info.Data is not { Length: > 0 } data)
         {
             IsSupported = false;
             OnPropertyChanged(nameof(IsSupported));
@@ -76,7 +76,7 @@ public partial class FanCurveViewModel : ViewModelBase
         // slot. WPF seeds each slider from this: slider.Value = tableValues[i], and
         // the RPM shown is FanSpeeds[that value]. Reading a fixed 0 here is what made
         // every point report the bottom of the ladder (1400 RPM on this machine).
-        var tableValues = fanTableInfo.Table.GetTable();
+        var tableValues = info.Table.GetTable();
 
         for (var i = 0; i < data.Length; i++)
         {
