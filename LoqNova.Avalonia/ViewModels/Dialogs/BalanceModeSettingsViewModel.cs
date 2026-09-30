@@ -21,7 +21,7 @@ namespace LoqNova.Avalonia.ViewModels.Dialogs;
 /// saved would be worse than not offering them.
 /// </para>
 /// </summary>
-public partial class BalanceModeSettingsViewModel : ViewModelBase
+public partial class BalanceModeSettingsViewModel : DialogViewModelBase
 {
     private readonly IMainThreadDispatcher _dispatcher;
 
@@ -121,6 +121,4 @@ public partial class BalanceModeSettingsViewModel : ViewModelBase
         }
     }
 
-    [RelayCommand]
-    private Task CloseAsync() => Task.CompletedTask;
 }

@@ -34,6 +34,8 @@ public sealed class DialogService : IDialogService
 
     public ViewModelBase? Current { get; private set; }
 
+    public event Action? Closed;
+
     public Task ShowAsync(ViewModelBase dialog)
     {
         ArgumentNullException.ThrowIfNull(dialog);
@@ -68,6 +70,9 @@ public sealed class DialogService : IDialogService
 
             Current = null;
             IsOpen = false;
+
+            // The presenter owns the scrim, so it is told rather than told to ask.
+            Closed?.Invoke();
         });
     }
 

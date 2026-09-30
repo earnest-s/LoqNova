@@ -59,12 +59,22 @@
                                                 IsVisible="{Binding IsSupported}">
                                         <TextBlock Text="{Binding Title}" FontSize="12" Opacity="0.8" />
                                         <Grid ColumnDefinitions="*,Auto">
+                                            <!-- WPF's GodModeValueControl is dual-mode: a
+                                                 slider when the backend reports a
+                                                 continuous StepperValue, and a combo
+                                                 box when it reports discrete Steps. -->
                                             <Slider Grid.Column="0"
+                                                    IsVisible="{Binding !IsDiscrete}"
                                                     Minimum="{Binding Minimum}"
                                                     Maximum="{Binding Maximum}"
                                                     TickFrequency="{Binding Step}"
                                                     IsSnapToTickEnabled="True"
                                                     Value="{Binding Value, Mode=TwoWay}" />
+                                            <ComboBox Grid.Column="0"
+                                                      IsVisible="{Binding IsDiscrete}"
+                                                      ItemsSource="{Binding Steps}"
+                                                      SelectedItem="{Binding SelectedStep, Mode=TwoWay}"
+                                                      HorizontalAlignment="Stretch" />
                                             <TextBlock Grid.Column="1" MinWidth="70" Margin="10,0,0,0"
                                                        Text="{Binding ValueText}"
                                                        VerticalAlignment="Center"

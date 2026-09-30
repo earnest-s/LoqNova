@@ -26,4 +26,10 @@ public interface IDialogService
 
     /// <summary>Dismisses the current dialog.</summary>
     void Close();
+
+    /// <summary>
+    /// Raised after the dialog is dismissed, so the presenter can clear its scrim
+    /// without the dialog having to know how it is hosted.
+    /// </summary>
+    event Action? Closed;
 }

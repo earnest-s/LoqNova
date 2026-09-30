@@ -15,7 +15,7 @@ namespace LoqNova.Avalonia.ViewModels.Dialogs;
 /// Power limit, temperature limit and core voltage offset are not part of the
 /// backend model, so they are not offered here.
 /// </summary>
-public partial class OverclockGpuSettingsViewModel : ViewModelBase
+public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 {
     private readonly IMainThreadDispatcher _dispatcher;
 
@@ -91,6 +91,4 @@ public partial class OverclockGpuSettingsViewModel : ViewModelBase
         MemoryClockOffset = 0;
     }
 
-    [RelayCommand]
-    private Task CloseAsync() => Task.CompletedTask;
 }

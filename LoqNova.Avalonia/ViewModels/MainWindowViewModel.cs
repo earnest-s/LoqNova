@@ -72,8 +72,12 @@ public partial class MainWindowViewModel : ViewModelBase
         _rgbService = rgbService;
         _thermalService = thermalService;
         _batteryService = batteryService;
-     _dialogService = dialogService;
-        
+        _dialogService = dialogService;
+
+        // A dialog dismisses itself through its own Close command, so the scrim is
+        // cleared from the service's notification rather than by the presenter.
+        _dialogService.Closed += OnDialogClosed;
+
         InitializeNavigationItems();
         _navigationService.PageChanged += OnPageChanged;
 
@@ -175,12 +179,15 @@ public partial class MainWindowViewModel : ViewModelBase
         HostWindow?.Close();
     }
 
-    /// <summary>Closes the presented dialog and clears the scrim.</summary>
-    public void CloseDialog()
-    {
-        _dialogService.Close();
-        IsDialogOpen = false;
-    }
+    /// <summary>
+    /// Closes the presented dialog. Wired to the dialog service's Closed event so a
+    /// dialog can dismiss itself from its own Close command without knowing how it is
+    /// hosted.
+    /// </summary>
+    public void CloseDialog() => _dialogService.Close();
+
+    /// <summary>Clears the scrim once the dialog service reports the dialog is gone.</summary>
+    internal void OnDialogClosed() => IsDialogOpen = false;
 
     /// <summary>
     /// Presents a dialog. The ViewModel is hydrated by the dialog service through its

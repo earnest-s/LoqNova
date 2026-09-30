@@ -45,6 +45,28 @@ public partial class CustomModeSettingViewModel : ViewModelBase
 
     public int? DefaultValue { get; private set; }
 
+    /// <summary>
+    /// The chosen discrete value, used when the backend reports a stepped setting.
+    /// Mirrors the combo box WPF shows in that case.
+    /// </summary>
+    public int? SelectedStep
+    {
+        get => _selectedStep;
+        set
+        {
+            if (_selectedStep == value)
+                return;
+
+            _selectedStep = value;
+            OnPropertyChanged();
+
+            if (value is { } step)
+                Value = step;
+        }
+    }
+
+    private int? _selectedStep;
+
     /// <summary>Current value with its unit, matching WPF's label format.</summary>
     public string ValueText => IsDiscrete
         ? $"{Value:0} {Unit}"
@@ -67,8 +89,19 @@ public partial class CustomModeSettingViewModel : ViewModelBase
         IsDiscrete = s.Steps is { Length: > 0 };
         Steps = IsDiscrete ? s.Steps : Array.Empty<int>();
         DefaultValue = s.DefaultValue;
-        Value = s.Value;
-        Value = Clamp(Value);
+
+        // A discrete setting picks from the reported choices; only a continuous one is
+        // clamped to a range.
+        if (IsDiscrete)
+        {
+            SelectedStep = s.Value;
+            Value = s.Value;
+        }
+        else
+        {
+            Value = Clamp(s.Value);
+        }
+
         OnPropertyChanged(nameof(IsSupported));
         OnPropertyChanged(nameof(IsDiscrete));
         OnPropertyChanged(nameof(Steps));
@@ -128,7 +161,7 @@ public partial class CustomModeSettingViewModel : ViewModelBase
 /// hardware does not support stay hidden rather than showing a fabricated number.
 /// </para>
 /// </summary>
-public partial class CustomModeSettingsViewModel : ViewModelBase
+public partial class CustomModeSettingsViewModel : DialogViewModelBase
 {
     private readonly IMainThreadDispatcher _dispatcher;
     private IGodModeController? _controller;
@@ -351,7 +384,4 @@ public partial class CustomModeSettingsViewModel : ViewModelBase
 
     [RelayCommand]
     private Task RefreshAsync() => InitializeAsync();
-
-    [RelayCommand]
-    private Task CloseAsync() => Task.CompletedTask;
 }
