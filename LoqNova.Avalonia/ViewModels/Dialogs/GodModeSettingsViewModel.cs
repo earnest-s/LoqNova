@@ -397,9 +397,7 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
                 GPUTotalProcessingPowerTargetOnAcOffsetFromBaseline = GpuTotalProcessingPowerOffset.ToStepper(),
                 GPUToCPUDynamicBoost = GpuToCpuDynamicBoost.ToStepper(),
                 FanFullSpeed = IsFanFullSpeedSupported ? FanFullSpeed : null,
-                // Pass the table through untouched. Rebuilding it from the editor wrote
-                // zeros back to the machine, wiping the user's real fan curve on Apply.
-                FanTableInfo = preset.FanTableInfo,
+                FanTableInfo = FanCurve.BuildFanTableInfo(preset.FanTableInfo),
                 MaxValueOffset = MaxValueOffset.IsSupported ? (int?)MaxValueOffset.Value : null,
                 MinValueOffset = MinValueOffset.IsSupported ? (int?)MinValueOffset.Value : null
             };
