@@ -245,28 +245,6 @@ public partial class App : Application
         }
     }
 
-    /// <summary>
-    /// Releases the library's RGB resources on shutdown, mirroring what WPF does when
-    /// it closes: stop the global volume/brightness reactive RGB service and hand the
-    /// keyboard's light-control ownership back so firmware and other front ends can
-    /// drive it again. Without this the reactive service keeps holding the keyboard.
-    /// <para>
-    /// Avalonia has no overridable OnExit, so this hangs off the lifetime's
-    /// ShutdownRequested. The handler cannot be awaited, so it is driven to
-    /// completion and only then allowed to continue the shutdown.
-    /// </para>
-    /// </summary>
-    /// <summary>
-    /// Reports an otherwise fatal UI exception and keeps the window alive, so a backend
-    /// call that throws surfaces as a logged fault instead of a silent process exit.
-    /// </summary>
-    private static void OnDispatcherUnhandledException(object? sender, global::Avalonia.Threading.UnhandledExceptionEventArgs e)
-    {
-        System.Diagnostics.Debug.WriteLine($"Unhandled UI exception: {e.Exception}");
-
-        e.Handled = true;
-    }
-
     private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
