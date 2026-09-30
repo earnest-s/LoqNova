@@ -67,39 +67,39 @@ internal static class StepFactory
     ];
 
     /// <summary>
-    /// Every real trigger type. The prototype's own <c>DisplayName</c> is authoritative
-    /// and is what WPF shows, so it is used verbatim rather than invented here.
+    /// Every real trigger type. Display names are the backend's own resource strings,
+    /// read here so no trigger instance has to be constructed just to name it.
     /// </summary>
     public static IReadOnlyList<TriggerOption> Triggers { get; } =
     [
-        Trigger(() => new ACAdapterConnectedAutomationPipelineTrigger()),
-        Trigger(() => new ACAdapterDisconnectedAutomationPipelineTrigger()),
-        Trigger(() => new DeviceConnectedAutomationPipelineTrigger([])),
-        Trigger(() => new DeviceDisconnectedAutomationPipelineTrigger([])),
-        Trigger(() => new DisplayOffAutomationPipelineTrigger()),
-        Trigger(() => new DisplayOnAutomationPipelineTrigger()),
-        Trigger(() => new ExternalDisplayConnectedAutomationPipelineTrigger()),
-        Trigger(() => new ExternalDisplayDisconnectedAutomationPipelineTrigger()),
-        Trigger(() => new GamesAreRunningAutomationPipelineTrigger()),
-        Trigger(() => new GamesStopAutomationPipelineTrigger()),
-        Trigger(() => new GodModePresetChangedAutomationPipelineTrigger(Guid.Empty)),
-        Trigger(() => new HDROffAutomationPipelineTrigger()),
-        Trigger(() => new HDROnAutomationPipelineTrigger()),
-        Trigger(() => new LidClosedAutomationPipelineTrigger()),
-        Trigger(() => new LidOpenedAutomationPipelineTrigger()),
-        Trigger(() => new LowWattageACAdapterConnectedAutomationPipelineTrigger()),
-        Trigger(() => new OnResumeAutomationPipelineTrigger()),
-        Trigger(() => new OnStartupAutomationPipelineTrigger()),
-        Trigger(() => new PeriodicAutomationPipelineTrigger(TimeSpan.FromMinutes(1))),
-        Trigger(() => new PowerModeAutomationPipelineTrigger(PowerModeState.Balance)),
-        Trigger(() => new ProcessesAreRunningAutomationPipelineTrigger([])),
-        Trigger(() => new ProcessesStopRunningAutomationPipelineTrigger([])),
-        Trigger(() => new SessionLockAutomationPipelineTrigger()),
-        Trigger(() => new SessionUnlockAutomationPipelineTrigger()),
-        Trigger(() => new TimeAutomationPipelineTrigger(false, false, null, null)),
-        Trigger(() => new UserInactivityAutomationPipelineTrigger(TimeSpan.FromSeconds(30))),
-        Trigger(() => new WiFiConnectedAutomationPipelineTrigger([])),
-        Trigger(() => new WiFiDisconnectedAutomationPipelineTrigger())
+        Trigger("ACAdapterConnectedAutomationPipelineTrigger", "When AC power adapter is connected", () => new ACAdapterConnectedAutomationPipelineTrigger()),
+        Trigger("ACAdapterDisconnectedAutomationPipelineTrigger", "When AC power adapter is disconnected", () => new ACAdapterDisconnectedAutomationPipelineTrigger()),
+        Trigger("DeviceConnectedAutomationPipelineTrigger", "When device is connected", () => new DeviceConnectedAutomationPipelineTrigger([])),
+        Trigger("DeviceDisconnectedAutomationPipelineTrigger", "When device is disconnected", () => new DeviceDisconnectedAutomationPipelineTrigger([])),
+        Trigger("DisplayOffAutomationPipelineTrigger", "When displays turn off", () => new DisplayOffAutomationPipelineTrigger()),
+        Trigger("DisplayOnAutomationPipelineTrigger", "When displays turn on", () => new DisplayOnAutomationPipelineTrigger()),
+        Trigger("ExternalDisplayConnectedAutomationPipelineTrigger", "When external display is connected", () => new ExternalDisplayConnectedAutomationPipelineTrigger()),
+        Trigger("ExternalDisplayDisconnectedAutomationPipelineTrigger", "When external display is disconnected", () => new ExternalDisplayDisconnectedAutomationPipelineTrigger()),
+        Trigger("GamesAreRunningAutomationPipelineTrigger", "When game is running", () => new GamesAreRunningAutomationPipelineTrigger()),
+        Trigger("GamesStopAutomationPipelineTrigger", "When game closes", () => new GamesStopAutomationPipelineTrigger()),
+        Trigger("GodModePresetChangedAutomationPipelineTrigger", "When Custom Mode preset changes", () => new GodModePresetChangedAutomationPipelineTrigger(Guid.Empty)),
+        Trigger("HDROffAutomationPipelineTrigger", "When HDR turns off", () => new HDROffAutomationPipelineTrigger()),
+        Trigger("HDROnAutomationPipelineTrigger", "When HDR turns on", () => new HDROnAutomationPipelineTrigger()),
+        Trigger("LidClosedAutomationPipelineTrigger", "Lid closed", () => new LidClosedAutomationPipelineTrigger()),
+        Trigger("LidOpenedAutomationPipelineTrigger", "Lid opened", () => new LidOpenedAutomationPipelineTrigger()),
+        Trigger("LowWattageACAdapterConnectedAutomationPipelineTrigger", "When low wattage AC power adapter is connected", () => new LowWattageACAdapterConnectedAutomationPipelineTrigger()),
+        Trigger("OnResumeAutomationPipelineTrigger", "On resume", () => new OnResumeAutomationPipelineTrigger()),
+        Trigger("OnStartupAutomationPipelineTrigger", "On startup", () => new OnStartupAutomationPipelineTrigger()),
+        Trigger("PeriodicAutomationPipelineTrigger", "Periodic action", () => new PeriodicAutomationPipelineTrigger(TimeSpan.FromMinutes(1))),
+        Trigger("PowerModeAutomationPipelineTrigger", "When Power Mode is changed", () => new PowerModeAutomationPipelineTrigger(PowerModeState.Balance)),
+        Trigger("ProcessesAreRunningAutomationPipelineTrigger", "When app starts", () => new ProcessesAreRunningAutomationPipelineTrigger([])),
+        Trigger("ProcessesStopRunningAutomationPipelineTrigger", "When app closes", () => new ProcessesStopRunningAutomationPipelineTrigger([])),
+        Trigger("SessionLockAutomationPipelineTrigger", "Session locked", () => new SessionLockAutomationPipelineTrigger()),
+        Trigger("SessionUnlockAutomationPipelineTrigger", "Session unlocked", () => new SessionUnlockAutomationPipelineTrigger()),
+        Trigger("TimeAutomationPipelineTrigger", "At specified time", () => new TimeAutomationPipelineTrigger(false, false, null, null)),
+        Trigger("UserInactivityAutomationPipelineTrigger", "When user becomes inactive", () => new UserInactivityAutomationPipelineTrigger(TimeSpan.FromSeconds(30))),
+        Trigger("WiFiConnectedAutomationPipelineTrigger", "When Wi-Fi is connected", () => new WiFiConnectedAutomationPipelineTrigger([])),
+        Trigger("WiFiDisconnectedAutomationPipelineTrigger", "When Wi-Fi is disconnected", () => new WiFiDisconnectedAutomationPipelineTrigger())
     ];
 
     private static AutomationStepOption Step(
