@@ -55,11 +55,14 @@ public sealed class DialogService : IDialogService
 
     public event Action? Closed;
 
+    private static void T(string s) => System.IO.File.AppendAllText(
+        System.IO.Path.Combine(System.IO.Path.GetTempPath(), "viz.txt"), s + Environment.NewLine);
     public Task ShowAsync(ViewModelBase dialog)
     {
         ArgumentNullException.ThrowIfNull(dialog);
 
         var view = CreateView(dialog);
+        T("ShowAsync " + dialog.GetType().Name + " view=" + (view?.GetType().Name ?? "NULL-VIEW"));
         if (view is null)
             return Task.CompletedTask;
 
@@ -75,6 +78,7 @@ public sealed class DialogService : IDialogService
             // every control inside it silently fails to resolve.
             view.DataContext = dialog;
 
+            T("host=" + (Host?.GetType().Name ?? "null") + " dc=" + (view.DataContext?.GetType().Name ?? "null"));
             host.Content = view;
             host.IsVisible = true;
             Current = dialog;

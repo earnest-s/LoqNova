@@ -184,6 +184,26 @@ public partial class App : Application
 
             desktop.MainWindow = mainWindow;
             
+        // TEMP viz probe
+        if (Environment.GetEnvironmentVariable("LOQ_VIZ") == "1")
+        {
+            var vt = new global::Avalonia.Threading.DispatcherTimer { Interval = TimeSpan.FromSeconds(6) };
+            vt.Tick += async (_, _) =>
+            {
+                vt.Stop();
+                try
+                {
+                    var d = Container.Resolve<IDialogService>();
+                    var w = (ViewModels.MainWindowViewModel)desktop.MainWindow!.DataContext!;
+                    LoqNova.Avalonia.Services.DialogService.T("probe custom");
+                    var vm = d.Resolve<ViewModels.Dialogs.CustomModeSettingsViewModel>();
+                    await w.ShowDialogAsync(vm);
+                    LoqNova.Avalonia.Services.DialogService.T("probe shown custom");
+                }
+                catch (Exception ex) { LoqNova.Avalonia.Services.DialogService.T("probe threw " + ex.Message); }
+            };
+            vt.Start();
+        }
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
             await trayService.InitializeAsync(mainWindow);
