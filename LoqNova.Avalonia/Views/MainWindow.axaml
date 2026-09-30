@@ -146,5 +146,14 @@
                                    VerticalAlignment="Bottom"
                                    HorizontalAlignment="Right"
                                    Margin="24" />
+
+        <!-- Dialog host. WPF presents these settings as separate Windows; Avalonia
+             overlays them here so the application keeps a single top-level window.
+             A scrim marks the modal state and swallows clicks behind it. -->
+        <Border IsVisible="{Binding IsDialogOpen}"
+                Background="#66000000" />
+        <ContentControl x:Name="DialogHost"
+                        HorizontalAlignment="Center"
+                        VerticalAlignment="Center" />
     </Panel>
 </Window>
