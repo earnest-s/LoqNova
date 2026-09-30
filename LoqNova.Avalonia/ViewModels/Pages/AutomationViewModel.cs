@@ -178,10 +178,12 @@ public partial class AutomationViewModel : ViewModelBase
     [RelayCommand]
     private async Task RemoveStepAsync(AutomationStepViewModel? step)
     {
-        if (step is null || step.PipelineId is not { } pipelineId)
+        if (step is null)
         {
             return;
         }
+
+        var pipelineId = step.PipelineId;
 
         await _automationService.RemoveStepAsync(pipelineId, step.Index).ConfigureAwait(true);
         IsDirty = true;
@@ -190,12 +192,12 @@ public partial class AutomationViewModel : ViewModelBase
     [RelayCommand]
     private async Task MoveStepUpAsync(AutomationStepViewModel? step)
     {
-        if (step is null || step.PipelineId is not { } pipelineId || step.Index <= 0)
+        if (step is null || step.Index <= 0)
         {
             return;
         }
 
-        await _automationService.MoveStepAsync(pipelineId, step.Index, step.Index - 1)
+        await _automationService.MoveStepAsync(step.PipelineId, step.Index, step.Index - 1)
             .ConfigureAwait(true);
 
         IsDirty = true;
@@ -204,10 +206,12 @@ public partial class AutomationViewModel : ViewModelBase
     [RelayCommand]
     private async Task MoveStepDownAsync(AutomationStepViewModel? step)
     {
-        if (step is null || step.PipelineId is not { } pipelineId)
+        if (step is null)
         {
             return;
         }
+
+        var pipelineId = step.PipelineId;
 
         if (step.Index < 0 || step.Index >= step.LastIndex)
         {
