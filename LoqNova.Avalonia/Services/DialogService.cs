@@ -55,7 +55,7 @@ public sealed class DialogService : IDialogService
 
     public event Action? Closed;
 
-    private static void T(string s) => System.IO.File.AppendAllText(
+    public static void T(string s) => System.IO.File.AppendAllText(
         System.IO.Path.Combine(System.IO.Path.GetTempPath(), "viz.txt"), s + Environment.NewLine);
     public Task ShowAsync(ViewModelBase dialog)
     {
