@@ -21,6 +21,9 @@ public partial class FanCurvePointViewModel : ViewModelBase
     /// <summary>Number of selectable steps, i.e. the length of <c>FanSpeeds</c>.</summary>
     public int StepCount { get; init; }
 
+    /// <summary>Highest valid index, for use as a slider maximum.</summary>
+    public int MaxSpeedIndex => Math.Max(0, StepCount - 1);
+
     /// <summary>Temperature this point applies at, taken from <c>Temps</c>.</summary>
     public string TemperatureLabel { get; init; } = string.Empty;
 
