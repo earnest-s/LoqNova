@@ -78,6 +78,10 @@ public sealed class DialogService : IDialogService
 
     public event Action? Closed;
 
+    public Task ShowAsync(ViewModelBase dialog)
+    {
+        ArgumentNullException.ThrowIfNull(dialog);
+
         var view = CreateView(dialog);
 
         if (view is null)
