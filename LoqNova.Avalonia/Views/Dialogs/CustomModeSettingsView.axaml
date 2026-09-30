@@ -1,0 +1,150 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dialogs="clr-namespace:LoqNova.Avalonia.ViewModels.Dialogs"
+             x:Class="LoqNova.Avalonia.Views.Dialogs.CustomModeSettingsView"
+             x:DataType="dialogs:CustomModeSettingsViewModel">
+
+    <!-- Custom Mode settings, reproducing WPF's GodModeSettingsWindow. Every row is
+         populated from the GodModePreset the controller reports; rows the hardware
+         does not support are hidden rather than showing a fabricated value. -->
+    <Border Classes="ContentCard" Width="620" MaxHeight="720">
+        <DockPanel LastChildFill="True">
+
+            <!-- Header -->
+            <StackPanel DockPanel.Dock="Top" Margin="16,16,16,8">
+                <TextBlock Text="Custom Mode Settings" Classes="SectionHeader" />
+                <TextBlock Classes="CardSubtitle" Text="{Binding ActivePresetName, StringFormat='Active preset: {0}'}" />
+            </StackPanel>
+
+            <!-- Footer -->
+            <StackPanel DockPanel.Dock="Bottom" Margin="16,12,16,16">
+                <Border Classes="InsetPanel" Padding="10" Margin="0,0,0,10"
+                        IsVisible="{Binding VantageWarning, Converter={StaticResource StringNotEmptyConverter}}">
+                    <TextBlock Text="{Binding VantageWarning}" TextWrapping="Wrap" Classes="WidgetWarning" />
+                </Border>
+
+                <Border Classes="InsetPanel" Padding="10" Margin="0,0,0,10"
+                        IsVisible="{Binding LegionZoneWarning, Converter={StaticResource StringNotEmptyConverter}}">
+                    <TextBlock Text="{Binding LegionZoneWarning}" TextWrapping="Wrap" Classes="WidgetWarning" />
+                </Border>
+
+                <Border Classes="InsetPanel" Padding="10" Margin="0,0,0,10"
+                        IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
+                    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Classes="WidgetError" />
+                </Border>
+
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                    <Button Classes="GhostButton" Content="Refresh"
+                            IsEnabled="{Binding !IsBusy}"
+                            Command="{Binding RefreshCommand}" />
+                    <Button Classes="GhostButton" Content="Close"
+                            IsEnabled="{Binding !IsBusy}"
+                            Command="{Binding CloseCommand}" />
+                    <Button Classes="PrimaryButton" Content="Save"
+                            IsEnabled="{Binding !IsBusy}"
+                            Command="{Binding ApplyCommand}" />
+                </StackPanel>
+            </StackPanel>
+
+            <!-- Settings -->
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Margin="16,0,16,0" Spacing="14">
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="CPU" Classes="SectionHeader" />
+                        <ItemsControl ItemsSource="{Binding CpuSettings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="dialogs:CustomModeSettingViewModel">
+                                    <StackPanel Spacing="2" Margin="0,0,0,10"
+                                                IsVisible="{Binding IsSupported}">
+                                        <TextBlock Text="{Binding Title}" FontSize="12" Opacity="0.8" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Slider Grid.Column="0"
+                                                    Minimum="{Binding Minimum}"
+                                                    Maximum="{Binding Maximum}"
+                                                    TickFrequency="{Binding Step}"
+                                                    IsSnapToTickEnabled="True"
+                                                    Value="{Binding Value, Mode=TwoWay}" />
+                                            <TextBlock Grid.Column="1" MinWidth="70" Margin="10,0,0,0"
+                                                       Text="{Binding ValueText}"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"
+                                                       FontSize="12" />
+                                        </Grid>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="GPU" Classes="SectionHeader" />
+                        <ItemsControl ItemsSource="{Binding GpuSettings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="dialogs:CustomModeSettingViewModel">
+                                    <StackPanel Spacing="2" Margin="0,0,0,10"
+                                                IsVisible="{Binding IsSupported}">
+                                        <TextBlock Text="{Binding Title}" FontSize="12" Opacity="0.8" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Slider Grid.Column="0"
+                                                    Minimum="{Binding Minimum}"
+                                                    Maximum="{Binding Maximum}"
+                                                    TickFrequency="{Binding Step}"
+                                                    IsSnapToTickEnabled="True"
+                                                    Value="{Binding Value, Mode=TwoWay}" />
+                                            <TextBlock Grid.Column="1" MinWidth="70" Margin="10,0,0,0"
+                                                       Text="{Binding ValueText}"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"
+                                                       FontSize="12" />
+                                        </Grid>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Fans" Classes="SectionHeader" />
+                        <StackPanel Spacing="6" IsVisible="{Binding IsFanFullSpeedSupported}">
+                            <TextBlock Text="Fan Full Speed" FontSize="12" Opacity="0.8" />
+                            <ToggleSwitch IsChecked="{Binding FanFullSpeed, Mode=TwoWay}" />
+                        </StackPanel>
+                        <TextBlock Classes="CardSubtitle"
+                                   IsVisible="{Binding !IsFanFullSpeedSupported}"
+                                   Text="Fan speed controls are not reported by this machine." />
+                    </StackPanel>
+
+                    <StackPanel Spacing="8">
+                        <TextBlock Text="Advanced" Classes="SectionHeader" />
+                        <TextBlock Classes="CardSubtitle"
+                                   Text="Do not change options below unless you really know what you are doing." />
+                        <ItemsControl ItemsSource="{Binding AdvancedSettings}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate x:DataType="dialogs:CustomModeSettingViewModel">
+                                    <StackPanel Spacing="2" Margin="0,8,0,0"
+                                                IsVisible="{Binding IsSupported}">
+                                        <TextBlock Text="{Binding Title}" FontSize="12" Opacity="0.8" />
+                                        <Grid ColumnDefinitions="*,Auto">
+                                            <Slider Grid.Column="0"
+                                                    Minimum="{Binding Minimum}"
+                                                    Maximum="{Binding Maximum}"
+                                                    TickFrequency="{Binding Step}"
+                                                    IsSnapToTickEnabled="True"
+                                                    Value="{Binding Value, Mode=TwoWay}" />
+                                            <TextBlock Grid.Column="1" MinWidth="70" Margin="10,0,0,0"
+                                                       Text="{Binding ValueText}"
+                                                       VerticalAlignment="Center"
+                                                       HorizontalAlignment="Right"
+                                                       FontSize="12" />
+                                        </Grid>
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>
