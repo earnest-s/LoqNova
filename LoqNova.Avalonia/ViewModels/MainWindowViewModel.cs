@@ -205,9 +205,22 @@ public partial class MainWindowViewModel : ViewModelBase
     /// and the state lands once the read completes.
     /// </para>
     /// </summary>
+    /// <summary>Temporary trace for diagnosing the settings-dialog hang.</summary>
+    internal static void Trace(string step)
+    {
+        try
+        {
+            System.IO.File.AppendAllText(
+                System.IO.Path.Combine(System.IO.Path.GetTempPath(), "dlgtrace.txt"),
+                $"{DateTime.Now:HH:mm:ss.fff} {step}{Environment.NewLine}");
+        }
+        catch { }
+    }
     public async Task ShowDialogAsync(ViewModelBase dialog)
     {
+        Trace("ShowDialogAsync entered");
         await _dialogService.ShowAsync(dialog);
+        Trace("host shown");
         IsDialogOpen = true;
 
         // Resolving and hydrating can block on hardware queries, so it is kept off the

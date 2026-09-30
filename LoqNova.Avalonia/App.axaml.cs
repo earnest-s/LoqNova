@@ -184,6 +184,34 @@ public partial class App : Application
 
             desktop.MainWindow = mainWindow;
             
+        // Temporary: exercise the settings-dialog path at startup so a hang can be
+        // diagnosed without a manual click.
+        if (Environment.GetEnvironmentVariable("LOQ_DIALOG_PROBE") == "1")
+        {
+            var probeTimer = new Avalonia.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(6)
+            };
+
+            probeTimer.Tick += async (_, _) =>
+            {
+                probeTimer.Stop();
+                MainWindowViewModel.Trace("probe: opening Custom Mode settings");
+
+                try
+                {
+                    var vm = Container.Resolve<DashboardViewModel>();
+                    vm.OpenPowerModeSettingsCommand.Execute(null);
+                    MainWindowViewModel.Trace("probe: command returned");
+                }
+                catch (Exception ex)
+                {
+                    MainWindowViewModel.Trace("probe threw: " + ex.Message);
+                }
+            };
+
+            probeTimer.Start();
+        }
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
             await trayService.InitializeAsync(mainWindow);
