@@ -232,42 +232,6 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task SetIconAsync(AutomationPipelineViewModel? pipeline, string? iconName)
-    {
-        if (pipeline is null)
-        {
-            return;
-        }
-
-        await _automationService.SetIconAsync(pipeline.Model, iconName).ConfigureAwait(true);
-        IsDirty = true;
-    }
-
-    [RelayCommand]
-    private async Task SetTriggerAsync(AutomationPipelineViewModel? pipeline, TriggerOption? option)
-    {
-        if (pipeline is null || option is null)
-        {
-            return;
-        }
-
-        await _automationService.SetTriggerAsync(pipeline.Model, option.Create()).ConfigureAwait(true);
-        IsDirty = true;
-    }
-
-    [RelayCommand]
-    private async Task AddStepAsync(AutomationPipelineViewModel? pipeline, AutomationStepOption? option)
-    {
-        if (pipeline is null || option is null)
-        {
-            return;
-        }
-
-        await _automationService.AddStepAsync(pipeline.Model, option.Create()).ConfigureAwait(true);
-        IsDirty = true;
-    }
-
-    [RelayCommand]
     private async Task RemoveStepAsync(AutomationStepViewModel? step)
     {
         if (step?.Owner is not { } pipeline)
@@ -417,7 +381,7 @@ public partial class AutomationPipelineViewModel : ViewModelBase
         }
 
         await _service.SetTriggerAsync(Model, SelectedTrigger.Create());
-        TriggerDisplayName = Model.Trigger?.DisplayName ?? string.Empty;
+        OnPropertyChanged(nameof(TriggerDisplayName));
 
         MarkDirty();
     }
