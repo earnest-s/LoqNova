@@ -32,11 +32,20 @@ public partial class CustomModeSettingViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isSupported;
 
-    public double Minimum { get; init; }
+    /// <summary>
+    /// Range reported by the backend. These are assigned in <see cref="Adopt"/> from
+    /// the stepper rather than set at construction: they are <c>init</c> only, so a
+    /// control created before the state was read kept a 0..0 range and every value was
+    /// clamped to zero.
+    /// </summary>
+    [ObservableProperty]
+    private double _minimum;
 
-    public double Maximum { get; init; }
+    [ObservableProperty]
+    private double _maximum;
 
-    public double Step { get; init; }
+    [ObservableProperty]
+    private double _step;
 
     public bool IsDiscrete { get; private set; }
 
@@ -89,6 +98,12 @@ public partial class CustomModeSettingViewModel : ViewModelBase
         IsDiscrete = s.Steps is { Length: > 0 };
         Steps = IsDiscrete ? s.Steps : Array.Empty<int>();
         DefaultValue = s.DefaultValue;
+
+        // The range must be published before the value, otherwise Avalonia clamps the
+        // value against the previous range while binding.
+        Minimum = s.Min;
+        Maximum = s.Max;
+        Step = s.Step;
 
         // A discrete setting picks from the reported choices; only a continuous one is
         // clamped to a range.
@@ -255,25 +270,43 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
         {
             // Resolved off the UI thread: IoCContainer.Resolve holds a global lock, and
             // the controller chain queries WMI, which needs the dispatcher to be free.
-            // Constructing it on the UI thread deadlocks the application.
             _controller = await Task.Run(
                 () => LoqNova.Lib.IoCContainer.Resolve<IGodModeController>()).ConfigureAwait(false);
 
+            // WPF only shows a warning when the controller requires the software to be
+            // closed *and* that software is actually running. Checking only the first
+            // reported "Vantage must be closed" on a machine where Vantage is not even
+            // installed.
             var needsVantage = await _controller.NeedsVantageDisabledAsync().ConfigureAwait(false);
-            var needsLegion = await _controller.NeedsLegionZoneDisabledAsync().ConfigureAwait(false);
+            var needsLegionZone = await _controller.NeedsLegionZoneDisabledAsync().ConfigureAwait(false);
+
+            var vantage = await Task.Run(async () =>
+            {
+                var disabler = LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.SoftwareDisabler.VantageDisabler>();
+                return await disabler.GetStatusAsync().ConfigureAwait(false);
+            }).ConfigureAwait(false);
+
+            var legionZone = await Task.Run(async () =>
+            {
+                var disabler = LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.SoftwareDisabler.LegionZoneDisabler>();
+                return await disabler.GetStatusAsync().ConfigureAwait(false);
+            }).ConfigureAwait(false);
 
             var state = await _controller.GetStateAsync().ConfigureAwait(false);
             var activeId = await _controller.GetActivePresetIdAsync().ConfigureAwait(false);
             var activeName = await _controller.GetActivePresetNameAsync().ConfigureAwait(false);
 
+            var vantageRunning = needsVantage && vantage == LoqNova.Lib.SoftwareStatus.Enabled;
+            var legionZoneRunning = needsLegionZone && legionZone == LoqNova.Lib.SoftwareStatus.Enabled;
+
             await _dispatcher.InvokeAsync(() =>
             {
                 IsSupported = true;
                 ErrorMessage = null;
-                VantageWarning = needsVantage
+                VantageWarning = vantageRunning
                     ? "Lenovo Vantage must be closed before Custom Mode settings can be applied."
                     : null;
-                LegionZoneWarning = needsLegion
+                LegionZoneWarning = legionZoneRunning
                     ? "Legion Zone must be closed before Custom Mode settings can be applied."
                     : null;
                 ActivePresetName = activeName ?? "Preset";
