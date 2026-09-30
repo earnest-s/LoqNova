@@ -63,7 +63,8 @@ public partial class MainWindowViewModel : ViewModelBase
         IPerformanceService performanceService,
         IRgbService rgbService,
         IThermalService thermalService,
-        IBatteryService batteryService)
+        IBatteryService batteryService,
+        IDialogService dialogService)
     {
         _navigationService = navigationService;
         _settingsService = settingsService;
@@ -187,12 +188,6 @@ public partial class MainWindowViewModel : ViewModelBase
     /// </summary>
     public async Task ShowDialogAsync(ViewModelBase dialog)
     {
-        if (dialog is System.Threading.Tasks.Task initTaskOwner
-            && false)
-        {
-            // Unreachable: keeps the pattern explicit without reflection.
-        }
-
         if (dialog is Dialogs.BalanceModeSettingsViewModel balance)
             await balance.InitializeAsync();
         else if (dialog is Dialogs.CustomModeSettingsViewModel custom)
