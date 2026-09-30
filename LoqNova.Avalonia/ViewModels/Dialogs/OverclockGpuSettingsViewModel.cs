@@ -121,12 +121,18 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 // A hung check is reported as-is: waiting again on the raw WMI call
                 // doubled the time the user sat staring at "Reading..." for no gain,
                 // since the same subsystem is what hung in the first place.
-                var wmi = support.TimedOut
-                    ? new TimedResult<int?>(null, true)
-                    : await WithTimeout(
+                TimedResult<int> wmi;
+                if (support.TimedOut)
+                {
+                    wmi = new TimedResult<int>(default, true);
+                }
+                else
+                {
+                    wmi = await WithTimeout(
                         () => LoqNova.Lib.System.Management.WMI.LenovoGameZoneData
                             .IsSupportGpuOCAsync(), TimeSpan.FromSeconds(5))
                         .ConfigureAwait(false);
+                }
 
                 var message = support.TimedOut
                     ? "The discrete GPU support check did not respond within 5 seconds, so the "
