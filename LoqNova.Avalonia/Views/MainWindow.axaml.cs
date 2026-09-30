@@ -19,6 +19,16 @@ public partial class MainWindow : Window
     }
 
     /// <summary>
+    /// Dismisses the dialog when the scrim is clicked. The scrim covers the page, so
+    /// without this there is no way out except the dialog's own Close button.
+    /// </summary>
+    private void OnDialogScrimPressed(object? sender, PointerPressedEventArgs e)
+    {
+        if (DataContext is ViewModels.MainWindowViewModel vm)
+            vm.CloseDialog();
+    }
+
+    /// <summary>
     /// The window uses a custom title bar (native chrome is suppressed with the
     /// ExtendClientArea* hints), so dragging the window has to be handled here.
     /// Presses that originate on an interactive control are ignored so the
