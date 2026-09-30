@@ -149,9 +149,13 @@
 
         <!-- Dialog host. WPF presents these settings as separate Windows; Avalonia
              overlays them here so the application keeps a single top-level window.
-             A scrim marks the modal state and swallows clicks behind it. -->
-        <Border IsVisible="{Binding IsDialogOpen}"
-                Background="#66000000" />
+             The scrim marks the modal state and blocks clicks on the page behind it;
+             clicking the scrim itself dismisses the dialog. The dialog is declared
+             after the scrim so it is layered above it. -->
+        <Border x:Name="DialogScrim"
+                IsVisible="{Binding IsDialogOpen}"
+                Background="#66000000"
+                PointerPressed="OnDialogScrimPressed" />
         <ContentControl x:Name="DialogHost"
                         HorizontalAlignment="Center"
                         VerticalAlignment="Center" />
