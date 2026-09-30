@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
@@ -11,6 +12,11 @@ public partial class AutomationPage : UserControl
     public AutomationPage()
     {
         InitializeComponent();
+
+        // Loading a step's selectable values calls the backend feature, which resolves
+        // from the global IoC container and can block. Doing that in the view models'
+        // constructors, during layout, hung the window - so it is deferred to here.
+        AttachedToVisualTree += OnAttached;
     }
 
     private void InitializeComponent()
@@ -18,17 +24,8 @@ public partial class AutomationPage : UserControl
         AvaloniaXamlLoader.Load(this);
     }
 
-    /// <summary>
-    /// Loads each step's selectable configuration values once the page is on screen.
-    ///
-    /// This is deliberately not done in the view models' constructors: a step's values
-    /// come from the backend feature, which resolves from the global IoC container and
-    /// can block, and doing that during layout hung the window.
-    /// </summary>
-    protected override async void OnAttachedToVisualTree(EventArgs e)
+    private async void OnAttached(object? sender, EventArgs e)
     {
-        base.OnAttachedToVisualTree(e);
-
         if (DataContext is not AutomationViewModel viewModel)
         {
             return;
@@ -40,7 +37,7 @@ public partial class AutomationPage : UserControl
         }
         catch (Exception ex)
         {
-            System.Diagnostics.Debug.WriteLine($"Automation step configuration refresh failed: {ex}");
+            Debug.WriteLine($"Automation step configuration refresh failed: {ex}");
         }
     }
 }
