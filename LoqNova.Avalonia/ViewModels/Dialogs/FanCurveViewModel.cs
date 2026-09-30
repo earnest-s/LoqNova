@@ -172,6 +172,7 @@ public partial class FanCurveViewModel : ViewModelBase
             Points.Add(new FanCurvePointViewModel
             {
                 Index = i,
+                IsGpuFan = entry.Type.ToString().StartsWith("GPU", StringComparison.Ordinal),
                 Speeds = speeds,
                 StepCount = speeds.Length,
                 TemperatureLabel = label,
