@@ -26,7 +26,31 @@ public sealed class DialogService : IDialogService
     /// Supplies the overlay that hosts dialogs. Bound after the main window exists,
     /// which keeps the service free of a window reference at construction time.
     /// </summary>
-    public void Attach(Control host) => _host = host;
+    /// <summary>
+    /// Supplies the window that hosts dialogs. The overlay itself is resolved lazily
+    /// when a dialog is shown rather than captured here: the XAML-generated name field
+    /// is not yet populated at this point in startup, so capturing it produced a null
+    /// host and the dialog was never displayed.
+    /// </summary>
+    public void Attach(Window window) => _window = window;
+
+    private Window? _window;
+
+    /// <summary>
+    /// The dialog overlay inside the main window, found on first use. Looked up by name
+    /// because the generated field is not reliable this early in startup.
+    /// </summary>
+    private Control? Host
+    {
+        get
+        {
+            if (_host is not null)
+                return _host;
+
+            _host = _window?.FindControl<ContentControl>("DialogHost");
+            return _host;
+        }
+    }
 
     /// <summary>
     /// Resolves a dialog from the shared container, which is assigned once the
