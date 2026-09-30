@@ -193,22 +193,39 @@ public partial class App : Application
                 Interval = TimeSpan.FromSeconds(6)
             };
 
-            probeTimer.Tick += async (_, _) =>
-            {
-                probeTimer.Stop();
-                MainWindowViewModel.Trace("probe: opening Custom Mode settings");
+  probeTimer.Tick += async (_, _) =>
+  {
+  probeTimer.Stop();
 
-                try
-                {
-                    var vm = Container.Resolve<DashboardViewModel>();
-                    vm.OpenPowerModeSettingsCommand.Execute(null);
-                    MainWindowViewModel.Trace("probe: command returned");
-                }
-                catch (Exception ex)
-                {
-                    MainWindowViewModel.Trace("probe threw: " + ex.Message);
-                }
-            };
+  try
+  {
+  var dialogs = Container.Resolve<IDialogService>();
+  var window = (MainWindowViewModel)desktop.MainWindow!.DataContext!;
+
+  foreach (var name in new[] { "balance", "custom", "overclock" })
+  {
+  MainWindowViewModel.Trace("probe: === " + name + " ===");
+
+  ViewModelBase d = name switch
+  {
+  "balance" => dialogs.Resolve<ViewModels.Dialogs.BalanceModeSettingsViewModel>(),
+  "custom" => dialogs.Resolve<ViewModels.Dialogs.CustomModeSettingsViewModel>(),
+  _ => dialogs.Resolve<ViewModels.Dialogs.OverclockGpuSettingsViewModel>(),
+  };
+
+  MainWindowViewModel.Trace("probe: resolved " + name);
+  await window.ShowDialogAsync(d);
+  MainWindowViewModel.Trace("probe: shown " + name);
+  dialogs.Close();
+  }
+
+  MainWindowViewModel.Trace("probe: all dialogs done");
+  }
+  catch (Exception ex)
+  {
+  MainWindowViewModel.Trace("probe threw: " + ex);
+  }
+  };
 
             probeTimer.Start();
         }
