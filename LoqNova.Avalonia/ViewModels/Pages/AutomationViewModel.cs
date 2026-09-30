@@ -163,13 +163,32 @@ public partial class AutomationViewModel : ViewModelBase
     {
         // A real trigger instance, never null, so the pipeline is immediately valid.
         // Constructing one resolves its listener from the global IoC container, so it is
-        // built off the UI thread.
+        // built off the UI thread, and a failure is reported rather than thrown: this is
+        // an async void command, where an escaping exception ends the process.
         var factory = SelectedTriggerOption ?? AvailableTriggers[0];
-        var trigger = await Task.Run(factory.Create).ConfigureAwait(true);
+
+        IAutomationPipelineTrigger trigger;
+
+        try
+        {
+            trigger = await Task.Run(factory.Create).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            ReportError($"Could not create a {factory.DisplayName} trigger: {ex.Message}");
+            return;
+        }
 
         await _automationService.AddPipelineAsync("New Pipeline", trigger).ConfigureAwait(true);
 
         IsDirty = true;
+    }
+
+    /// <summary>Surfaces a failure to the user instead of letting it reach the dispatcher.</summary>
+    internal void ReportError(string message)
+    {
+        System.Diagnostics.Debug.WriteLine($"Automation: {message}");
+        ErrorMessage = message;
     }
 
     [RelayCommand]
