@@ -131,9 +131,13 @@ public class BatteryService : IBatteryService, IDisposable
             IsLowBattery = info.IsLowBattery;
             TemperatureC = info.BatteryTemperatureC ?? -1;
             TemperatureF = info.BatteryTemperatureC is { } c ? c * 9 / 5 + 32 : -1;
-            DischargeRate = Math.Abs(info.DischargeRate);
-            MinDischargeRate = Math.Abs(info.MinDischargeRate);
-            MaxDischargeRate = Math.Abs(info.MaxDischargeRate);
+                // WPF formats these as $"{DischargeRate / 1000.0:+0.00;-0.00;0.00} W",
+                // so the sign carries meaning: positive while charging, negative while
+                // discharging. Math.Abs used to be applied here, which flattened that to a
+                // bare 0.0 W and made a discharging battery look identical to an idle one.
+                DischargeRate = info.DischargeRate / 1000.0;
+                MinDischargeRate = info.MinDischargeRate / 1000.0;
+                MaxDischargeRate = info.MaxDischargeRate / 1000.0;
             CurrentCapacity = info.EstimateChargeRemaining;
             FullChargeCapacity = info.FullChargeCapacity;
             DesignCapacity = info.DesignCapacity;
