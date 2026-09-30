@@ -193,18 +193,45 @@ public partial class MainWindowViewModel : ViewModelBase
     /// Presents a dialog. The ViewModel is hydrated by the dialog service through its
     /// own <c>InitializeAsync</c> where it has one, then shown over the page.
     /// </summary>
+    /// <summary>
+    /// Presents a dialog and loads its state.
+    /// <para>
+    /// The dialog is resolved and initialised on a background thread, never on the UI
+    /// thread. Resolution can construct library controllers, and
+    /// <c>IoCContainer.Resolve</c> holds a global lock; those controllers query WMI and
+    /// wait on the dispatcher. Doing that on the UI thread while the dispatcher is
+    /// needed to complete the work deadlocks the application, which is what a settings
+    /// click appeared to do. The window is shown first so the user sees it immediately,
+    /// and the state lands once the read completes.
+    /// </para>
+    /// </summary>
     public async Task ShowDialogAsync(ViewModelBase dialog)
     {
-        if (dialog is Dialogs.BalanceModeSettingsViewModel balance)
-            await balance.InitializeAsync();
-        else if (dialog is Dialogs.CustomModeSettingsViewModel custom)
-            await custom.InitializeAsync();
-        else if (dialog is Dialogs.OverclockGpuSettingsViewModel overclock)
-            await overclock.InitializeAsync();
-
         await _dialogService.ShowAsync(dialog);
         IsDialogOpen = true;
+
+        // Resolving and hydrating can block on hardware queries, so it is kept off the
+        // UI thread entirely.
+        await Task.Run(async () =>
+        {
+            try
+            {
+                await InitializeDialogAsync(dialog);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Dialog initialisation failed: {ex}");
+            }
+        });
     }
+
+    private static Task InitializeDialogAsync(ViewModelBase dialog) => dialog switch
+    {
+        Dialogs.BalanceModeSettingsViewModel balance => balance.InitializeAsync(),
+        Dialogs.CustomModeSettingsViewModel custom => custom.InitializeAsync(),
+        Dialogs.OverclockGpuSettingsViewModel overclock => overclock.InitializeAsync(),
+        _ => Task.CompletedTask
+    };
 }
 
 public partial class NavigationItemViewModel : ViewModelBase
