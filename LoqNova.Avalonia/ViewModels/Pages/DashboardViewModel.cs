@@ -292,13 +292,21 @@ public partial class DashboardViewModel : ViewModelBase
         try
         {
             CurrentPowerMode = _performanceService.CurrentMode;
+
+            EnsurePowerModeIsListed(CurrentPowerMode);
+
+            // The combo resolves its selection against ItemsSource. When the active mode
+            // was absent from that list it fell back to the placeholder, and adding the
+            // entry afterwards did not make it re-resolve - so the big readout said
+            // "Custom Mode" while the dropdown still showed "--". Re-announcing the
+            // selection inside the suppression window forces the match without the
+            // change handler writing the mode back.
+            OnPropertyChanged(nameof(CurrentPowerMode));
         }
         finally
         {
             _suppressModeWrite = false;
         }
-
-        EnsurePowerModeIsListed(CurrentPowerMode);
 
         IsSensorsSupported = _sensorsService.IsSupported;
         IsRefreshing = _sensorsService.IsRefreshing;
