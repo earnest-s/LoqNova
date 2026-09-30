@@ -24,7 +24,7 @@ public partial class AutomationPage : UserControl
         AvaloniaXamlLoader.Load(this);
     }
 
-    private async void OnAddStepClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    private async void OnAddStepClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
     {
         // The button carries the pipeline it belongs to, so each pipeline adds the step
         // chosen in its own picker. A RelayCommand cannot wrap a parameterless async
