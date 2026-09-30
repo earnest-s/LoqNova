@@ -67,6 +67,10 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
     [ObservableProperty]
     private bool _isLoading = true;
 
+    private static TimedResult<bool>? _cachedSupport;
+    private static int? _cachedMaxMemory;
+    private GPUOverclockController? _controller;
+
     /// <summary>Result of a bounded call, so a hang is reportable rather than silent.</summary>
     private readonly record struct TimedResult<T>(T? Value, bool TimedOut);
 
@@ -107,79 +111,90 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
             var controller = await Task.Run(
                 () => LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>()).ConfigureAwait(false);
 
-            // Support detection initialises and unloads NVAPI and queries WMI, so it is
-            // kept off the UI thread. Either half can block indefinitely, so it is
-            // bounded: a dialog that never finishes loading is indistinguishable from
-            // one that is still working, and left the user with no way forward.
-            var support = await WithTimeout(
-                () => controller.IsSupportedAsync(), TimeSpan.FromSeconds(5))
-                .ConfigureAwait(false);
+            _controller = controller;
 
-            IsSupported = !support.TimedOut && support.Value == true;
-
-            if (!IsSupported)
-            {
-                // Report what each half of the check returned. The backend combines an
-                // NVAPI GPU check with a Lenovo WMI capability check and reports only
-                // the result, so a generic "unsupported" left it impossible to tell a
-                // driver problem from a firmware capability flag.
-
-                // A hung check is reported as-is: waiting again on the raw WMI call
-                // doubled the time the user sat staring at "Reading..." for no gain,
-                // since the same subsystem is what hung in the first place.
-                TimedResult<int> wmi;
-                if (support.TimedOut)
-                {
-                    wmi = new TimedResult<int>(default, true);
-                }
-                else
-                {
-                    wmi = await WithTimeout(
-                        () => LoqNova.Lib.System.Management.WMI.LenovoGameZoneData
-                            .IsSupportGpuOCAsync(), TimeSpan.FromSeconds(5))
-                        .ConfigureAwait(false);
-                }
-
-                var message = support.TimedOut
-                    ? "The discrete GPU support check did not respond within 5 seconds, so the "
-                      + "backend's NVAPI and Lenovo WMI calls are not returning on this machine. "
-                      + "The overclock card below still reflects the last saved state."
-                    : wmi.TimedOut
-                        ? "The backend reports no discrete GPU overclock support, and the direct "
-                          + "Lenovo WMI query also did not respond within 5 seconds."
-                        : "The backend reports no discrete GPU overclock support. "
-                          + $"Lenovo IsSupportGpuOC value: {wmi.Value} (must be greater than 0). "
-                          + "A value of 0 is the firmware's own capability flag, not a driver fault.";
-
-                await _dispatcher.InvokeAsync(() =>
-                {
-                    ErrorMessage = message;
-                    IsLoading = false;
-                }).ConfigureAwait(false);
-                return;
-            }
-
-            var maxMemory = await Task.Run(
-                () => GPUOverclockController.GetMaxMemoryDeltaMhz()).ConfigureAwait(false);
-
+            // WPF's dialog is usable the moment it opens, because it paints from the saved
+            // state first and only then talks to the hardware. GetState is a json read, so
+            // the sliders show their real values straight away instead of the dialog sitting
+            // on "Reading..." while NVAPI initialises and unloads.
             var (enabled, info) = controller.GetState();
 
             await _dispatcher.InvokeAsync(() =>
             {
-                MaxMemoryDelta = maxMemory;
                 LoadState(enabled, info);
-                ErrorMessage = null;
                 IsLoading = false;
             }).ConfigureAwait(false);
 
-            controller.Changed += (_, _) => _dispatcher.Post(() => LoadState(controller));
+            // Support detection and the memory ceiling both initialise NVAPI and query
+            // WMI, so they are slow. They are cached across openings because neither
+            // changes while the app is running, and repeating them per dialog is what made
+            // this feel slower than WPF.
+            var support = _cachedSupport ?? await WithTimeout(
+                () => controller.IsSupportedAsync(), TimeSpan.FromSeconds(5))
+                .ConfigureAwait(false);
+
+            var supported = !support.TimedOut && support.Value == true;
+
+            var maxMemory = _cachedMaxMemory ?? await Task.Run(
+                () => GPUOverclockController.GetMaxMemoryDeltaMhz()).ConfigureAwait(false);
+
+            if (supported)
+            {
+                _cachedSupport = support;
+                _cachedMaxMemory = maxMemory;
+
+                await _dispatcher.InvokeAsync(() =>
+                {
+                    IsSupported = true;
+                    MaxMemoryDelta = maxMemory;
+                    ErrorMessage = null;
+                }).ConfigureAwait(false);
+
+                controller.Changed += OnControllerChanged;                return;
+            }
+
+            // Report what each half of the check returned. The backend combines an NVAPI
+            // GPU check with a Lenovo WMI capability check and reports only the result, so
+            // a generic "unsupported" left it impossible to tell a driver problem from a
+            // firmware capability flag.
+            //
+            // A hung check is reported as-is: waiting again on the raw WMI call doubled
+            // the wait for no gain, since the same subsystem is what hung first.
+            TimedResult<int> wmi;
+            if (support.TimedOut)
+            {
+                wmi = new TimedResult<int>(default, true);
+            }
+            else
+            {
+                wmi = await WithTimeout(
+                    () => LoqNova.Lib.System.Management.WMI.LenovoGameZoneData
+                        .IsSupportGpuOCAsync(), TimeSpan.FromSeconds(5))
+                    .ConfigureAwait(false);
+            }
+
+            var message = support.TimedOut
+                ? "The discrete GPU support check did not respond within 5 seconds, so the "
+                  + "backend's NVAPI and Lenovo WMI calls are not returning on this machine. "
+                  + "The values shown are the last saved state."
+                : wmi.TimedOut
+                    ? "The backend reports no discrete GPU overclock support, and the direct "
+                      + "Lenovo WMI query also did not respond within 5 seconds."
+                    : "The backend reports no discrete GPU overclock support. "
+                      + $"Lenovo IsSupportGpuOC value: {wmi.Value} (must be greater than 0). "
+                      + "A value of 0 is the firmware's own capability flag, not a driver fault.";
+
+            await _dispatcher.InvokeAsync(() =>
+            {
+                IsSupported = false;
+                ErrorMessage = message;
+            }).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
             // A failure here used to look identical to "unsupported", which sent the
             // user looking for a hardware problem that was not there.
             _logger.LogError(ex, "GPU overclock settings could not be initialised.");
-            IsLoading = false;
             await _dispatcher.InvokeAsync(() =>
             {
                 IsSupported = false;
@@ -188,6 +203,14 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
             }).ConfigureAwait(false);
         }
     }
+
+    private void OnControllerChanged() => _dispatcher.Post(() =>
+    {
+        if (_controller is { } controller)
+        {
+            LoadState(controller);
+        }
+    });
 
     private void LoadState(GPUOverclockController controller)
     {
@@ -214,6 +237,8 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 
             var controller = await Task.Run(
                 () => LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>()).ConfigureAwait(false);
+
+            _controller = controller;
 
             // WPF's sliders are ranged from zero to the reported maximum, so negative
             // offsets are not selectable there and are rejected here too.
