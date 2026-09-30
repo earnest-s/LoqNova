@@ -15,7 +15,6 @@ namespace LoqNova.Avalonia.ViewModels.Pages;
 
 public partial class DashboardViewModel : ViewModelBase
 {
-    private readonly IDialogService _dialogService;
     private readonly LoqNova.Avalonia.ViewModels.MainWindowViewModel _mainWindowViewModel;
     private readonly IPerformanceService _performanceService;
     private readonly IRgbService _rgbService;
