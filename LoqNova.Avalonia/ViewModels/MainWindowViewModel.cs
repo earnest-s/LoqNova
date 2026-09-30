@@ -190,52 +190,29 @@ public partial class MainWindowViewModel : ViewModelBase
     internal void OnDialogClosed() => IsDialogOpen = false;
 
     /// <summary>
-    /// Presents a dialog. The ViewModel is hydrated by the dialog service through its
-    /// own <c>InitializeAsync</c> where it has one, then shown over the page.
-    /// </summary>
-    /// <summary>
     /// Presents a dialog and loads its state.
     /// <para>
-    /// The dialog is resolved and initialised on a background thread, never on the UI
-    /// thread. Resolution can construct library controllers, and
+    /// The dialog is shown first so the user sees it immediately, and its state is then
+    /// loaded on a background thread. Resolution can construct library controllers, and
     /// <c>IoCContainer.Resolve</c> holds a global lock; those controllers query WMI and
-    /// wait on the dispatcher. Doing that on the UI thread while the dispatcher is
-    /// needed to complete the work deadlocks the application, which is what a settings
-    /// click appeared to do. The window is shown first so the user sees it immediately,
-    /// and the state lands once the read completes.
+    /// wait on the dispatcher. Doing that on the UI thread while the dispatcher is the
+    /// thing being waited on deadlocks the application.
     /// </para>
     /// </summary>
-    /// <summary>Temporary trace for diagnosing the settings-dialog hang.</summary>
-    internal static void Trace(string step)
-    {
-        try
-        {
-            System.IO.File.AppendAllText(
-                System.IO.Path.Combine(System.IO.Path.GetTempPath(), "dlgtrace.txt"),
-                $"{DateTime.Now:HH:mm:ss.fff} {step}{Environment.NewLine}");
-        }
-        catch { }
-    }
     public async Task ShowDialogAsync(ViewModelBase dialog)
     {
-        Trace("ShowDialogAsync entered");
         await _dialogService.ShowAsync(dialog);
-        Trace("host shown");
         IsDialogOpen = true;
-
-        Trace("starting background init");
 
         await Task.Run(async () =>
         {
             try
             {
-                Trace("background init begin " + dialog.GetType().Name);
                 await InitializeDialogAsync(dialog);
-                Trace("background init done");
             }
             catch (Exception ex)
             {
-                Trace("background init threw: " + ex.GetType().Name + " " + ex.Message);
+                System.Diagnostics.Debug.WriteLine($"Dialog initialisation failed: {ex}");
             }
         });
     }

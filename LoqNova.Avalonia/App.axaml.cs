@@ -184,51 +184,6 @@ public partial class App : Application
 
             desktop.MainWindow = mainWindow;
             
-        // Temporary: exercise the settings-dialog path at startup so a hang can be
-        // diagnosed without a manual click.
-        if (Environment.GetEnvironmentVariable("LOQ_DIALOG_PROBE") == "1")
-        {
-            var probeTimer = new global::Avalonia.Threading.DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(6)
-            };
-
-  probeTimer.Tick += async (_, _) =>
-  {
-  probeTimer.Stop();
-
-  try
-  {
-  var dialogs = Container.Resolve<IDialogService>();
-  var window = (MainWindowViewModel)desktop.MainWindow!.DataContext!;
-
-  foreach (var name in new[] { "balance", "custom", "overclock" })
-  {
-  MainWindowViewModel.Trace("probe: === " + name + " ===");
-
-  ViewModelBase d = name switch
-  {
-  "balance" => dialogs.Resolve<ViewModels.Dialogs.BalanceModeSettingsViewModel>(),
-  "custom" => dialogs.Resolve<ViewModels.Dialogs.CustomModeSettingsViewModel>(),
-  _ => dialogs.Resolve<ViewModels.Dialogs.OverclockGpuSettingsViewModel>(),
-  };
-
-  MainWindowViewModel.Trace("probe: resolved " + name);
-  await window.ShowDialogAsync(d);
-  MainWindowViewModel.Trace("probe: shown " + name);
-  dialogs.Close();
-  }
-
-  MainWindowViewModel.Trace("probe: all dialogs done");
-  }
-  catch (Exception ex)
-  {
-  MainWindowViewModel.Trace("probe threw: " + ex);
-  }
-  };
-
-            probeTimer.Start();
-        }
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
             await trayService.InitializeAsync(mainWindow);

@@ -39,8 +39,6 @@ public sealed class DialogService : IDialogService
     {
         var services = _services ?? throw new InvalidOperationException(
             "The dialog service has no container yet. It is assigned during application startup.");
-
-        Trace("resolving " + typeof(T).Name);
         var made = services.GetService(typeof(T));
         Trace("resolved " + typeof(T).Name);
         return (T)made
