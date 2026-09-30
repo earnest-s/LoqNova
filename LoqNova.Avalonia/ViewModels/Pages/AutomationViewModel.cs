@@ -253,14 +253,16 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task SetTriggerAsync(AutomationPipelineViewModel? pipeline, string? triggerTypeName)
+    private async Task SetTriggerAsync(PipelineTriggerRequest? request)
     {
-        if (pipeline is null || string.IsNullOrEmpty(triggerTypeName))
+        if (request is null)
         {
             return;
         }
 
-        await _automationService.SetTriggerAsync(pipeline.Id, triggerTypeName).ConfigureAwait(true);
+        await _automationService.SetTriggerAsync(request.PipelineId, request.TriggerTypeName)
+            .ConfigureAwait(true);
+
         IsDirty = true;
     }
 
