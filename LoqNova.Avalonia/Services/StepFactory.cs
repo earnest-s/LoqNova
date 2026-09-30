@@ -1,19 +1,25 @@
 using System;
 using System.Collections.Generic;
-using LoqNova.Lib.Automation.Steps;
+using LoqNova.Lib;
 using LoqNova.Lib.Automation.Pipeline.Triggers;
+using LoqNova.Lib.Automation.Steps;
+using LoqNova.Lib.Automation.Structs;
+using LoqNova.Lib.Controllers;
+using LoqNova.Lib.Controllers.GodMode;
+using ProcessInfo = LoqNova.Lib.Automation.Structs.ProcessInfo;
 
 namespace LoqNova.Avalonia.Services;
 
 /// <summary>
-/// Maps the step type names used by the UI onto the real backend step types. The
-/// catalogue is derived from the actual types in LoqNova.Lib.Automation.Steps rather
-/// than invented, and each entry is constructed with a valid default state so that
-/// adding a step always yields something runnable.
+/// Maps UI-facing type names onto the real backend step and trigger types.
+/// Every entry is constructed with a valid, runnable default state taken from the
+/// backend's own enums, so adding a step never yields an object the engine would
+/// reject. The catalogue is derived from the actual types in LoqNova.Lib.Automation,
+/// not from a hand-written list of names.
 /// </summary>
 internal static class StepFactory
 {
-    /// <summary>Every step type the UI may add, in WPF's discovery order.</summary>
+    /// <summary>Every step type the UI may add, in the backend's own order.</summary>
     public static IReadOnlyList<string> SupportedStepTypes { get; } =
     [
         nameof(AlwaysOnUsbAutomationStep),
@@ -28,7 +34,6 @@ internal static class StepFactory
         nameof(GodModePresetAutomationStep),
         nameof(HDRAutomationStep),
         nameof(HybridModeAutomationStep),
-        nameof(InstantBootAutomationStep),
         nameof(MacroAutomationStep),
         nameof(MicrophoneAutomationStep),
         nameof(NotificationAutomationStep),
@@ -53,54 +58,63 @@ internal static class StepFactory
         nameof(TurnOffWiFiAutomationStep),
         nameof(TurnOnWiFiAutomationStep),
         nameof(WhiteKeyboardBacklightAutomationStep),
-        nameof(WinKeyAutomationStep),
+        nameof(WinKeyAutomationStep)
     ];
 
     /// <summary>Creates a backend step, or null when the name is not a real type.</summary>
     public static IAutomationStep? Create(string typeName) => typeName switch
     {
-        nameof(AlwaysOnUsbAutomationStep) => new AlwaysOnUsbAutomationStep(),
-        nameof(BatteryAutomationStep) => new BatteryAutomationStep(),
-        nameof(BatteryNightChargeAutomationStep) => new BatteryNightChargeAutomationStep(),
+        nameof(AlwaysOnUsbAutomationStep) => new AlwaysOnUsbAutomationStep(AlwaysOnUSBState.Off),
+        nameof(BatteryAutomationStep) => new BatteryAutomationStep(BatteryState.Normal),
+        nameof(BatteryNightChargeAutomationStep) => new BatteryNightChargeAutomationStep(BatteryNightChargeState.Off),
         nameof(DeactivateGPUAutomationStep) => new DeactivateGPUAutomationStep(DeactivateGPUAutomationStepState.KillApps),
-        nameof(DelayAutomationStep) => new DelayAutomationStep(new Structs.Delay(1)),
-        nameof(DisplayBrightnessAutomationStep) => new DisplayBrightnessAutomationStep(),
-        nameof(DpiScaleAutomationStep) => new DpiScaleAutomationStep(),
-        nameof(FlipToStartAutomationStep) => new FlipToStartAutomationStep(),
-        nameof(FnLockAutomationStep) => new FnLockAutomationStep(),
+        nameof(DelayAutomationStep) => new DelayAutomationStep(new Delay(1)),
+        nameof(DisplayBrightnessAutomationStep) => new DisplayBrightnessAutomationStep(50),
+        nameof(DpiScaleAutomationStep) => new DpiScaleAutomationStep(new DpiScale(100)),
+        nameof(FlipToStartAutomationStep) => new FlipToStartAutomationStep(FlipToStartState.Off),
+        nameof(FnLockAutomationStep) => new FnLockAutomationStep(FnLockState.Off),
         nameof(GodModePresetAutomationStep) => new GodModePresetAutomationStep(Guid.Empty),
-        nameof(HDRAutomationStep) => new HDRAutomationStep(),
-        nameof(HybridModeAutomationStep) => new HybridModeAutomationStep(),
-        nameof(InstantBootAutomationStep) => new InstantBootAutomationStep(),
-        nameof(MacroAutomationStep) => new MacroAutomationStep(MacroAutomationStepState.Disable),
-        nameof(MicrophoneAutomationStep) => new MicrophoneAutomationStep(),
-        nameof(NotificationAutomationStep) => new NotificationAutomationStep(),
-        nameof(OneLevelWhiteKeyboardBacklightAutomationStep) => new OneLevelWhiteKeyboardBacklightAutomationStep(),
-        nameof(OverclockDiscreteGPUAutomationStep) => new OverclockDiscreteGPUAutomationStep(OverclockDiscreteGPUAutomationStepState.Overclock),
-        nameof(OverDriveAutomationStep) => new OverDriveAutomationStep(),
-        nameof(PanelLogoBacklightAutomationStep) => new PanelLogoBacklightAutomationStep(),
-        nameof(PlaySoundAutomationStep) => new PlaySoundAutomationStep(),
-        nameof(PortsBacklightAutomationStep) => new PortsBacklightAutomationStep(),
-        nameof(PowerModeAutomationStep) => new PowerModeAutomationStep(SystemPowerMode.Balanced),
-        nameof(QuickActionAutomationStep) => new QuickActionAutomationStep(Guid.Empty),
-        nameof(RefreshRateAutomationStep) => new RefreshRateAutomationStep(),
-        nameof(ResolutionAutomationStep) => new ResolutionAutomationStep(),
-        nameof(RGBKeyboardBacklightAutomationStep) => new RGBKeyboardBacklightAutomationStep(),
-        nameof(RunAutomationStep) => new RunAutomationStep(string.Empty),
-        nameof(SpeakerAutomationStep) => new SpeakerAutomationStep(),
+        nameof(HDRAutomationStep) => new HDRAutomationStep(HDRState.Off),
+        nameof(HybridModeAutomationStep) => new HybridModeAutomationStep(HybridModeState.On),
+        nameof(MacroAutomationStep) => new MacroAutomationStep(MacroAutomationStepState.Off),
+        nameof(MicrophoneAutomationStep) => new MicrophoneAutomationStep(MicrophoneState.Off),
+        nameof(NotificationAutomationStep) => new NotificationAutomationStep(null),
+        nameof(OneLevelWhiteKeyboardBacklightAutomationStep) => new OneLevelWhiteKeyboardBacklightAutomationStep(OneLevelWhiteKeyboardBacklightState.Off),
+        nameof(OverclockDiscreteGPUAutomationStep) => new OverclockDiscreteGPUAutomationStep(OverclockDiscreteGPUAutomationStepState.Off),
+        nameof(OverDriveAutomationStep) => new OverDriveAutomationStep(OverDriveState.Off),
+        nameof(PanelLogoBacklightAutomationStep) => new PanelLogoBacklightAutomationStep(PanelLogoBacklightState.Off),
+        nameof(PlaySoundAutomationStep) => new PlaySoundAutomationStep(null),
+        nameof(PortsBacklightAutomationStep) => new PortsBacklightAutomationStep(PortsBacklightState.Off),
+        nameof(PowerModeAutomationStep) => new PowerModeAutomationStep(PowerModeState.Balance),
+        nameof(QuickActionAutomationStep) => new QuickActionAutomationStep(null),
+        nameof(RefreshRateAutomationStep) => new RefreshRateAutomationStep(new RefreshRate(60)),
+        nameof(ResolutionAutomationStep) => new ResolutionAutomationStep(new Resolution(1920, 1080)),
+        nameof(RGBKeyboardBacklightAutomationStep) => new RGBKeyboardBacklightAutomationStep(RGBKeyboardBacklightPreset.Off),
+        nameof(RunAutomationStep) => new RunAutomationStep(null, null, null, null),
+        nameof(SpeakerAutomationStep) => new SpeakerAutomationStep(SpeakerState.Unmute),
         nameof(SpectrumKeyboardBacklightBrightnessAutomationStep) => new SpectrumKeyboardBacklightBrightnessAutomationStep(50),
-        nameof(SpectrumKeyboardBacklightImportProfileAutomationStep) => new SpectrumKeyboardBacklightImportProfileAutomationStep(),
-        nameof(SpectrumKeyboardBacklightProfileAutomationStep) => new SpectrumKeyboardBacklightProfileAutomationStep(),
-        nameof(TouchpadLockAutomationStep) => new TouchpadLockAutomationStep(),
+        nameof(SpectrumKeyboardBacklightImportProfileAutomationStep) => new SpectrumKeyboardBacklightImportProfileAutomationStep(null),
+        nameof(SpectrumKeyboardBacklightProfileAutomationStep) => new SpectrumKeyboardBacklightProfileAutomationStep(0),
+        nameof(TouchpadLockAutomationStep) => new TouchpadLockAutomationStep(TouchpadLockState.Off),
         nameof(TurnOffMonitorsAutomationStep) => new TurnOffMonitorsAutomationStep(),
         nameof(TurnOffWiFiAutomationStep) => new TurnOffWiFiAutomationStep(),
         nameof(TurnOnWiFiAutomationStep) => new TurnOnWiFiAutomationStep(),
-        nameof(WhiteKeyboardBacklightAutomationStep) => new WhiteKeyboardBacklightAutomationStep(),
-        nameof(WinKeyAutomationStep) => new WinKeyAutomationStep(),
+        nameof(WhiteKeyboardBacklightAutomationStep) => new WhiteKeyboardBacklightAutomationStep(WhiteKeyboardBacklightState.Off),
+        nameof(WinKeyAutomationStep) => new WinKeyAutomationStep(WinKeyState.Off),
         _ => null
     };
 
-    /// <summary>Every trigger the UI may offer, from the real backend types.</summary>
+    /// <summary>
+    /// A prototype step for a type, used when renaming or retyping an existing step.
+    /// WPF edits steps in place, so the existing instance is mutated rather than
+    /// replaced wherever the backend exposes a settable state.
+    /// </summary>
+    public static IAutomationStep CreateOrNull(string typeName) => Create(typeName);
+
+    /// <summary>
+    /// Every trigger the UI may offer. Constructed with the backend's own defaults so
+    /// a newly created pipeline has a valid, evaluable trigger immediately.
+    /// </summary>
     public static IReadOnlyList<IAutomationPipelineTrigger> SupportedTriggers { get; } =
     [
         new ACAdapterConnectedAutomationPipelineTrigger(),
@@ -122,14 +136,21 @@ internal static class StepFactory
         new OnResumeAutomationPipelineTrigger(),
         new OnStartupAutomationPipelineTrigger(),
         new PeriodicAutomationPipelineTrigger(TimeSpan.FromMinutes(1)),
-        new PowerModeAutomationPipelineTrigger(SystemPowerMode.Balanced),
+        new PowerModeAutomationPipelineTrigger(PowerModeState.Balance),
         new ProcessesAreRunningAutomationPipelineTrigger([]),
-        new ProcessesStopRunningAutomationPipelineTrigger(),
+        new ProcessesStopRunningAutomationPipelineTrigger([]),
         new SessionLockAutomationPipelineTrigger(),
         new SessionUnlockAutomationPipelineTrigger(),
-        new TimeAutomationPipelineTrigger(),
+        new TimeAutomationPipelineTrigger(false, false, null, null),
         new UserInactivityAutomationPipelineTrigger(TimeSpan.FromSeconds(30)),
         new WiFiConnectedAutomationPipelineTrigger([]),
-        new WiFiDisconnectedAutomationPipelineTrigger(),
+        new WiFiDisconnectedAutomationPipelineTrigger()
     ];
+
+    /// <summary>A fresh copy of a trigger, so two pipelines never share an instance.</summary>
+    public static IAutomationPipelineTrigger? CreateTrigger(string typeName)
+    {
+        var prototype = SupportedTriggers.FirstOrDefault(t => t.GetType().Name == typeName);
+        return prototype?.DeepCopy();
+    }
 }
