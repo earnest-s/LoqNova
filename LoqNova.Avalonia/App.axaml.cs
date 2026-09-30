@@ -260,7 +260,7 @@ public partial class App : Application
     /// Reports an otherwise fatal UI exception and keeps the window alive, so a backend
     /// call that throws surfaces as a logged fault instead of a silent process exit.
     /// </summary>
-    private static void OnDispatcherUnhandledException(object? sender, UnhandledExceptionEventArgs e)
+    private static void OnDispatcherUnhandledException(object? sender, global::Avalonia.Threading.UnhandledExceptionEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"Unhandled UI exception: {e.Exception}");
 
