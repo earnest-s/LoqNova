@@ -43,10 +43,12 @@ public partial class FanCurvePointViewModel : ViewModelBase
     /// <summary>Index of this point within the fan table.</summary>
     public int Index { get; init; }
 
-    /// <summary>RPM the selected step corresponds to, or 0 when nothing is selected.</summary>
-    public string SpeedLabel => StepCount > 0 && SpeedIndex >= 0 && SpeedIndex < Speeds.Length
-        ? $"{Speeds[SpeedIndex]} RPM"
-        : "0 RPM";
+    /// <summary>RPM the selected step corresponds to, or a dash when unbacked.</summary>
+    public string SpeedLabel => Speeds.Length == 0
+        ? "—"
+        : StepCount > 0 && SpeedIndex >= 0 && SpeedIndex < Speeds.Length
+            ? $"{Speeds[SpeedIndex]} RPM"
+            : "0 RPM";
 
     /// <summary>The steps this point can take, from the backend's fan table.</summary>
     public ushort[] Speeds { get; init; } = [];
