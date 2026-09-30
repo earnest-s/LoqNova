@@ -83,6 +83,23 @@ public partial class AutomationViewModel : ViewModelBase
         IsAutomationEnabled = _automationService.IsEnabled;
     }
 
+    /// <summary>
+    /// Loads every step's selectable configuration values. Called once the page is
+    /// attached, and off the UI thread's critical path, because the backend's feature
+    /// calls can block.
+    /// </summary>
+    public async Task RefreshStepConfigurationsAsync()
+    {
+        var steps = AutomaticPipelines.SelectMany(p => p.Steps)
+            .Concat(ManualPipelines.SelectMany(p => p.Steps))
+            .ToList();
+
+        foreach (var step in steps)
+        {
+            await step.RefreshAsync().ConfigureAwait(true);
+        }
+    }
+
     [RelayCommand]
     public async Task InitializeAsync()
     {
