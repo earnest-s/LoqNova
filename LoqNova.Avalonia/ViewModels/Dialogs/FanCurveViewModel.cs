@@ -25,14 +25,13 @@ public partial class FanCurvePointViewModel : ViewModelBase
     public int MaxSpeedIndex => Math.Max(0, StepCount - 1);
 
     /// <summary>
-    /// Overrides the slider range for points the backend gave no speed ladder for.
-    /// WPF builds its sliders as 0-10 regardless (<c>GenerateSlider(i, 0, 10)</c>), so
-    /// the unbacked slots keep that same range rather than collapsing to a dead zero.
+    /// The RPM values this point can actually be set to, in order. The table only
+    /// stores an index into this ladder, so these are the real stops the slider has and
+    /// no amount of UI work invents finer ones.
     /// </summary>
-    public int? MaxSpeedIndexOverride { get; init; }
+    public IReadOnlyList<ushort> Stops => Speeds;
 
-    /// <summary>Effective slider maximum.</summary>
-    public int EffectiveMaxSpeedIndex => MaxSpeedIndexOverride ?? MaxSpeedIndex;
+    public bool HasStops => Speeds.Length > 0;
 
     /// <summary>Temperature this point applies at, taken from <c>Temps</c>.</summary>
     public string TemperatureLabel { get; init; } = string.Empty;

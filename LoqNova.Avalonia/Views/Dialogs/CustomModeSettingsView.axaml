@@ -140,10 +140,30 @@
                                                             <TextBlock Grid.Column="1" Text="{Binding Description}"
                                                                        MinWidth="140" Margin="8,0" VerticalAlignment="Center"
                                                                        Opacity="0.7" FontSize="11" />
-                                                            <Slider Grid.Column="2" Minimum="0" Maximum="{Binding EffectiveMaxSpeedIndex}"
-                                                                    TickFrequency="1" IsSnapToTickEnabled="True"
-                                                                    VerticalAlignment="Center"
-                                                                    Value="{Binding SpeedIndex, Mode=TwoWay}" />
+                                                            <StackPanel Grid.Column="2" Spacing="1">
+                                                                <Slider Minimum="0" Maximum="{Binding MaxSpeedIndex}"
+                                                                        TickFrequency="1" IsSnapToTickEnabled="True"
+                                                                        IsVisible="{Binding HasStops}"
+                                                                        VerticalAlignment="Center"
+                                                                        Value="{Binding SpeedIndex, Mode=TwoWay}" />
+                                                                <!-- The real stops, so it is obvious why the slider has as
+                                                                     many positions as it does. -->
+                                                                <ItemsControl ItemsSource="{Binding Stops}" IsVisible="{Binding HasStops}"
+                                                                      Margin="0,1,0,0">
+                                                                    <ItemsControl.ItemsPanel>
+                                                                        <ItemsPanelTemplate>
+                                                                            <UniformGrid Rows="1" />
+                                                                        </ItemsPanelTemplate>
+                                                                    </ItemsControl.ItemsPanel>
+                                                                    <ItemsControl.ItemTemplate>
+                                                                        <DataTemplate x:DataType="x:UInt16">
+                                                                            <TextBlock Text="{Binding}" FontSize="9" Opacity="0.55"
+                                                                                       HorizontalAlignment="Center"
+                                                                                       TextTrimming="CharacterEllipsis" />
+                                                                        </DataTemplate>
+                                                                    </ItemsControl.ItemTemplate>
+                                                                </ItemsControl>
+                                                            </StackPanel>
                                                             <TextBlock Grid.Column="3" Text="{Binding SpeedLabel}"
                                                                        MinWidth="78" Margin="8,0,0,0"
                                                                        VerticalAlignment="Center"
