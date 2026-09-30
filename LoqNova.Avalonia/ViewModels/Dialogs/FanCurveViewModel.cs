@@ -90,45 +90,32 @@ public partial class FanCurveViewModel : ViewModelBase
         // every point report the bottom of the ladder (1400 RPM on this machine).
         var tableValues = info.Table.GetTable();
 
-        // WPF makes one slider per table slot (FSS0..FSS9, so ten), which is what gives
-        // its curve ten adjustable points. Only showing the entries in Data left the
-        // curve with three points and no room to shape it, so every slot gets a row and
-        // the ones the backend did not describe fall back to WPF's own 0-10 range.
-        var slots = Math.Max(tableValues.Length, data.Length);
-
-        for (var i = 0; i < slots; i++)
+        // One row per fan the backend actually reports. The table has ten slots
+        // (FSS0..FSS9), but the extra ones carry no fan, so rendering them only
+        // produced empty rows for hardware that does not exist.
+        for (var i = 0; i < data.Length; i++)
         {
-            var backed = i < data.Length;
-            // A struct, so "no entry" is a default value plus the bounds check, not null.
-            var entry = backed ? data[i] : default;
-            var speeds = backed ? (entry.FanSpeeds ?? []) : [];
+            var entry = data[i];
+            var speeds = entry.FanSpeeds ?? [];
             var selected = i < tableValues.Length ? tableValues[i] : 0;
-
-            var max = backed
-                ? Math.Max(0, speeds.Length - 1)
-                : 10;
+            var max = Math.Max(0, speeds.Length - 1);
 
             if (selected > max)
             {
                 selected = 0;
             }
 
-            // Resolved up front so the initialiser does not repeat the bounds check.
-            var label = backed && entry.Temps is { Length: > 0 } temps && i < temps.Length
+            var label = entry.Temps is { Length: > 0 } temps && i < temps.Length
                 ? $"{temps[i]}°C"
                 : $"{i + 1}";
-            var description = backed
-                ? $"{entry.Type} fan {entry.FanId} / sensor {entry.SensorId}"
-                : "no fan data reported for this point";
 
             Points.Add(new FanCurvePointViewModel
             {
                 Index = i,
                 Speeds = speeds,
                 StepCount = speeds.Length,
-                MaxSpeedIndexOverride = backed ? null : 10,
                 TemperatureLabel = label,
-                Description = description,
+                Description = $"{entry.Type} fan {entry.FanId} / sensor {entry.SensorId}",
                 SpeedIndex = selected
             });
         }
@@ -159,9 +146,8 @@ public partial class FanCurveViewModel : ViewModelBase
         {
             var stepCount = data[i].FanSpeeds?.Length ?? 0;
             var index = Points[i].SpeedIndex;
-            var max = stepCount > 0 ? stepCount - 1 : 10;
 
-            tableValues[i] = index >= 0 && index <= max
+            tableValues[i] = stepCount > 0 && index >= 0 && index < stepCount
                 ? (ushort)index
                 : tableValues[i];
         }
