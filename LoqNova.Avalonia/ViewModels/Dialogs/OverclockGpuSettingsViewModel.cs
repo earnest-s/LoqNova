@@ -204,7 +204,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
         }
     }
 
-    private void OnControllerChanged() => _dispatcher.Post(() =>
+    private void OnControllerChanged(object? sender, EventArgs e) => _dispatcher.Post(() =>
     {
         if (_controller is { } controller)
         {
