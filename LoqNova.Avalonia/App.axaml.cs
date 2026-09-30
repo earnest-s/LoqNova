@@ -174,7 +174,7 @@ public partial class App : Application
             // supplied here once the window exists. Resolving the singleton here is
             // safe: the library container is already up, and this is not a
             // construction path that can run before the readiness gate.
-            if (Container.Resolve<DialogService>() is { } dialogs)
+            if (Container.Resolve<IDialogService>() is DialogService dialogs)
                 dialogs.Attach(mainWindow.DialogHost);
 
             desktop.MainWindow = mainWindow;
