@@ -120,7 +120,7 @@ public partial class App : Application
         builder.RegisterType<AboutViewModel>().InstancePerDependency();
         
         // Register Dialog ViewModels
-        builder.RegisterType<GodModeSettingsViewModel>().InstancePerDependency();
+        builder.RegisterType<CustomModeSettingsViewModel>().InstancePerDependency();
         builder.RegisterType<EditDashboardViewModel>().InstancePerDependency();
         builder.RegisterType<BalanceModeSettingsViewModel>().InstancePerDependency();
         builder.RegisterType<OverclockGpuSettingsViewModel>().InstancePerDependency();
