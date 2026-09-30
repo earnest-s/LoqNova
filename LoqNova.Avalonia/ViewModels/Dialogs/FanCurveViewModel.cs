@@ -127,12 +127,8 @@ public partial class FanCurveViewModel : ViewModelBase
                 Speeds = speeds,
                 StepCount = speeds.Length,
                 MaxSpeedIndexOverride = backed ? null : 10,
-                TemperatureLabel = entry?.Temps is { Length: > 0 } temps && i < temps.Length
-                    ? $"{temps[i]}°C"
-                    : $"{i + 1}",
-                Description = backed
-                    ? $"{entry!.Type} fan {entry.FanId} / sensor {entry.SensorId}"
-                    : "no fan data reported for this point",
+                TemperatureLabel = label,
+                Description = description,
                 SpeedIndex = selected
             });
         }
