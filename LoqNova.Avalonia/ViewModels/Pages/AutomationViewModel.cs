@@ -514,17 +514,16 @@ public partial class AutomationPipelineViewModel : ViewModelBase
 
     private void MarkDirty() => _owner.SetDirty();
 
-    [RelayCommand]
-    private Task MoveUpAsync() => _owner.MovePipelineUpCommand.ExecuteAsync(this);
+    // Parameterless async Task methods cannot become RelayCommands, so the per-item
+    // buttons below call these directly rather than through a generated command. Every
+    // one of those command bindings silently did nothing.
+    public Task MoveUpAsync() => _owner.MovePipelineUpAsync(this);
 
-    [RelayCommand]
-    private Task MoveDownAsync() => _owner.MovePipelineDownCommand.ExecuteAsync(this);
+    public Task MoveDownAsync() => _owner.MovePipelineDownAsync(this);
 
-    [RelayCommand]
-    private Task RemoveAsync() => _owner.RemovePipelineCommand.ExecuteAsync(this);
+    public Task RemoveAsync() => _owner.RemovePipelineAsync(this);
 
-    [RelayCommand]
-    private Task RunNowAsync() => _owner.RunNowCommand.ExecuteAsync(this);
+    public Task RunNowAsync() => _owner.RunNowAsync(this);
 
     /// <summary>Adds the step chosen in this pipeline's own picker.</summary>
     [RelayCommand]
