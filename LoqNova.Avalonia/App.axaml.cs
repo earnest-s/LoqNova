@@ -175,7 +175,7 @@ public partial class App : Application
             // safe: the library container is already up, and this is not a
             // construction path that can run before the readiness gate.
             if (Container.Resolve<DialogService>() is { } dialogs)
-                dialogs.Attach(mainWindow);
+                dialogs.Attach(mainWindow.DialogHost);
 
             desktop.MainWindow = mainWindow;
             
