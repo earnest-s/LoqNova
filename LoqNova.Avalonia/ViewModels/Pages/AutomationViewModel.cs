@@ -422,10 +422,32 @@ public partial class AutomationPipelineViewModel : ViewModelBase
         }
 
         // Building a step resolves its feature from the global IoC container, which
-        // blocks; doing that on the UI thread is what froze the window on Add.
-        var step = await Task.Run(option.Create).ConfigureAwait(true);
+        // blocks, so it happens off the UI thread. It can also throw - an unregistered
+        // feature or a missing backend type - and this runs from an async void command,
+        // where an escaping exception would terminate the process rather than show up
+        // as a failed command. The failure is reported instead.
+        IAutomationStep? step;
 
-        await _service.AddStepAsync(Model, step);
+        try
+        {
+            step = await Task.Run(option.Create).ConfigureAwait(true);
+        }
+        catch (Exception ex)
+        {
+            _owner.ReportError($"Could not add {option.DisplayName}: {ex.Message}");
+            return;
+        }
+
+        try
+        {
+            await _service.AddStepAsync(Model, step);
+        }
+        catch (Exception ex)
+        {
+            _owner.ReportError($"Could not add {option.DisplayName}: {ex.Message}");
+            return;
+        }
+
         RefreshSteps();
         MarkDirty();
     }
