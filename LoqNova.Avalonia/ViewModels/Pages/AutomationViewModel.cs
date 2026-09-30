@@ -402,7 +402,11 @@ public partial class AutomationPipelineViewModel : ViewModelBase
             return;
         }
 
-        await _service.AddStepAsync(Model, option.Create());
+        // Building a step resolves its feature from the global IoC container, which
+        // blocks; doing that on the UI thread is what froze the window on Add.
+        var step = await Task.Run(option.Create).ConfigureAwait(true);
+
+        await _service.AddStepAsync(Model, step);
         RefreshSteps();
         MarkDirty();
     }
