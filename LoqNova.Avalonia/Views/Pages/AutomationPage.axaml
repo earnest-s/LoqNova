@@ -4,112 +4,145 @@
              x:Class="LoqNova.Avalonia.Views.Pages.AutomationPage"
              x:DataType="vm:AutomationViewModel">
 
-    <Design.DataContext>
-        <vm:AutomationViewModel />
-    </Design.DataContext>
+    <UserControl.Resources>
+        <!-- Options are records; show their friendly name rather than ToString(). -->
+        <DataTemplate x:Key="OptionTemplate" x:DataType="x:Object">
+            <TextBlock Text="{Binding DisplayName}" />
+        </DataTemplate>
+    </UserControl.Resources>
 
     <ScrollViewer Classes="PageContainer">
         <StackPanel Spacing="24">
-            <!-- Page Header -->
-            <StackPanel Orientation="Horizontal" Spacing="16">
+
+            <!-- Header -->
+            <StackPanel Orientation="Horizontal" Spacing="12">
                 <TextBlock Text="Automation" Classes="PageTitle" />
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                    <ToggleSwitch IsChecked="{Binding IsAutomationEnabled}" OnContent="Enabled" OffContent="Disabled" />
 
-                    <!-- WPF creates an automatic pipeline around a chosen trigger. -->
-                    <ComboBox Classes="Control" Width="220"
-                              ItemsSource="{Binding TriggerTypes}"
-                              SelectedItem="{Binding SelectedTriggerType, Mode=TwoWay}" />
-                    <Button Classes="PrimaryButton" Content="Add Automatic" Command="{Binding AddAutomaticPipelineCommand}" />
-                    <Button Classes="PrimaryButton" Content="Add Manual" Command="{Binding AddManualPipelineCommand}" />
+                <ToggleSwitch IsChecked="{Binding IsAutomationEnabled}"
+                              OnContent="Enabled" OffContent="Disabled"
+                              VerticalAlignment="Center" />
 
-                    <!-- WPF's inline name prompt for quick actions, not a modal window. -->
-                    <TextBox Classes="Control" Width="220"
-                             Watermark="Quick action name"
-                             MaxLength="50"
-                             IsVisible="{Binding IsManualNamePromptOpen}"
-                             Text="{Binding PendingManualName, Mode=TwoWay}" />
-                    <Button Classes="SecondaryButton" Content="OK" IsVisible="{Binding IsManualNamePromptOpen}" Command="{Binding AddManualPipelineCommand}" />
-                    <Button Classes="GhostButton" Content="Cancel" IsVisible="{Binding IsManualNamePromptOpen}" Command="{Binding CancelManualNamePromptCommand}" />
+                <!-- Real trigger types, labelled by the backend's own DisplayName. -->
+                <ComboBox Classes="Control" Width="240" VerticalAlignment="Center"
+                          ItemTemplate="{StaticResource OptionTemplate}"
+                          ItemsSource="{Binding AvailableTriggers}"
+                          SelectedItem="{Binding SelectedTriggerOption, Mode=TwoWay}" />
 
-                    <Button Classes="SecondaryButton" Content="Save" Command="{Binding SaveCommand}"
-                            IsVisible="{Binding IsDirty}" />
-                    <Button Classes="GhostButton" Content="Revert" Command="{Binding RevertCommand}"
-                            IsVisible="{Binding IsDirty}" />
-                    <ProgressBar IsIndeterminate="True" Width="90" Height="4"
-                                 IsVisible="{Binding IsLoading}" />
-                </StackPanel>
+                <Button Classes="PrimaryButton" Content="Add Automatic"
+                        Command="{Binding AddAutomaticPipelineCommand}" />
+
+                <Button Classes="PrimaryButton" Content="Add Manual"
+                        Command="{Binding AddManualPipelineCommand}" />
+
+                <!-- WPF asks for the name inline, capped at 50 characters. -->
+                <TextBox Classes="Control" Width="200" MaxLength="50"
+                         Watermark="Quick action name"
+                         IsVisible="{Binding IsManualNamePromptOpen}"
+                         Text="{Binding PendingManualName, Mode=TwoWay}" />
+
+                <Button Classes="SecondaryButton" Content="OK"
+                        IsVisible="{Binding IsManualNamePromptOpen}"
+                        Command="{Binding AddManualPipelineCommand}" />
+
+                <Button Classes="GhostButton" Content="Cancel"
+                        IsVisible="{Binding IsManualNamePromptOpen}"
+                        Command="{Binding CancelManualNamePromptCommand}" />
+
+                <Button Classes="SecondaryButton" Content="Save"
+                        Command="{Binding SaveCommand}"
+                        IsVisible="{Binding IsDirty}" />
+
+                <Button Classes="GhostButton" Content="Revert"
+                        Command="{Binding RevertCommand}"
+                        IsVisible="{Binding IsDirty}" />
             </StackPanel>
-            
-            <!-- Automatic Pipelines -->
+
+            <!-- Automatic pipelines -->
             <Border Classes="ContentCard">
-                <StackPanel>
+                <StackPanel Spacing="8">
                     <TextBlock Text="Automatic Pipelines" Classes="SectionHeader" />
-                    
+
+                    <TextBlock Classes="Caption" Opacity="0.6"
+                               IsVisible="{Binding !AutomaticPipelines.Count}"
+                               Text="No automatic pipelines configured." />
+
                     <ItemsControl ItemsSource="{Binding AutomaticPipelines}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Classes="FeatureCard" Margin="0,8,0,0">
-                                    <StackPanel Spacing="12">
-                                        <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <TextBlock Text="{Binding Name}" Classes="Body" FontWeight="Medium" VerticalAlignment="Center" />
-                                            <TextBlock Text="{Binding TriggerTypeName}" Classes="Caption" VerticalAlignment="Center" Margin="16,0,0,0" />
+                            <DataTemplate x:DataType="vm:AutomationPipelineViewModel">
+                                <Border Classes="FeatureCard" Margin="0,4,0,0" Padding="12">
+                                    <StackPanel Spacing="8">
 
-                                            <!-- WPF reorders one position at a time via context menu. -->
+                                        <Grid ColumnDefinitions="Auto,Auto,*">
+                                            <TextBlock Grid.Column="0" Text="{Binding DisplayTitle}"
+                                                       Classes="Body" FontWeight="Medium"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding TriggerDisplayName}"
+                                                       Classes="Caption" Margin="12,0,0,0"
+                                                       VerticalAlignment="Center" />
+                                        </Grid>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                    Command="{Binding $parent[Window].DataContext.MovePipelineUpCommand}"
-                                                    CommandParameter="{Binding}">
-                                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="18" Height="18" Foreground="{StaticResource TextMutedBrush}" />
-                                            </Button>
+                                                    Command="{Binding MoveUpCommand}" />
                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                    Command="{Binding $parent[Window].DataContext.MovePipelineDownCommand}"
-                                                    CommandParameter="{Binding}">
-                                                <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" Width="18" Height="18" Foreground="{StaticResource TextMutedBrush}" />
-                                            </Button>
-                                            <Button Classes="IconButton" ToolTip.Tip="Remove" Command="{Binding $parent[Window].DataContext.RemovePipelineCommand}" CommandParameter="{Binding}">
-                                                <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="20" Height="20" Foreground="{StaticResource TextMutedBrush}" />
-                                            </Button>
+                                                    Command="{Binding MoveDownCommand}" />
+                                            <Button Classes="IconButton" ToolTip.Tip="Remove"
+                                                    Command="{Binding RemoveCommand}" />
                                         </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="Trigger" Classes="Caption"
+                                                       VerticalAlignment="Center" MinWidth="52" />
+                                            <ComboBox Classes="Control" Width="280"
+                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                      ItemsSource="{Binding TriggerOptions}"
+                                                      SelectedItem="{Binding SelectedTrigger, Mode=TwoWay}" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="Name" Classes="Caption"
+                                                       VerticalAlignment="Center" MinWidth="52" />
+                                            <TextBox Classes="Control" Width="280"
+                                                     Text="{Binding Name, Mode=TwoWay}" />
+                                        </StackPanel>
+
+                                        <TextBlock Text="{Binding StepsSubtitle}"
+                                                   Classes="Caption" Opacity="0.6" />
 
                                         <ItemsControl ItemsSource="{Binding Steps}">
                                             <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Margin="36,8,0,0" Padding="8,4" Background="{StaticResource SurfaceBrush}" CornerRadius="4">
+                                                <DataTemplate x:DataType="vm:AutomationStepViewModel">
+                                                    <Border Margin="16,4,0,0" Padding="8,4"
+                                                            Background="{StaticResource SurfaceBrush}"
+                                                            CornerRadius="4">
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                                            <PathIcon Data="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            <TextBlock Text="{Binding TypeName}" Classes="BodySmall" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding DisplayName}"
+                                                                       Classes="BodySmall"
+                                                                       VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding ConfigurationSummary}"
+                                                                       Classes="Caption" Opacity="0.7"
+                                                                       VerticalAlignment="Center" />
 
                                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                                    Command="{Binding $parent[Window].DataContext.MoveStepUpCommand}"
-                                                                    CommandParameter="{Binding}">
-                                                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            </Button>
+                                                                    Command="{Binding MoveUpCommand}" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                                    Command="{Binding $parent[Window].DataContext.MoveStepDownCommand}"
-                                                                    CommandParameter="{Binding}">
-                                                                <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            </Button>
+                                                                    Command="{Binding MoveDownCommand}" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Remove"
-                                                                    Command="{Binding $parent[Window].DataContext.RemoveStepCommand}"
-                                                                    CommandParameter="{Binding}">
-                                                                <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            </Button>
+                                                                    Command="{Binding RemoveCommand}" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                        <!-- Add a real backend step; the picker is bound to the
-                                             actual supported step types. -->
-                                        <ComboBox x:Name="StepPicker" Classes="Control" Width="260"
-                                                  HorizontalAlignment="Left" Margin="36,4,0,0"
-                                                  ItemsSource="{Binding $parent[Window].DataContext.StepTypes}"
-                                                  SelectedItem="{Binding $parent[Window].DataContext.SelectedStepType, Mode=TwoWay}" />
-                                        <Button Classes="SecondaryButton" Content="Add step" Margin="36,4,0,0"
-                                                HorizontalAlignment="Left"
-                                                Command="{Binding $parent[Window].DataContext.AddStepCommand}"
-                                                CommandParameter="{Binding}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,4,0,0">
+                                            <ComboBox Classes="Control" Width="260"
+                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                      ItemsSource="{Binding StepOptions}"
+                                                      SelectedItem="{Binding SelectedStepOption, Mode=TwoWay}" />
+                                            <Button Classes="SecondaryButton" Content="Add step"
+                                                    Command="{Binding AddStepCommand}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>
@@ -117,78 +150,82 @@
                     </ItemsControl>
                 </StackPanel>
             </Border>
-            
-            <!-- Manual Pipelines (Quick Actions) -->
+
+            <!-- Quick actions -->
             <Border Classes="ContentCard">
-                <StackPanel>
+                <StackPanel Spacing="8">
                     <TextBlock Text="Quick Actions (Manual)" Classes="SectionHeader" />
-                    
+
+                    <TextBlock Classes="Caption" Opacity="0.6"
+                               IsVisible="{Binding !ManualPipelines.Count}"
+                               Text="No manual actions configured." />
+
                     <ItemsControl ItemsSource="{Binding ManualPipelines}">
                         <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Classes="FeatureCard" Margin="0,8,0,0">
-                                    <StackPanel Spacing="12">
+                            <DataTemplate x:DataType="vm:AutomationPipelineViewModel">
+                                <Border Classes="FeatureCard" Margin="0,4,0,0" Padding="12">
+                                    <StackPanel Spacing="8">
+                                        <Grid ColumnDefinitions="Auto,Auto,*">
+                                            <TextBlock Grid.Column="0" Text="{Binding DisplayTitle}"
+                                                       Classes="Body" FontWeight="Medium"
+                                                       VerticalAlignment="Center" />
+                                            <TextBlock Grid.Column="1" Text="{Binding StepsSubtitle}"
+                                                       Classes="Caption" Margin="12,0,0,0"
+                                                       Opacity="0.6" VerticalAlignment="Center" />
+                                        </Grid>
+
                                         <StackPanel Orientation="Horizontal" Spacing="12">
-                                            <TextBlock Text="{Binding Name}" Classes="Body" FontWeight="Medium" VerticalAlignment="Center" />
-
-                                            <!-- Quick actions execute through the real backend. -->
-                                            <Button Classes="SecondaryButton" Content="Run" Margin="16,0,0,0"
-                                                    Command="{Binding $parent[Window].DataContext.RunNowCommand}"
-                                                    CommandParameter="{Binding}" />
-
+                                            <Button Classes="SecondaryButton" Content="Run"
+                                                    Command="{Binding RunNowCommand}" />
                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                    Command="{Binding $parent[Window].DataContext.MovePipelineUpCommand}"
-                                                    CommandParameter="{Binding}">
-                                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="18" Height="18" Foreground="{StaticResource TextMutedBrush}" />
-                                            </Button>
+                                                    Command="{Binding MoveUpCommand}" />
                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                    Command="{Binding $parent[Window].DataContext.MovePipelineDownCommand}"
-                                                    CommandParameter="{Binding}">
-                                                <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" Width="18" Height="18" Foreground="{StaticResource TextMutedBrush}" />
-                                            </Button>
-                                            <Button Classes="IconButton" ToolTip.Tip="Remove" Command="{Binding $parent[Window].DataContext.RemovePipelineCommand}" CommandParameter="{Binding}">
-                                                <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="20" Height="20" Foreground="{StaticResource TextMutedBrush}" />
-                                            </Button>
+                                                    Command="{Binding MoveDownCommand}" />
+                                            <Button Classes="IconButton" ToolTip.Tip="Remove"
+                                                    Command="{Binding RemoveCommand}" />
+                                        </StackPanel>
+
+                                        <StackPanel Orientation="Horizontal" Spacing="8">
+                                            <TextBlock Text="Name" Classes="Caption"
+                                                       VerticalAlignment="Center" MinWidth="52" />
+                                            <TextBox Classes="Control" Width="280"
+                                                     Text="{Binding Name, Mode=TwoWay}" />
                                         </StackPanel>
 
                                         <ItemsControl ItemsSource="{Binding Steps}">
                                             <ItemsControl.ItemTemplate>
-                                                <DataTemplate>
-                                                    <Border Margin="36,8,0,0" Padding="8,4" Background="{StaticResource SurfaceBrush}" CornerRadius="4">
+                                                <DataTemplate x:DataType="vm:AutomationStepViewModel">
+                                                    <Border Margin="16,4,0,0" Padding="8,4"
+                                                            Background="{StaticResource SurfaceBrush}"
+                                                            CornerRadius="4">
                                                         <StackPanel Orientation="Horizontal" Spacing="8">
-                                                            <PathIcon Data="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            <TextBlock Text="{Binding TypeName}" Classes="BodySmall" VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding DisplayName}"
+                                                                       Classes="BodySmall"
+                                                                       VerticalAlignment="Center" />
+                                                            <TextBlock Text="{Binding ConfigurationSummary}"
+                                                                       Classes="Caption" Opacity="0.7"
+                                                                       VerticalAlignment="Center" />
 
                                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                                    Command="{Binding $parent[Window].DataContext.MoveStepUpCommand}"
-                                                                    CommandParameter="{Binding}">
-                                                                <PathIcon Data="M7.41 15.41L12 10.83l4.59 4.58L18 14l-6-6-6 6z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            </Button>
+                                                                    Command="{Binding MoveUpCommand}" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                                    Command="{Binding $parent[Window].DataContext.MoveStepDownCommand}"
-                                                                    CommandParameter="{Binding}">
-                                                                <PathIcon Data="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            </Button>
+                                                                    Command="{Binding MoveDownCommand}" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Remove"
-                                                                    Command="{Binding $parent[Window].DataContext.RemoveStepCommand}"
-                                                                    CommandParameter="{Binding}">
-                                                                <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="16" Height="16" Foreground="{StaticResource TextMutedBrush}" />
-                                                            </Button>
+                                                                    Command="{Binding RemoveCommand}" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
                                             </ItemsControl.ItemTemplate>
                                         </ItemsControl>
 
-                                        <!-- WPF filters QuickActionAutomationStep out of manual
-                                             pipelines, so the picker does the same. -->
-                                        <ComboBox Classes="Control" Width="260" HorizontalAlignment="Left" Margin="36,4,0,0"
-                                                  ItemsSource="{Binding $parent[Window].DataContext.ManualStepTypes}"
-                                                  SelectedItem="{Binding $parent[Window].DataContext.SelectedStepType, Mode=TwoWay}" />
-                                        <Button Classes="SecondaryButton" Content="Add step" Margin="36,4,0,0"
-                                                HorizontalAlignment="Left"
-                                                Command="{Binding $parent[Window].DataContext.AddStepCommand}"
-                                                CommandParameter="{Binding}" />
+                                        <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,4,0,0">
+                                            <ComboBox Classes="Control" Width="260"
+                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                      ItemsSource="{Binding StepOptions}"
+                                                      SelectedItem="{Binding SelectedStepOption, Mode=TwoWay}" />
+                                            <Button Classes="SecondaryButton" Content="Add step"
+                                                    Command="{Binding AddStepCommand}" />
+                                        </StackPanel>
                                     </StackPanel>
                                 </Border>
                             </DataTemplate>

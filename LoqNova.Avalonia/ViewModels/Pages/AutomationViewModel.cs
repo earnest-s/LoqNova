@@ -336,6 +336,20 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     [ObservableProperty]
     private TriggerOption? _selectedTrigger;
 
+    /// <summary>Real trigger types, for this pipeline's own picker.</summary>
+    public IReadOnlyList<TriggerOption> TriggerOptions => _owner.AvailableTriggers;
+
+    /// <summary>
+    /// Real step types for this pipeline. WPF filters QuickActionAutomationStep out of a
+    /// quick action's catalogue, so a manual pipeline offers one list fewer.
+    /// </summary>
+    public IReadOnlyList<AutomationStepOption> StepOptions =>
+        IsManual ? _owner.AvailableManualSteps : _owner.AvailableSteps;
+
+    /// <summary>This pipeline's own step selection, never shared globally.</summary>
+    [ObservableProperty]
+    private AutomationStepOption? _selectedStepOption;
+
     /// <summary>WPF's header falls back to the trigger's display name when unnamed.</summary>
     public string DisplayTitle =>
         !string.IsNullOrWhiteSpace(Name) ? Name : SelectedTrigger?.DisplayName ?? "Unnamed";
@@ -414,6 +428,36 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     }
 
     private void MarkDirty() => _owner.SetDirty();
+
+    [RelayCommand]
+    private Task MoveUpAsync() => _owner.MovePipelineUpCommand.ExecuteAsync(this);
+
+    [RelayCommand]
+    private Task MoveDownAsync() => _owner.MovePipelineDownCommand.ExecuteAsync(this);
+
+    [RelayCommand]
+    private Task RemoveAsync() => _owner.RemovePipelineCommand.ExecuteAsync(this);
+
+    [RelayCommand]
+    private Task RunNowAsync() => _owner.RunNowCommand.ExecuteAsync(this);
+
+    /// <summary>Adds the step chosen in this pipeline's own picker.</summary>
+    [RelayCommand]
+    private Task AddStepAsync() => AddStepAsync(SelectedStepOption);
+
+    /// <summary>Name is two-way bound, so the draft is kept in step with the field.</summary>
+    partial void OnNameChanged(string value)
+    {
+        OnPropertyChanged(nameof(DisplayTitle));
+
+        // Editing the field alone does not commit; the real object is updated in place
+        // so Save persists exactly what is on screen.
+        Model.Name = value;
+        MarkDirty();
+    }
+
+    /// <summary>Applying a new trigger builds a real trigger and attaches it.</summary>
+    partial void OnSelectedTriggerChanged(TriggerOption? value) => _ = CommitTriggerAsync();
 }
 
 /// <summary>A thin binding wrapper around a live backend <see cref="IAutomationStep"/>.</summary>
