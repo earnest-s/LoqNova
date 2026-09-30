@@ -179,7 +179,10 @@ public partial class App : Application
                 // The service resolves dialogs through this container, and the window
                 // supplies the overlay they are presented in.
                 dialogs.UseContainer(new AutofacServiceProvider(Container));
-                dialogs.Attach(mainWindow.DialogHost);
+                // The window, not the overlay: the service resolves the overlay by name
+                // when a dialog is first shown, because the generated field is not
+                // populated yet at this point in startup.
+                dialogs.Attach(mainWindow);
             }
 
             desktop.MainWindow = mainWindow;

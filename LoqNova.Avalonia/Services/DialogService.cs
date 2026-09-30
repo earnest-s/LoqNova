@@ -71,8 +71,6 @@ public sealed class DialogService : IDialogService
 
     private IServiceProvider? _services;
 
-    private Control? HostUnused => _host;
-
 
     public bool IsOpen { get; private set; }
 
@@ -80,15 +78,7 @@ public sealed class DialogService : IDialogService
 
     public event Action? Closed;
 
-    public static void T(string s) => System.IO.File.AppendAllText(
-        System.IO.Path.Combine(System.IO.Path.GetTempPath(), "viz.txt"), s + Environment.NewLine);
-    public Task ShowAsync(ViewModelBase dialog)
-    {
-        ArgumentNullException.ThrowIfNull(dialog);
-
         var view = CreateView(dialog);
-        T("ShowAsync " + dialog.GetType().Name + " view=" + (view?.GetType().Name ?? "NULL-VIEW")
-            + " hostField=" + (Host?.GetType().FullName ?? "NULL-HOST"));
 
         if (view is null)
             return Task.CompletedTask;
@@ -104,8 +94,6 @@ public sealed class DialogService : IDialogService
             // DataContext. Without this the view binds against the page ViewModel and
             // every control inside it silently fails to resolve.
             view.DataContext = dialog;
-
-            T("host=" + (Host?.GetType().Name ?? "null") + " dc=" + (view.DataContext?.GetType().Name ?? "null"));
             host.Content = view;
             host.IsVisible = true;
             Current = dialog;
