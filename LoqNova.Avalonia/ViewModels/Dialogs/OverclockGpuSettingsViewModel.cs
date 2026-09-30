@@ -35,7 +35,8 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 
     public int MaxMemoryDelta => GPUOverclockController.GetMaxMemoryDeltaMhz();
 
-    public OverclockGpuSettingsViewModel(IMainThreadDispatcher dispatcher)
+    public OverclockGpuSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
+        : base(dialogs)
     {
         _dispatcher = dispatcher;
     }
@@ -74,9 +75,10 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 
         var controller = LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>();
 
-        // Clamp to the limits the backend itself reports.
-        var core = Math.Clamp(CoreClockOffset, -MaxCoreDelta, MaxCoreDelta);
-        var memory = Math.Clamp(MemoryClockOffset, -MaxMemoryDelta, MaxMemoryDelta);
+        // WPF's sliders are ranged from zero to the reported maximum, so negative
+        // offsets are not selectable there and are rejected here too.
+        var core = Math.Clamp(CoreClockOffset, 0, MaxCoreDelta);
+        var memory = Math.Clamp(MemoryClockOffset, 0, MaxMemoryDelta);
 
         controller.SaveState(IsEnabled, new GPUOverclockInfo(core, memory));
         await controller.ApplyStateAsync().ConfigureAwait(false);

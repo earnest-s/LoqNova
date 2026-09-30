@@ -156,6 +156,19 @@
                                            Classes="WidgetValue"
                                            IsVisible="{Binding IsStatus}" />
 
+                                <!-- WPF's dashboard cards carry a settings button
+                                     beside the control for features with a detail
+                                     window: GPU overclock here, power mode settings
+                                     on the power-mode selector above. -->
+                                <Button Classes="IconButton"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,4,0,0"
+                                        ToolTip.Tip="Open the detailed settings"
+                                        IsVisible="{Binding HasSettingsDialog}"
+                                        Command="{Binding OpenSettingsCommand}">
+                                    <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
+                                </Button>
+
                                 <!-- Numeric sub-settings, e.g. WPF's GPU overclock core
                                      and memory frequency offsets. Rendered inline so a
                                      value and its toggle sit on the same card. -->

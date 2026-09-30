@@ -218,7 +218,8 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
 
     public IReadOnlyList<CustomModeSettingViewModel> AdvancedSettings { get; }
 
-    public CustomModeSettingsViewModel(IMainThreadDispatcher dispatcher)
+    public CustomModeSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
+        : base(dialogs)
     {
         _dispatcher = dispatcher;
 

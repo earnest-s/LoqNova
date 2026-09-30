@@ -38,7 +38,8 @@ public partial class BalanceModeSettingsViewModel : DialogViewModelBase
     [ObservableProperty]
     private bool _isBusy;
 
-    public BalanceModeSettingsViewModel(IMainThreadDispatcher dispatcher)
+    public BalanceModeSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
+        : base(dialogs)
     {
         _dispatcher = dispatcher;
     }

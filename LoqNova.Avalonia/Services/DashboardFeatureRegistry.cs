@@ -156,16 +156,21 @@ public static class DashboardFeatureRegistry
     ];
 
     /// <summary>Creates and initializes every widget, hiding the unsupported ones.</summary>
+    /// <param name="onOverclockWidget">
+    /// Optional hook invoked with the GPU overclock widget, so the caller can wire the
+    /// detail-dialog entry point that WPF exposes as a settings button on the card.
+    /// </param>
     public static async Task<List<FeatureWidgetViewModel>> CreateAllAsync(
         IReadOnlyList<DashboardFeature> features,
-        IMainThreadDispatcher dispatcher)
+        IMainThreadDispatcher dispatcher,
+        Action<LoqNova.Avalonia.ViewModels.Controls.OverclockGpuWidgetViewModel>? onOverclockWidget = null)
     {
         var widgets = new List<FeatureWidgetViewModel>(features.Count);
-
+        
         foreach (var feature in features)
         {
             var widget = Create(feature, dispatcher);
-
+            
             try
             {
                 await widget.InitializeAsync().ConfigureAwait(false);
@@ -175,9 +180,12 @@ public static class DashboardFeatureRegistry
                 widget.ErrorMessage = ex.Message;
             }
 
+            if (widget is LoqNova.Avalonia.ViewModels.Controls.OverclockGpuWidgetViewModel overclock)
+                onOverclockWidget?.Invoke(overclock);
+
             widgets.Add(widget);
         }
-
+        
         return widgets;
     }
 }

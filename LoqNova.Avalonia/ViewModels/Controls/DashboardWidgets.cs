@@ -1,4 +1,5 @@
 using System;
+using System.Windows.Input;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -307,6 +308,9 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
         _ = ApplyAsync();
     }
 
+    /// <summary>Icon for the settings button, reusing the dashboard's icon set.</summary>
+    public string SettingsIcon => "Settings64";
+
     /// <summary>Writes the toggle through the controller, then re-reads the real state.</summary>
     private async Task ApplyAsync()
     {
@@ -335,6 +339,26 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
 
         await RefreshAsync().ConfigureAwait(false);
     }
+
+    /// <summary>
+    /// True when the widget is supported, so WPF's settings button can be shown next
+    /// to the toggle. WPF always offers the config button for an available GPU.
+    /// </summary>
+    public bool HasSettingsDialog => IsAvailable;
+
+    /// <summary>
+    /// WPF's dashboard card carries a settings button beside the enable toggle, which
+    /// opens <c>OverclockDiscreteGPUSettingsWindow</c>. That entry point is reproduced
+    /// here so the detailed configuration is reachable, and it edits the same
+    /// authoritative backend state this card reads.
+    /// </summary>
+    public ICommand? OpenSettingsCommand => _openSettingsCommand ??= new RelayCommand(
+        () => SettingsRequested?.Invoke(this, EventArgs.Empty));
+
+    private RelayCommand? _openSettingsCommand;
+
+    /// <summary>Raised when the user asks for the detailed overclock dialog.</summary>
+    public event EventHandler? SettingsRequested;
 
     /// <summary>Writes the edited frequency offsets through the same controller.</summary>
     private async Task ApplyOffsetsAsync()

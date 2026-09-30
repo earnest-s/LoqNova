@@ -251,7 +251,10 @@ public partial class DashboardViewModel : ViewModelBase
     private async Task BuildWidgetsAsync()
     {
         var widgets = await DashboardFeatureRegistry.CreateAllAsync(
-            DashboardFeatureRegistry.DefaultFeatures, _dispatcher);
+            DashboardFeatureRegistry.DefaultFeatures, _dispatcher,
+            // WPF opens a detail window from the GPU overclock card; the same entry
+            // point is wired here so the detailed configuration stays reachable.
+            overclock => overclock.SettingsRequested += (_, _) => _ = OpenOverclockSettingsAsync());
 
         var available = widgets.Where(w => w.IsAvailable).ToList();
 
@@ -418,6 +421,17 @@ public partial class DashboardViewModel : ViewModelBase
 
     /// <summary>Icon for the settings button, reusing the dashboard's icon set.</summary>
     public string SettingsIcon => "Settings64";
+
+    /// <summary>
+    /// Opens the GPU overclock detail dialog, WPF's
+    /// <c>OverclockDiscreteGPUSettingsWindow</c>. It reads and writes the same
+    /// authoritative controller state the card shows, so the two cannot disagree.
+    /// </summary>
+    private async Task OpenOverclockSettingsAsync()
+    {
+        var dialog = AppHost.Services.GetRequiredService<Dialogs.OverclockGpuSettingsViewModel>();
+        await _mainWindowViewModel.ShowDialogAsync(dialog);
+    }
 
     /// <summary>
     /// Opens the settings dialog for the selected mode: the AI Engine toggle for
