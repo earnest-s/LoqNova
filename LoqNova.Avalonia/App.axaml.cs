@@ -215,7 +215,9 @@ public partial class App : Application
     {
         try
         {
-            if (Container.IsRegistered<IRgbService>())
+            // The container is null only if Build() threw, in which case nothing was
+            // ever resolved and there is nothing to release.
+            if (Container?.IsRegistered<IRgbService>() == true)
                 await Container.Resolve<IRgbService>().ShutdownAsync();
         }
         catch (Exception ex)
