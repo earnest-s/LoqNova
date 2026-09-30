@@ -29,10 +29,10 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
-        // An unhandled exception on the dispatcher, or on a background task, would end
-        // the process with no explanation. This reports it instead of silently killing
-        // the app, which is what an async void command did when a backend call threw.
-        Dispatcher.UIThread.UnhandledException += OnDispatcherUnhandledException;
+        // A faulted background task would otherwise be swallowed and, in the case of an
+        // async void command, take the whole process down with no explanation. The
+        // Automation page's editor operations catch their own failures and report them;
+        // this is the backstop for anything that does not.
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
 
         // LoqNova.Lib keeps its own Autofac container and is the single source of
