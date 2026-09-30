@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Threading;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using LoqNova.Avalonia.Converters;
@@ -259,7 +260,7 @@ public partial class App : Application
     /// Reports an otherwise fatal UI exception and keeps the window alive, so a backend
     /// call that throws surfaces as a logged fault instead of a silent process exit.
     /// </summary>
-    private static void OnDispatcherUnhandledException(object? sender, DispatcherUnhandledExceptionEventArgs e)
+    private static void OnDispatcherUnhandledException(object? sender, Avalonia.Threading.UnhandledExceptionEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"Unhandled UI exception: {e.Exception}");
 
