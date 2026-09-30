@@ -106,17 +106,26 @@ internal static class StepFactory
         string typeName, Func<IAutomationStep> create)
     {
         // Steps carry no DisplayName of their own, so the CLR name is humanised once
-        // here. WPF builds its step titles the same way, from the type.
+        // here. No instance is created: that would resolve the step's feature.
         return new AutomationStepOption(typeName, Humanize(typeName), create);
     }
 
-    private static TriggerOption Trigger(Func<IAutomationPipelineTrigger> create)
+    private static TriggerOption Trigger(Func<IAutomationPipelineTrigger> create, string displayName)
     {
-        var prototype = create();
+        // The display name is passed in rather than read off a prototype, because
+        // constructing one resolves the trigger's listener from the container.
+        return new TriggerOption(TypeNameOf(create), displayName, create);
+    }
 
-        // The trigger's own DisplayName comes from the backend's resources.
-        return new TriggerOption(
-            prototype.GetType().Name, prototype.DisplayName, create);
+    /// <summary>The backend type name a trigger factory produces.</summary>
+    private static string TypeNameOf(Func<IAutomationPipelineTrigger> create)
+    {
+        // Derived from the factory's target type, without running the constructor.
+        var type = create.Method.ReturnType;
+
+        return type.FullName is { } full && type.IsGenericType
+            ? full[..full.IndexOf('`')]
+            : type.Name;
     }
 
     /// <summary>
