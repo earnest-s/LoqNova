@@ -77,6 +77,53 @@ public partial class FanCurveViewModel : ViewModelBase
 {
     public ObservableCollection<FanCurvePointViewModel> Points { get; } = new();
 
+    private ISensorsService? _sensors;
+
+    /// <summary>
+    /// Subscribes to the live sensor feed so each point can show the speed its fan is
+    /// actually running at. The previous handler is always dropped first, so repeated
+    /// <see cref="Adopt"/> calls cannot stack subscriptions on the shared service.
+    /// </summary>
+    public void Attach(ISensorsService sensors)
+    {
+        if (ReferenceEquals(_sensors, sensors))
+        {
+            RefreshLiveSpeeds();
+            return;
+        }
+
+        Detach();
+        _sensors = sensors;
+        _sensors.Updated += RefreshLiveSpeeds;
+        RefreshLiveSpeeds();
+    }
+
+    public void Detach()
+    {
+        if (_sensors is not null)
+        {
+            _sensors.Updated -= RefreshLiveSpeeds;
+            _sensors = null;
+        }
+    }
+
+    private void RefreshLiveSpeeds()
+    {
+        var sensors = _sensors;
+        if (sensors is null)
+        {
+            return;
+        }
+
+        var cpu = sensors.CpuFanSpeed;
+        var gpu = sensors.GpuFanSpeed;
+
+        foreach (var point in Points)
+        {
+            point.LiveFanSpeed = (point.IsGpuFan ? gpu : cpu) is var rpm and >= 0 ? rpm : -1;
+        }
+    }
+
     /// <summary>False when the backend reports no fan table, so nothing is shown.</summary>
     [ObservableProperty]
     private bool _isSupported;
