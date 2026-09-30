@@ -99,7 +99,7 @@ public partial class FanCurveViewModel : ViewModelBase
         for (var i = 0; i < slots; i++)
         {
             var backed = i < data.Length;
-            FanTableData? entry = backed ? data[i] : null;
+            var entry = backed ? data[i] : default(FanTableData);
             var speeds = entry?.FanSpeeds ?? [];
             var selected = i < tableValues.Length ? tableValues[i] : 0;
 
@@ -112,6 +112,15 @@ public partial class FanCurveViewModel : ViewModelBase
                 selected = 0;
             }
 
+            // Resolved up front: the type has no nullable form, so the null check cannot
+            // be deferred into the initialiser.
+            var label = entry?.Temps is { Length: > 0 } temps && i < temps.Length
+                ? $"{temps[i]}°C"
+                : $"{i + 1}";
+            var description = entry is null
+                ? "no fan data reported for this point"
+                : $"{entry.Type} fan {entry.FanId} / sensor {entry.SensorId}";
+
             Points.Add(new FanCurvePointViewModel
             {
                 Index = i,
@@ -122,7 +131,7 @@ public partial class FanCurveViewModel : ViewModelBase
                     ? $"{temps[i]}°C"
                     : $"{i + 1}",
                 Description = backed
-                    ? $"{entry.Type} fan {entry.FanId} / sensor {entry.SensorId}"
+                    ? $"{entry!.Type} fan {entry.FanId} / sensor {entry.SensorId}"
                     : "no fan data reported for this point",
                 SpeedIndex = selected
             });
