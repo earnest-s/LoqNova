@@ -474,16 +474,21 @@ public partial class DashboardViewModel : ViewModelBase
 
     partial void OnCurrentPowerModeChanged(PowerModeState? value)
     {
-        PowerModeColor = GetPowerModeColor(value);
+     PowerModeColor = GetPowerModeColor(value);
 
-        // A null selection means the backend has not reported a mode yet, and a
-        // publish from the backend must not be written back to the hardware.
-        if (_suppressModeWrite || value is not { } requested)
-        {
-            return;
-        }
+     // The settings entry point is gated on which mode is selected, so it has to be
+     // recomputed whenever the mode changes. Without this the button keeps whatever
+     // visibility it had when the page was built and never appears.
+     OnPropertyChanged(nameof(HasPowerModeSettings));
 
-        _ = _performanceService.SetModeAsync(requested);
+     // A null selection means the backend has not reported a mode yet, and a
+     // publish from the backend must not be written back to the hardware.
+     if (_suppressModeWrite || value is not { } requested)
+     {
+     return;
+     }
+     
+     _ = _performanceService.SetModeAsync(requested);
     }
 
     /// <summary>

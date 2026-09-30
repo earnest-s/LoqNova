@@ -39,25 +39,31 @@ public class PerformanceService : IPerformanceService
     /// information the library exposes, so it is the same value that gates Balance
     /// mode's settings button in WPF.
     /// </summary>
-    public bool IsAIModeSupported
+    /// <summary>
+    /// True when the machine reports the AI Chip capability. Read during
+    /// initialisation rather than on demand: the capability query is async, and
+    /// blocking on it from a property getter deadlocks the UI thread, which silently
+    /// reported false and hid Balance mode's settings entry point.
+    /// </summary>
+    public bool IsAIModeSupported { get; private set; }
+
+    private async Task ReadAiModeCapabilityAsync()
     {
-        get
-        {
-            try
-            {
-                return LoqNova.Lib.Utils.Compatibility
-                    .GetMachineInformationAsync()
-                    .ConfigureAwait(false)
-                    .GetAwaiter()
-                    .GetResult()
-                    .Properties.SupportsAIMode;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Could not read the AI Chip capability.");
-                return false;
-            }
-        }
+     try
+     {
+     var machine = await LoqNova.Lib.Utils.Compatibility
+     .GetMachineInformationAsync()
+     .ConfigureAwait(false);
+
+     IsAIModeSupported = machine.Properties.SupportsAIMode;
+     }
+     catch (Exception ex)
+     {
+     _logger.LogWarning(ex, "Could not read the AI Chip capability.");
+     IsAIModeSupported = false;
+     }
+
+     await _dispatcher.InvokeAsync(() => OnPropertyChanged(nameof(IsAIModeSupported))).ConfigureAwait(false);
     }
 
     public bool IsGodModeEnabled => IsSupported && CurrentMode == PowerModeState.GodMode;
@@ -102,9 +108,13 @@ public class PerformanceService : IPerformanceService
 
         _logger.LogInformation(
             "Power mode feature initialized. Available: {Modes}",
-            string.Join(", ", _availableStates));
+     string.Join(", ", _availableStates));
+     
+     // Read the AI Chip capability here rather than from a property getter: the
+     // query is async and blocking it on the UI thread deadlocks.
+     await ReadAiModeCapabilityAsync().ConfigureAwait(false);
 
-        await RefreshAsync().ConfigureAwait(false);
+     await RefreshAsync().ConfigureAwait(false);
     }
 
     /// <summary>True once the machine has been queried successfully.</summary>
