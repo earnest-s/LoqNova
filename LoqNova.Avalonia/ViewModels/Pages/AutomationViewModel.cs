@@ -388,7 +388,9 @@ public partial class AutomationPipelineViewModel : ViewModelBase
             return;
         }
 
-        await _service.SetTriggerAsync(Model, SelectedTrigger.Create());
+        var trigger = await Task.Run(SelectedTrigger.Create).ConfigureAwait(true);
+
+        await _service.SetTriggerAsync(Model, trigger);
         OnPropertyChanged(nameof(TriggerDisplayName));
 
         MarkDirty();
@@ -414,7 +416,9 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     /// <summary>Applies a new configuration to one of this pipeline's real steps.</summary>
     public async Task ReconfigureStepAsync(AutomationStepViewModel step, object? state)
     {
-        if (StepConfiguration.WithState(step.Model, state) is not { } replacement)
+        var replacement = await Task.Run(() => StepConfiguration.WithState(step.Model, state)).ConfigureAwait(true);
+
+        if (replacement is null)
         {
             return;
         }
