@@ -237,10 +237,16 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
 
     public IReadOnlyList<CustomModeSettingViewModel> AdvancedSettings { get; }
 
-    public CustomModeSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
+    public CustomModeSettingsViewModel(
+        IMainThreadDispatcher dispatcher, IDialogService dialogs, ISensorsService sensors)
         : base(dialogs)
     {
         _dispatcher = dispatcher;
+
+        // Each curve point shows the live speed of the fan it drives, so the sensor
+        // feed is attached up front rather than resolved during initialisation.
+        FanCurve.Attach(sensors);
+
 
         CpuSettings =
         [
