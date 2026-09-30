@@ -98,15 +98,20 @@ public partial class FanCurveViewModel : ViewModelBase
     /// </summary>
     public FanTableInfo? BuildFanTableInfo(FanTableInfo? original)
     {
-        if (original?.Data is not { Length: > 0 } data || Points.Count != data.Length)
+        if (original is not { } source || source.Data is not { Length: > 0 } data
+            || Points.Count != data.Length)
+        {
             return original;
+        }
 
         var edited = new FanTableData[data.Length];
 
         for (var i = 0; i < data.Length; i++)
         {
             var entry = data[i];
-            var speeds = entry.FanSpeeds is { Length: > 0 } s ? [.. s] : [];
+            var speeds = entry.FanSpeeds is { Length: > 0 } s
+                ? (ushort[])[.. s]
+                : Array.Empty<ushort>();
 
             if (Points[i].SpeedIndex >= 0 && Points[i].SpeedIndex < speeds.Length)
             {
@@ -117,6 +122,6 @@ public partial class FanCurveViewModel : ViewModelBase
             edited[i] = new FanTableData(entry.Type, entry.FanId, entry.SensorId, speeds, entry.Temps);
         }
 
-        return new FanTableInfo(edited, original.Table);
+        return new FanTableInfo(edited, source.Table);
     }
 }

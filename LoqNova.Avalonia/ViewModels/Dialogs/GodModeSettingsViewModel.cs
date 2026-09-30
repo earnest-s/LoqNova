@@ -161,9 +161,7 @@ public partial class CustomModeSettingViewModel : ViewModelBase
 
         OnPropertyChanged(nameof(ValueText));
     }
-}
-
-/// <summary>
+}/// <summary>
 /// Custom Mode settings, reproducing WPF's <c>GodModeSettingsWindow</c> against the
 /// real <see cref="IGodModeController"/>.
 /// <para>
@@ -220,6 +218,12 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
     /// <summary>Fan full speed, which WPF exposes as a toggle rather than a stepper.</summary>
     [ObservableProperty]
     private bool _fanFullSpeed;
+
+    /// <summary>The fan curve editor, hidden while full speed is on as WPF does.</summary>
+    public FanCurveViewModel FanCurve { get; } = new();
+
+    /// <summary>True when full speed is active, so the curve editor can be hidden.</summary>
+    public bool IsFanFullSpeedEnabled => IsFanFullSpeedSupported && FanFullSpeed;
 
     [ObservableProperty]
     private bool _isFanFullSpeedSupported;
@@ -351,6 +355,9 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
         // WPF hides the whole toggle when the preset reports it as unsupported.
         IsFanFullSpeedSupported = preset.FanFullSpeed.HasValue;
         FanFullSpeed = preset.FanFullSpeed ?? false;
+
+        FanCurve.Adopt(preset.FanTableInfo);
+        OnPropertyChanged(nameof(IsFanFullSpeedEnabled));
     }
 
     /// <summary>
@@ -358,6 +365,9 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
     /// state, ensure Custom Mode is selected, apply, then re-read so the UI shows what
     /// the machine accepted rather than what was asked for.
     /// </summary>
+    partial void OnFanFullSpeedChanged(bool value)
+        => OnPropertyChanged(nameof(IsFanFullSpeedEnabled));
+
     [RelayCommand]
     private async Task ApplyAsync()
     {
@@ -387,6 +397,7 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
                 GPUTotalProcessingPowerTargetOnAcOffsetFromBaseline = GpuTotalProcessingPowerOffset.ToStepper(),
                 GPUToCPUDynamicBoost = GpuToCpuDynamicBoost.ToStepper(),
                 FanFullSpeed = IsFanFullSpeedSupported ? FanFullSpeed : null,
+                FanTableInfo = FanCurve.BuildFanTableInfo(preset.FanTableInfo),
                 MaxValueOffset = MaxValueOffset.IsSupported ? (int?)MaxValueOffset.Value : null,
                 MinValueOffset = MinValueOffset.IsSupported ? (int?)MinValueOffset.Value : null
             };
