@@ -61,7 +61,7 @@
                 <Border Grid.Row="0" Grid.Column="1" Classes="FeatureCard" Margin="8,0,0,8">
                     <StackPanel Spacing="4">
                         <TextBlock Text="Discharge Rate" Classes="CardTitle" />
-                        <TextBlock Text="{Binding DischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" />
+                        <TextBlock Text="{Binding DischargeRate, StringFormat='{}{0:+0.00;-0.00;0.00} W'}" Classes="CardValue" />
                     </StackPanel>
                 </Border>
                 
@@ -70,11 +70,11 @@
                         <TextBlock Text="Min / Max Discharge" Classes="CardTitle" />
                         <StackPanel Orientation="Horizontal" Spacing="16">
                             <StackPanel>
-                                <TextBlock Text="{Binding MinDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="{StaticResource SecondaryBrush}" />
+                                <TextBlock Text="{Binding MinDischargeRate, StringFormat='{}{0:+0.00;-0.00;0.00} W'}" Classes="CardValue" Foreground="{StaticResource SecondaryBrush}" />
                                 <TextBlock Text="Min" Classes="Caption" />
                             </StackPanel>
                             <StackPanel Margin="16,0,0,0">
-                                <TextBlock Text="{Binding MaxDischargeRate, StringFormat='{}{0:F1} W'}" Classes="CardValue" Foreground="{StaticResource DangerBrush}" />
+                                <TextBlock Text="{Binding MaxDischargeRate, StringFormat='{}{0:+0.00;-0.00;0.00} W'}" Classes="CardValue" Foreground="{StaticResource DangerBrush}" />
                                 <TextBlock Text="Max" Classes="Caption" />
                             </StackPanel>
                         </StackPanel>
