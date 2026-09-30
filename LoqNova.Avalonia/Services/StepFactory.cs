@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using LoqNova.Lib;
+using LoqNova.Lib.Automation;
 using LoqNova.Lib.Automation.Pipeline.Triggers;
 using LoqNova.Lib.Automation.Steps;
 using Delay = LoqNova.Lib.Automation.Delay;

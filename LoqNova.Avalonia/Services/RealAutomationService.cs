@@ -109,7 +109,7 @@ public sealed class RealAutomationService : IAutomationService
         // A pipeline with a trigger is automatic; one without is a manual quick action.
         if (!isManual)
         {
-            model.Trigger = new Pipeline.Triggers.OnStartupAutomationPipelineTrigger();
+            model.Trigger = new LoqNova.Lib.Automation.Pipeline.Triggers.OnStartupAutomationPipelineTrigger();
         }
 
         _draft.Add(model);
@@ -162,7 +162,9 @@ public sealed class RealAutomationService : IAutomationService
     {
         ArgumentNullException.ThrowIfNull(step);
 
-        if (StepFactory.Create(step.TypeName) is not { } backendStep)
+        IAutomationStep? backendStep = StepFactory.Create(step.TypeName);
+
+        if (backendStep is null)
         {
             throw new InvalidOperationException($"Unknown step type: {step.TypeName}");
         }
