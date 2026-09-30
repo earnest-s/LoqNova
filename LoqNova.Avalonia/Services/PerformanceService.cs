@@ -45,7 +45,7 @@ public class PerformanceService : IPerformanceService
         {
             try
             {
-                return LoqNova.Lib.Compatibility
+                return LoqNova.Lib.Utils.Compatibility
                     .GetMachineInformationAsync()
                     .ConfigureAwait(false)
                     .GetAwaiter()

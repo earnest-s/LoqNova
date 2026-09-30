@@ -6,6 +6,7 @@ using Avalonia;
 using Avalonia.Media;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using Microsoft.Extensions.DependencyInjection;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels.Dialogs;
 using LoqNova.Lib;

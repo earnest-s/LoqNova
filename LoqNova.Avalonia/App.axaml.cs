@@ -120,6 +120,11 @@ public partial class App : Application
         builder.RegisterType<AboutViewModel>().InstancePerDependency();
         
         // Register Dialog ViewModels
+        // Dialog host. Presented as an overlay inside the main window rather than as
+        // separate Windows, so the application keeps a single top-level window and
+        // does not prompt for elevation twice.
+        builder.RegisterType<DialogService>().As<IDialogService>().SingleInstance();
+
         builder.RegisterType<CustomModeSettingsViewModel>().InstancePerDependency();
         builder.RegisterType<EditDashboardViewModel>().InstancePerDependency();
         builder.RegisterType<BalanceModeSettingsViewModel>().InstancePerDependency();
