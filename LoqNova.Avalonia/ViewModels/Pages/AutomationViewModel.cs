@@ -528,7 +528,14 @@ public partial class AutomationPipelineViewModel : ViewModelBase
 
     /// <summary>Adds the step chosen in this pipeline's own picker.</summary>
     [RelayCommand]
-    private Task AddStepAsync() => AddStepAsync(SelectedStepOption);
+    /// <summary>
+    /// Adds the step chosen in this pipeline's own picker.
+    ///
+    /// A parameterless async Task cannot become a RelayCommand, so this is invoked
+    /// directly by the Add step button's click behaviour instead of a generated command -
+    /// which is why the button previously did nothing at all.
+    /// </summary>
+    public Task AddSelectedStepAsync() => AddStepAsync(SelectedStepOption);
 
     internal async Task MoveStepUpAsync(AutomationStepViewModel step)
     {
