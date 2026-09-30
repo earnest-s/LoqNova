@@ -173,6 +173,11 @@ public partial class BatteryViewModel : ViewModelBase
     [RelayCommand]
     private async Task RefreshAsync()
     {
-        // Trigger refresh
+        // This was an empty stub, so the page's timer was calling a no-op and every
+        // reading stayed frozen at whatever InitializeAsync had loaded. The service does
+        // the actual Win32 query; re-reading the state after it is what pushes new values
+        // into the bound properties.
+        await _batteryService.RefreshAsync().ConfigureAwait(true);
+        LoadCurrentState();
     }
 }
