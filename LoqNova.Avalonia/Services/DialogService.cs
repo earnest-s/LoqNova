@@ -70,6 +70,11 @@ public sealed class DialogService : IDialogService
             if (Host is not ContentControl host)
                 return;
 
+            // A dialog is presented outside the page's visual tree, so it inherits no
+            // DataContext. Without this the view binds against the page ViewModel and
+            // every control inside it silently fails to resolve.
+            view.DataContext = dialog;
+
             host.Content = view;
             host.IsVisible = true;
             Current = dialog;
