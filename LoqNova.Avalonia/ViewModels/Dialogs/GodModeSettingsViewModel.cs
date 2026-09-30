@@ -283,13 +283,6 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
             _controller = await Task.Run(
                 () => LoqNova.Lib.IoCContainer.Resolve<IGodModeController>()).ConfigureAwait(false);
 
-            // The fan curve shows each fan's live speed, so it needs the sensor feed.
-            var sensors = await Task.Run(
-                () => LoqNova.Avalonia.IoCContainer.Resolve<LoqNova.Avalonia.Services.ISensorsService>())
-                .ConfigureAwait(false);
-
-            await _dispatcher.InvokeAsync(() => FanCurve.Attach(sensors)).ConfigureAwait(false);
-
             // WPF only shows a warning when the controller requires the software to be
             // closed *and* that software is actually running. Checking only the first
             // reported "Vantage must be closed" on a machine where Vantage is not even
