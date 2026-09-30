@@ -110,22 +110,10 @@ internal static class StepFactory
         return new AutomationStepOption(typeName, Humanize(typeName), create);
     }
 
-    private static TriggerOption Trigger(Func<IAutomationPipelineTrigger> create, string displayName)
+    private static TriggerOption Trigger(
+        string typeName, string displayName, Func<IAutomationPipelineTrigger> create)
     {
-        // The display name is passed in rather than read off a prototype, because
-        // constructing one resolves the trigger's listener from the container.
-        return new TriggerOption(TypeNameOf(create), displayName, create);
-    }
-
-    /// <summary>The backend type name a trigger factory produces.</summary>
-    private static string TypeNameOf(Func<IAutomationPipelineTrigger> create)
-    {
-        // Derived from the factory's target type, without running the constructor.
-        var type = create.Method.ReturnType;
-
-        return type.FullName is { } full && type.IsGenericType
-            ? full[..full.IndexOf('`')]
-            : type.Name;
+        return new TriggerOption(typeName, displayName, create);
     }
 
     /// <summary>
