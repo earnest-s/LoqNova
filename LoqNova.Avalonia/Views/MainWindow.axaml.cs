@@ -36,10 +36,33 @@ public partial class MainWindow : Window
     /// </summary>
     private void OnTitleBarPointerPressed(object? sender, PointerPressedEventArgs e)
     {
-        if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed &&
-            e.Source is not Interactive)
+        if (!e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
         {
-            BeginMoveDrag(e);
+            return;
         }
+
+        // Only the caption buttons are excluded. The previous guard rejected anything
+        // Interactive, which also threw away presses that landed on the labels and icons
+        // filling most of the bar - so the window could not be dragged from most of the
+        // area a user would naturally grab it by.
+        if (e.Source is Button or ToggleButton or ComboBox)
+        {
+            return;
+        }
+
+        BeginMoveDrag(e);
+    }
+
+    /// <summary>Double-clicking the custom title bar maximises and restores, as native does.</summary>
+    private void OnTitleBarTapped(object? sender, TappedEventArgs e)
+    {
+        if (e.Source is Button or ToggleButton or ComboBox)
+        {
+            return;
+        }
+
+        WindowState = WindowState == WindowState.Maximized
+            ? WindowState.Normal
+            : WindowState.Maximized;
     }
 }
