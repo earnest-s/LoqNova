@@ -25,7 +25,7 @@ public partial class AutomationPage : UserControl
     /// come from the backend feature, which resolves from the global IoC container and
     /// can block, and doing that during layout hung the window.
     /// </summary>
-    protected override async void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    protected override async void OnAttachedToVisualTree(EventArgs e)
     {
         base.OnAttachedToVisualTree(e);
 
