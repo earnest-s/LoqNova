@@ -54,6 +54,8 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
         : base(dialogs)
     {
         _dispatcher = dispatcher;
+
+        _logger = logger;
     }
 
     public async Task InitializeAsync()
@@ -75,8 +77,6 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 // NVAPI GPU check with a Lenovo WMI capability check and reports only
                 // the result, so a generic "unsupported" left it impossible to tell a
                 // driver problem from a firmware capability flag.
-                var nvapi = "not probed";
-                _ = nvapi;
 
                 var wmi = await Task.Run(async () =>
                 {
