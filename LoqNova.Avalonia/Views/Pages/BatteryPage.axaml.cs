@@ -1,4 +1,7 @@
+using System;
 using Avalonia.Controls;
+using Avalonia.VisualTree;
+using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using LoqNova.Avalonia.ViewModels.Pages;
