@@ -49,6 +49,11 @@ public partial class AutomationViewModel : ViewModelBase
         _automationService.PipelinesChanged += OnPipelinesChanged;
 
         IsAutomationEnabled = _automationService.IsEnabled;
+
+        // The service loads during app startup, which happens before this view model is
+        // constructed, so the initial publish has already been missed. Populate from
+        // whatever the service currently holds rather than waiting for the next change.
+        OnPipelinesChanged();
     }
 
     /// <summary>
@@ -76,6 +81,22 @@ public partial class AutomationViewModel : ViewModelBase
     private void OnPipelinesChanged()
     {
         IsAutomationEnabled = _automationService.IsEnabled;
+
+        // The service holds the projected pipelines; the view binds to these copies, so
+        // they have to be rebuilt whenever the backend republishes. This previously only
+        // refreshed the toggle, which left both containers permanently empty.
+        AutomaticPipelines.Clear();
+        ManualPipelines.Clear();
+
+        foreach (var pipeline in _automationService.AutomaticPipelines)
+        {
+            AutomaticPipelines.Add(AutomationPipelineViewModel.Create(pipeline, isManual: false));
+        }
+
+        foreach (var pipeline in _automationService.ManualPipelines)
+        {
+            ManualPipelines.Add(AutomationPipelineViewModel.Create(pipeline, isManual: true));
+        }
     }
 
     partial void OnIsAutomationEnabledChanged(bool value) => _ = SetEnabledAsync(value);
@@ -302,6 +323,35 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     private string _triggerTypeName = string.Empty;
 
     public ObservableCollection<AutomationStepViewModel> Steps { get; } = [];
+
+    /// <summary>
+    /// Projects the service's pipeline for binding. The step rows carry their position
+    /// because Move Up/Down and Delete are index based, exactly as WPF's are.
+    /// </summary>
+    public static AutomationPipelineViewModel Create(AutomationPipeline source, bool isManual)
+    {
+        var viewModel = new AutomationPipelineViewModel
+        {
+            Id = source.Id,
+            IsManual = isManual,
+            Name = source.Name,
+            Icon = source.Icon,
+            TriggerTypeName = source.TriggerTypeName
+        };
+
+        for (var i = 0; i < source.Steps.Count; i++)
+        {
+            viewModel.Steps.Add(new AutomationStepViewModel
+            {
+                Index = i,
+                LastIndex = source.Steps.Count - 1,
+                PipelineId = source.Id,
+                TypeName = source.Steps[i].TypeName
+            });
+        }
+
+        return viewModel;
+    }
 }
 
 /// <summary>A step projected from a real <see cref="IAutomationStep"/>.</summary>
