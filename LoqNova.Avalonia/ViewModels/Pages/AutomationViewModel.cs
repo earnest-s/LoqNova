@@ -303,6 +303,24 @@ public partial class AutomationPipelineViewModel : ViewModelBase
 }
 
 /// <summary>A step projected from a real <see cref="IAutomationStep"/>.</summary>
+/// <summary>Parameter for rename: which pipeline, and the new name.</summary>
+public sealed class PipelineRenameRequest
+{
+    public Guid PipelineId { get; init; }
+
+    public string Name { get; init; } = string.Empty;
+
+    public string Icon { get; init; } = string.Empty;
+}
+
+/// <summary>Parameter for the trigger command: which pipeline, and which real trigger type.</summary>
+public sealed class PipelineTriggerRequest
+{
+    public Guid PipelineId { get; init; }
+
+    public string TriggerTypeName { get; init; } = string.Empty;
+}
+
 /// <summary>Parameter for the add-step command: which pipeline, and which real step type.</summary>
 public sealed class AutomationStepRequest
 {
