@@ -253,7 +253,11 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
 
         try
         {
-            _controller = LoqNova.Lib.IoCContainer.Resolve<IGodModeController>();
+            // Resolved off the UI thread: IoCContainer.Resolve holds a global lock, and
+            // the controller chain queries WMI, which needs the dispatcher to be free.
+            // Constructing it on the UI thread deadlocks the application.
+            _controller = await Task.Run(
+                () => LoqNova.Lib.IoCContainer.Resolve<IGodModeController>()).ConfigureAwait(false);
 
             var needsVantage = await _controller.NeedsVantageDisabledAsync().ConfigureAwait(false);
             var needsLegion = await _controller.NeedsLegionZoneDisabledAsync().ConfigureAwait(false);
