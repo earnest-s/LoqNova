@@ -494,9 +494,53 @@ public partial class AutomationStepViewModel : ViewModelBase
 
         TypeName = model.GetType().Name;
         DisplayName = StepFactoryAccess.Humanize(TypeName);
-
         _configurationSummary = StepConfiguration.Describe(model);
-        _ = LoadStatesAsync();
+
+        // Deliberately not here: loading the selectable values calls the step's feature,
+        // which can block on WMI, and step construction itself resolves from the global
+        // IoC container. Doing that on the UI thread during rendering hangs the window.
+        // RefreshAsync is called by the page once it is attached.
+    }
+
+    /// <summary>
+    /// Loads the legal configuration values for this step. Must be called off the UI
+    /// thread's critical path, because the backend's feature calls can block.
+    /// </summary>
+    public async Task RefreshAsync()
+    {
+        try
+        {
+            var values = await StepConfiguration
+                .GetStatesAsync(Model)
+                .ConfigureAwait(false);
+
+            States.Clear();
+
+            var current = StepConfiguration.GetState(Model);
+
+            foreach (var value in values)
+            {
+                if (value is null)
+                {
+                    continue;
+                }
+
+                var option = new StepStateOption(value, value.ToString() ?? string.Empty);
+
+                States.Add(option);
+
+                if (Equals(value, current))
+                {
+                    SelectedState = option;
+                }
+            }
+        }
+        catch (Exception)
+        {
+            States.Clear();
+        }
+
+        OnPropertyChanged(nameof(HasConfiguration));
     }
 
     [ObservableProperty]
