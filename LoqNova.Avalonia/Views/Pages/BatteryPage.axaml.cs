@@ -1,6 +1,5 @@
 using System;
 using Avalonia.Controls;
-using Avalonia.VisualTree;
 using Avalonia.Interactivity;
 using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
@@ -26,13 +25,13 @@ public partial class BatteryPage : UserControl
         DetachedFromVisualTree += OnDetached;
     }
 
-    private void OnAttached(object? sender, VisualTreeAttachmentEventArgs e)
+    private void OnAttached(object? sender, EventArgs e)
     {
         _timer.Start();
         Refresh();
     }
 
-    private void OnDetached(object? sender, VisualTreeAttachmentEventArgs e) => _timer.Stop();
+    private void OnDetached(object? sender, EventArgs e) => _timer.Stop();
 
     private void OnTick(object? sender, EventArgs e) => Refresh();
 
