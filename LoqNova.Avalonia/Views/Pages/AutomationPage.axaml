@@ -17,8 +17,12 @@
                     <ToggleSwitch IsChecked="{Binding IsAutomationEnabled}" OnContent="Enabled" OffContent="Disabled" />
                     <Button Classes="PrimaryButton" Content="Add Automatic" Command="{Binding AddAutomaticPipelineCommand}" />
                     <Button Classes="PrimaryButton" Content="Add Manual" Command="{Binding AddManualPipelineCommand}" />
-                    <Button Classes="SecondaryButton" Content="Save" Command="{Binding SaveCommand}" />
-                    <Button Classes="GhostButton" Content="Revert" Command="{Binding RevertCommand}" />
+                    <Button Classes="SecondaryButton" Content="Save" Command="{Binding SaveCommand}"
+                            IsVisible="{Binding IsDirty}" />
+                    <Button Classes="GhostButton" Content="Revert" Command="{Binding RevertCommand}"
+                            IsVisible="{Binding IsDirty}" />
+                    <ProgressBar IsIndeterminate="True" Width="90" Height="4"
+                                 IsVisible="{Binding IsLoading}" />
                 </StackPanel>
             </StackPanel>
             
