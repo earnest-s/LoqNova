@@ -42,7 +42,21 @@ public partial class FanCurvePointViewModel : ViewModelBase
     /// <summary>Index of this point within the fan table.</summary>
     public int Index { get; init; }
 
-    /// <summary>RPM the selected step corresponds to, or a dash when unbacked.</summary>
+    /// <summary>Whether this point drives the GPU fan, rather than the CPU fan.</summary>
+    public bool IsGpuFan { get; init; }
+
+    /// <summary>
+    /// Live reading from the fan this point drives, in RPM. The curve itself only holds
+    /// a target, so without this the number next to the slider looks like the current
+    /// speed when it is not.
+    /// </summary>
+    [ObservableProperty]
+    private int _liveFanSpeed = -1;
+
+    /// <summary>The live reading, or a dash while the sensor has no value yet.</summary>
+    public string LiveSpeedLabel => LiveFanSpeed < 0 ? "—" : $"{LiveFanSpeed} RPM";
+
+    /// <summary>The configured target, kept for the tooltip.</summary>
     public string SpeedLabel => Speeds.Length == 0
         ? "—"
         : StepCount > 0 && SpeedIndex >= 0 && SpeedIndex < Speeds.Length
