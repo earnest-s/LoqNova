@@ -255,6 +255,24 @@ public partial class App : Application
     /// completion and only then allowed to continue the shutdown.
     /// </para>
     /// </summary>
+    /// <summary>
+    /// Reports an otherwise fatal UI exception and keeps the window alive, so a backend
+    /// call that throws surfaces as a logged fault instead of a silent process exit.
+    /// </summary>
+    private static void OnDispatcherUnhandledException(object? sender, DispatcherUnhandledExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"Unhandled UI exception: {e.Exception}");
+
+        e.Handled = true;
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
+
+        e.SetObserved();
+    }
+
     private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
         try
