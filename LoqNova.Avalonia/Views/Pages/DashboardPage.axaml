@@ -74,6 +74,17 @@
                                   </DataTemplate>
                               </ComboBox.ItemTemplate>
                           </ComboBox>
+
+                          <!-- WPF shows a settings button beside the mode selector for
+                               Balance (AI Engine) and Custom Mode (the limits), and
+                               hides it otherwise. The same gating applies here, so the
+                               button is only offered where there is real settings. -->
+                          <Button Classes="IconButton"
+                                  ToolTip.Tip="Open the settings for this mode"
+                                  IsVisible="{Binding HasPowerModeSettings}"
+                                  Command="{Binding OpenPowerModeSettingsCommand}">
+                              <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
+                          </Button>
                       </StackPanel>
                 </Grid>
             </Border>
