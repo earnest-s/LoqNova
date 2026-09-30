@@ -71,7 +71,8 @@ public sealed class DialogService : IDialogService
 
     private IServiceProvider? _services;
 
-    private Control? Host => _host;
+    private Control? HostUnused => _host;
+
 
     public bool IsOpen { get; private set; }
 
