@@ -45,7 +45,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
     {
         await LibContainer.Initialization.ConfigureAwait(false);
 
-        var controller = LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>();
+        var controller = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>()).ConfigureAwait(false);
         IsSupported = await controller.IsSupportedAsync().ConfigureAwait(false);
 
         if (!IsSupported)
@@ -73,7 +73,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 
         await LibContainer.Initialization.ConfigureAwait(false);
 
-        var controller = LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>();
+        var controller = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>()).ConfigureAwait(false);
 
         // WPF's sliders are ranged from zero to the reported maximum, so negative
         // offsets are not selectable there and are rejected here too.

@@ -54,7 +54,7 @@ public partial class BalanceModeSettingsViewModel : DialogViewModelBase
 
         try
         {
-            var controller = LoqNova.Lib.IoCContainer.Resolve<AIController>();
+            var controller = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<AIController>()).ConfigureAwait(false);
 
             // The property is the persisted value; availability is reported separately
             // by the capability check the controller performs internally.
@@ -94,8 +94,8 @@ public partial class BalanceModeSettingsViewModel : DialogViewModelBase
 
             await LibContainer.Initialization.ConfigureAwait(false);
 
-            var controller = LoqNova.Lib.IoCContainer.Resolve<AIController>();
-            var powerMode = LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Features.PowerModeFeature>();
+            var controller = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<AIController>()).ConfigureAwait(false);
+            var powerMode = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Features.PowerModeFeature>()).ConfigureAwait(false);
 
             controller.IsAIModeEnabled = AiEngineEnabled;
 

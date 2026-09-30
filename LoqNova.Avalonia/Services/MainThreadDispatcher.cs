@@ -25,6 +25,15 @@ public class MainThreadDispatcher : IMainThreadDispatcher, LibDispatcher
     
     public Task InvokeAsync(Action action)
     {
+        // Already on the UI thread: running inline avoids posting to the dispatcher and
+        // then waiting for it, which cannot complete while this thread is the one
+        // that has to drain the queue. That self-wait presented as a frozen window.
+        if (Dispatcher.UIThread.CheckAccess())
+        {
+            action();
+            return Task.CompletedTask;
+        }
+
         var tcs = new TaskCompletionSource<object?>();
         Dispatcher.UIThread.Post(() =>
         {
@@ -43,6 +52,9 @@ public class MainThreadDispatcher : IMainThreadDispatcher, LibDispatcher
     
     public Task<T> InvokeAsync<T>(Func<T> func)
     {
+        if (Dispatcher.UIThread.CheckAccess())
+            return Task.FromResult(func());
+
         var tcs = new TaskCompletionSource<T>();
         Dispatcher.UIThread.Post(() =>
         {
