@@ -184,7 +184,7 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task RemovePipelineAsync(AutomationPipelineViewModel? pipeline)
+    internal async Task RemovePipelineAsync(AutomationPipelineViewModel? pipeline)
     {
         if (pipeline is null)
         {
@@ -196,7 +196,7 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task MovePipelineUpAsync(AutomationPipelineViewModel? pipeline)
+    internal async Task MovePipelineUpAsync(AutomationPipelineViewModel? pipeline)
     {
         if (pipeline is null)
         {
@@ -208,7 +208,7 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task MovePipelineDownAsync(AutomationPipelineViewModel? pipeline)
+    internal async Task MovePipelineDownAsync(AutomationPipelineViewModel? pipeline)
     {
         if (pipeline is null)
         {
@@ -232,7 +232,7 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task RemoveStepAsync(AutomationStepViewModel? step)
+    internal async Task RemoveStepAsync(AutomationStepViewModel? step)
     {
         if (step?.Owner is not { } pipeline)
         {
@@ -244,7 +244,7 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task MoveStepUpAsync(AutomationStepViewModel? step)
+    internal async Task MoveStepUpAsync(AutomationStepViewModel? step)
     {
         if (step?.Owner is not { } pipeline)
         {
@@ -256,7 +256,7 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task MoveStepDownAsync(AutomationStepViewModel? step)
+    internal async Task MoveStepDownAsync(AutomationStepViewModel? step)
     {
         if (step?.Owner is not { } pipeline)
         {
@@ -268,7 +268,7 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task RunNowAsync(AutomationPipelineViewModel? pipeline)
+    internal async Task RunNowAsync(AutomationPipelineViewModel? pipeline)
     {
         if (pipeline is null)
         {
@@ -489,13 +489,13 @@ public partial class AutomationStepViewModel : ViewModelBase
     public bool IsSupported { get; private set; } = true;
 
     [RelayCommand]
-    private Task MoveUpAsync() => Owner.MoveStepUpCommand.ExecuteAsync(this);
+    private Task MoveUpAsync() => Owner.MoveStepUpAsync(this);
 
     [RelayCommand]
-    private Task MoveDownAsync() => Owner.MoveStepDownCommand.ExecuteAsync(this);
+    private Task MoveDownAsync() => Owner.MoveStepDownAsync(this);
 
     [RelayCommand]
-    private Task RemoveAsync() => Owner.RemoveStepCommand.ExecuteAsync(this);
+    private Task RemoveAsync() => Owner.RemoveStepAsync(this);
 
     public async Task RefreshSupportAsync()
     {
