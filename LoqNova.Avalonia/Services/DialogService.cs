@@ -28,6 +28,25 @@ public sealed class DialogService : IDialogService
     /// </summary>
     public void Attach(Control host) => _host = host;
 
+    /// <summary>
+    /// Resolves a dialog from the shared container, which is assigned once the
+    /// application has built it. This is the only supported way for a presenter to
+    /// obtain a dialog, so a page never has to depend on a global root being ready.
+    /// </summary>
+    public T Resolve<T>() where T : ViewModelBase
+    {
+        var services = _services ?? throw new InvalidOperationException(
+            "The dialog service has no container yet. It is assigned during application startup.");
+
+        return (T)services.GetService(typeof(T))
+            ?? throw new InvalidOperationException($"{typeof(T).Name} is not registered.");
+    }
+
+    /// <summary>Supplies the shared container. Called once during application startup.</summary>
+    public void UseContainer(IServiceProvider services) => _services = services;
+
+    private IServiceProvider? _services;
+
     private Control? Host => _host;
 
     public bool IsOpen { get; private set; }

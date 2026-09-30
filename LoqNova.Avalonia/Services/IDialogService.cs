@@ -21,6 +21,13 @@ public interface IDialogService
     /// <summary>The dialog currently presented, or null.</summary>
     ViewModelBase? Current { get; }
 
+    /// <summary>
+    /// Resolves a dialog from the container. Exposed here so a presenter does not have
+    /// to reach for a global root, which is not guaranteed to be initialised by the
+    /// time presenters are constructed.
+    /// </summary>
+    T Resolve<T>() where T : ViewModelBase;
+
     /// <summary>Presents <paramref name="dialog"/> modally.</summary>
     Task ShowAsync(ViewModelBase dialog);
 

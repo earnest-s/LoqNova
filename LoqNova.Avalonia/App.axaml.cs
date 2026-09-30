@@ -175,7 +175,12 @@ public partial class App : Application
             // safe: the library container is already up, and this is not a
             // construction path that can run before the readiness gate.
             if (Container.Resolve<IDialogService>() is DialogService dialogs)
+            {
+                // The service resolves dialogs through this container, and the window
+                // supplies the overlay they are presented in.
+                dialogs.UseContainer(new AutofacServiceProvider(Container));
                 dialogs.Attach(mainWindow.DialogHost);
+            }
 
             desktop.MainWindow = mainWindow;
             

@@ -207,29 +207,6 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
         Title = "GPU Overclock";
         Icon = "SpeedHigh64";
         IsToggle = true;
-
-        // WPF's OverclockDiscreteGPUSettingsWindow exposes exactly these two, and both
-        // are ranged from zero: negative offsets are not selectable there.
-        var core = new WidgetSettingViewModel
-        {
-            Label = "Core Frequency Offset",
-            Unit = "MHz",
-            Minimum = 0,
-            Maximum = MaxCoreOffset,
-            ApplyCommand = new AsyncRelayCommand(ApplyOffsetsAsync)
-        };
-
-        var memory = new WidgetSettingViewModel
-        {
-            Label = "Memory Frequency Offset",
-            Unit = "MHz",
-            Minimum = 0,
-            Maximum = 1500,
-            ApplyCommand = new AsyncRelayCommand(ApplyOffsetsAsync)
-        };
-
-        Settings.Add(core);
-        Settings.Add(memory);
     }
 
 
@@ -271,26 +248,13 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
                 return;
             }
 
-            var (enabled, info) = _controller.GetState();
-
-            // The memory ceiling depends on the installed memory vendor, so it is read
-            // here rather than assumed. That call initialises NVAPI, which is why it is
-            // never called from a property initialiser.
-            var maxMemory = GPUOverclockController.GetMaxMemoryDeltaMhz();
+            var (enabled, _) = _controller.GetState();
 
             await Dispatcher.InvokeAsync(() =>
             {
                 IsAvailable = true;
                 ErrorMessage = null;
                 SetIsOnFromBackend(enabled);
-
-                // [0] is the core offset, [1] the memory offset, in the order added.
-                if (Settings.Count >= 2)
-                {
-                    Settings[1].Maximum = maxMemory;
-                    Settings[0].Value = info.CoreDeltaMhz;
-                    Settings[1].Value = info.MemoryDeltaMhz;
-                }
             }).ConfigureAwait(false);
         }
         catch (Exception ex)
@@ -311,22 +275,26 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
     /// <summary>Icon for the settings button, reusing the dashboard's icon set.</summary>
     public string SettingsIcon => "Settings64";
 
-    /// <summary>Writes the toggle through the controller, then re-reads the real state.</summary>
+    /// <summary>
+    /// Writes the toggle through the controller, then re-reads the real state.
+    /// <para>
+    /// The offsets are left as the controller already holds them: WPF's card is a
+    /// toggle plus a settings button, with the sliders in the settings window, and it
+    /// saves the current info alongside the enabled flag.
+    /// </para>
+    /// </summary>
     private async Task ApplyAsync()
     {
         try
         {
             IsBusy = true;
 
-            // The toggle changes the enabled flag; the offsets are whatever the
-            // sliders currently show, so editing a value is never lost by flipping
-            // the switch.
             var (_, info) = _controller!.GetState();
-            var core = Settings.Count >= 2 ? (int)Math.Round(Settings[0].Value) : info.CoreDeltaMhz;
-            var memory = Settings.Count >= 2 ? (int)Math.Round(Settings[1].Value) : info.MemoryDeltaMhz;
+            _controller.SaveState(IsOn, info);
 
-            _controller.SaveState(IsOn, ClampOffsets(core, memory));
-            await _controller.ApplyStateAsync().ConfigureAwait(false);
+            // WPF passes force:true here so the change is always written, including
+            // writing zeros when switching off.
+            await _controller.ApplyStateAsync(true).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -359,45 +327,6 @@ public sealed partial class OverclockGpuWidgetViewModel : FeatureWidgetViewModel
 
     /// <summary>Raised when the user asks for the detailed overclock dialog.</summary>
     public event EventHandler? SettingsRequested;
-
-    /// <summary>Writes the edited frequency offsets through the same controller.</summary>
-    private async Task ApplyOffsetsAsync()
-    {
-        if (!IsAvailable || !IsOn || IsBusy || _controller is null || Settings.Count < 2)
-            return;
-
-        try
-        {
-            IsBusy = true;
-
-            _controller.SaveState(
-                IsOn,
-                ClampOffsets((int)Math.Round(Settings[0].Value), (int)Math.Round(Settings[1].Value)));
-            await _controller.ApplyStateAsync().ConfigureAwait(false);
-        }
-        catch (Exception ex)
-        {
-            await Dispatcher.InvokeAsync(() => ErrorMessage = ex.Message).ConfigureAwait(false);
-        }
-        finally
-        {
-            IsBusy = false;
-        }
-
-        await RefreshAsync().ConfigureAwait(false);
-    }
-
-    /// <summary>
-    /// Clamps to the ranges the WPF sliders allow: zero to the reported maximum,
-    /// because negative offsets are not selectable there.
-    /// </summary>
-    private GPUOverclockInfo ClampOffsets(int core, int memory)
-    {
-        var maxMemory = Settings.Count >= 2 ? (int)Settings[1].Maximum : 1500;
-        return new GPUOverclockInfo(
-            Math.Clamp(core, 0, MaxCoreOffset),
-            Math.Clamp(memory, 0, maxMemory));
-    }
 }
 
 /// <summary>

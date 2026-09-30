@@ -16,6 +16,7 @@ namespace LoqNova.Avalonia.ViewModels.Pages;
 public partial class DashboardViewModel : ViewModelBase
 {
     private readonly LoqNova.Avalonia.ViewModels.MainWindowViewModel _mainWindowViewModel;
+    private readonly IDialogService _dialogs;
     private readonly IPerformanceService _performanceService;
     private readonly IRgbService _rgbService;
     private readonly IThermalService _thermalService;
@@ -142,9 +143,13 @@ public partial class DashboardViewModel : ViewModelBase
         ISensorsService sensorsService,
         INavigationService navigationService,
         IMainThreadDispatcher dispatcher,
-        INotificationService notificationService)
+     INotificationService notificationService,
+     IDialogService dialogs,
+     LoqNova.Avalonia.ViewModels.MainWindowViewModel mainWindowViewModel)
     {
-        _performanceService = performanceService;
+     _dialogs = dialogs;
+     _mainWindowViewModel = mainWindowViewModel;
+     _performanceService = performanceService;
         _rgbService = rgbService;
         _thermalService = thermalService;
         _batteryService = batteryService;
@@ -432,7 +437,7 @@ public partial class DashboardViewModel : ViewModelBase
     /// </summary>
     private async Task OpenOverclockSettingsAsync()
     {
-        var dialog = AppHost.Services.GetRequiredService<Dialogs.OverclockGpuSettingsViewModel>();
+        var dialog = _dialogs.Resolve<Dialogs.OverclockGpuSettingsViewModel>();
         await _mainWindowViewModel.ShowDialogAsync(dialog);
     }
 
@@ -445,14 +450,14 @@ public partial class DashboardViewModel : ViewModelBase
     {
         if (CurrentPowerMode == PowerModeState.Balance)
         {
-            var dialog = AppHost.Services.GetRequiredService<Dialogs.BalanceModeSettingsViewModel>();
+            var dialog = _dialogs.Resolve<Dialogs.BalanceModeSettingsViewModel>();
             await _mainWindowViewModel.ShowDialogAsync(dialog);
             return;
         }
 
         if (CurrentPowerMode == PowerModeState.GodMode)
         {
-            var dialog = AppHost.Services.GetRequiredService<Dialogs.CustomModeSettingsViewModel>();
+            var dialog = _dialogs.Resolve<Dialogs.CustomModeSettingsViewModel>();
             await _mainWindowViewModel.ShowDialogAsync(dialog);
         }
     }
