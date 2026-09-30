@@ -5,56 +5,39 @@ using System.Linq;
 using System.Threading.Tasks;
 using LoqNova.Lib;
 using LoqNova.Lib.Automation;
-using LoqNova.Lib.Automation.Pipeline;
+using LoqNova.Lib.Automation.Pipeline.Triggers;
 using LoqNova.Lib.Automation.Steps;
 using RealPipeline = LoqNova.Lib.Automation.Pipeline.AutomationPipeline;
 
 namespace LoqNova.Avalonia.Services;
 
 /// <summary>
-/// Adapter over the real <see cref="AutomationProcessor"/>. This is the only production
-/// implementation of <see cref="IAutomationService"/>; it owns no automation logic of
-/// its own, it only projects the backend's <see cref="RealPipeline"/> model onto the
-/// shapes the Avalonia views bind to, and every mutation is written back through the
-/// backend so that persistence and runtime behaviour are the backend's.
+/// Adapter over the real <see cref="AutomationProcessor"/>. This owns no automation
+/// logic: every load, mutation, persistence and execution decision belongs to the
+/// backend. The service keeps an editor draft so that Delete and Revert behave the way
+/// WPF's do - uncommitted until Save.
 /// </summary>
-public sealed class RealAutomationService : IAutomationService
+public sealed class RealAutomationService : IAutomationService, IDisposable
 {
     private readonly IMainThreadDispatcher _dispatcher;
 
     private AutomationProcessor? _processor;
     private bool _initialised;
 
-    /// <summary>Working copy, edited by the views and handed to Save.</summary>
+    /// <summary>Uncommitted editor state. Save is what hands this to the backend.</summary>
     private readonly List<RealPipeline> _draft = [];
 
     public RealAutomationService(IMainThreadDispatcher dispatcher) => _dispatcher = dispatcher;
 
-    public ObservableCollection<AutomationPipeline> AutomaticPipelines { get; } = new();
+    public ObservableCollection<AutomationPipeline> AutomaticPipelines { get; } = [];
 
-    public ObservableCollection<AutomationPipeline> ManualPipelines { get; } = new();
+    public ObservableCollection<AutomationPipeline> ManualPipelines { get; } = [];
 
     public event Action? PipelinesChanged;
 
-    public bool IsEnabled
-    {
-        get => _processor?.IsEnabled ?? _isEnabledFallback;
-        set
-        {
-            _isEnabledFallback = value;
+    public bool IsEnabled => _processor?.IsEnabled ?? _fallbackEnabled;
 
-            if (_processor is null)
-            {
-                return;
-            }
-
-            // The backend persists this and re-evaluates its listeners; the local field
-            // is only a fallback for the window before the processor is resolved.
-            _ = SetEnabledAsync(value);
-        }
-    }
-
-    private bool _isEnabledFallback = true;
+    private bool _fallbackEnabled = true;
 
     public async Task InitializeAsync()
     {
@@ -63,8 +46,8 @@ public sealed class RealAutomationService : IAutomationService
             return;
         }
 
-        // Resolved after the readiness gate, off the UI thread: IoCContainer.Resolve holds
-        // a global lock, and InitializeAsync wires up native listeners.
+        // Resolved after the readiness gate and off the UI thread: IoCContainer.Resolve
+        // holds a global lock, and InitializeAsync subscribes native listeners.
         _processor = await Task.Run(() => IoCContainer.Resolve<AutomationProcessor>())
             .ConfigureAwait(false);
 
@@ -72,7 +55,7 @@ public sealed class RealAutomationService : IAutomationService
 
         _processor.PipelinesChanged += OnPipelinesChanged;
 
-        _isEnabledFallback = _processor.IsEnabled;
+        _fallbackEnabled = _processor.IsEnabled;
         _initialised = true;
 
         await ReloadAsync().ConfigureAwait(false);
@@ -87,38 +70,34 @@ public sealed class RealAutomationService : IAutomationService
 
         await _processor.SetEnabledAsync(enabled).ConfigureAwait(false);
 
-        // Re-read from the backend rather than trusting the requested value.
-        var actual = _processor.IsEnabled;
-        _isEnabledFallback = actual;
+        // Read back from the backend rather than assuming the write took effect.
+        _fallbackEnabled = _processor.IsEnabled;
 
-        await _dispatcher.InvokeAsync(() =>
-        {
-            PipelinesChanged?.Invoke();
-        }).ConfigureAwait(false);
+        await NotifyAsync().ConfigureAwait(false);
     }
 
     public Task AddPipelineAsync(AutomationPipeline pipeline, bool isManual)
     {
         ArgumentNullException.ThrowIfNull(pipeline);
 
-        var model = new RealPipeline(pipeline.Name)
-        {
-            IconName = pipeline.Icon
-        };
+        var model = new RealPipeline(pipeline.Name) { IconName = pipeline.Icon };
 
-        // A pipeline with a trigger is automatic; one without is a manual quick action.
+        // A pipeline is automatic when it has a trigger; a quick action has none.
         if (!isManual)
         {
-            model.Trigger = new LoqNova.Lib.Automation.Pipeline.Triggers.OnStartupAutomationPipelineTrigger();
+            model.Trigger = new OnStartupAutomationPipelineTrigger();
         }
 
         _draft.Add(model);
+
         return PublishAsync();
     }
 
     public Task RemovePipelineAsync(Guid id)
     {
+        // Editor-only, as in WPF: the backend keeps running this pipeline until Save.
         _draft.RemoveAll(p => p.Id == id);
+
         return PublishAsync();
     }
 
@@ -126,15 +105,15 @@ public sealed class RealAutomationService : IAutomationService
     {
         ArgumentNullException.ThrowIfNull(pipeline);
 
-        var index = _draft.FindIndex(p => p.Id == pipeline.Id);
-        if (index < 0)
+        var model = _draft.FirstOrDefault(p => p.Id == pipeline.Id);
+
+        if (model is null)
         {
-            _draft.Add(new RealPipeline(pipeline.Name) { IconName = pipeline.Icon });
-            return PublishAsync();
+            return Task.CompletedTask;
         }
 
-        _draft[index].Name = pipeline.Name;
-        _draft[index].IconName = pipeline.Icon;
+        model.Name = pipeline.Name;
+        model.IconName = pipeline.Icon;
 
         return PublishAsync();
     }
@@ -142,18 +121,35 @@ public sealed class RealAutomationService : IAutomationService
     public Task MovePipelineAsync(Guid id, int newIndex)
     {
         var index = _draft.FindIndex(p => p.Id == id);
+
         if (index < 0)
         {
             return Task.CompletedTask;
         }
 
-        // Clamped: the UI disables the command at the ends, but a stale index must not
-        // reorder the list into an invalid state.
         newIndex = Math.Clamp(newIndex, 0, _draft.Count - 1);
 
         var model = _draft[index];
         _draft.RemoveAt(index);
         _draft.Insert(newIndex, model);
+
+        return PublishAsync();
+    }
+
+    public Task SetTriggerAsync(Guid pipelineId, string triggerTypeName)
+    {
+        var model = _draft.FirstOrDefault(p => p.Id == pipelineId);
+
+        if (model is null)
+        {
+            return Task.CompletedTask;
+        }
+
+        // A null trigger makes the pipeline a manual quick action, which is how the
+        // backend distinguishes the two kinds.
+        model.Trigger = string.IsNullOrEmpty(triggerTypeName)
+            ? null
+            : StepFactory.CreateTrigger(triggerTypeName);
 
         return PublishAsync();
     }
@@ -169,19 +165,18 @@ public sealed class RealAutomationService : IAutomationService
             throw new InvalidOperationException($"Unknown step type: {step.TypeName}");
         }
 
-        var pipeline = _draft.FirstOrDefault(p => p.Id == pipelineId);
-        pipeline?.Steps.Add(backendStep);
+        _draft.FirstOrDefault(p => p.Id == pipelineId)?.Steps.Add(backendStep);
 
         return PublishAsync();
     }
 
     public Task RemoveStepAsync(Guid pipelineId, int stepIndex)
     {
-        var pipeline = _draft.FirstOrDefault(p => p.Id == pipelineId);
+        var model = _draft.FirstOrDefault(p => p.Id == pipelineId);
 
-        if (pipeline is not null && stepIndex >= 0 && stepIndex < pipeline.Steps.Count)
+        if (model is not null && stepIndex >= 0 && stepIndex < model.Steps.Count)
         {
-            pipeline.Steps.RemoveAt(stepIndex);
+            model.Steps.RemoveAt(stepIndex);
         }
 
         return PublishAsync();
@@ -189,23 +184,22 @@ public sealed class RealAutomationService : IAutomationService
 
     public Task MoveStepAsync(Guid pipelineId, int fromIndex, int toIndex)
     {
-        var pipeline = _draft.FirstOrDefault(p => p.Id == pipelineId);
+        var model = _draft.FirstOrDefault(p => p.Id == pipelineId);
 
-        if (pipeline is null || fromIndex < 0 || fromIndex >= pipeline.Steps.Count)
+        if (model is null || fromIndex < 0 || fromIndex >= model.Steps.Count)
         {
             return Task.CompletedTask;
         }
 
-        toIndex = Math.Clamp(toIndex, 0, pipeline.Steps.Count - 1);
+        toIndex = Math.Clamp(toIndex, 0, model.Steps.Count - 1);
 
-        var step = pipeline.Steps[fromIndex];
-        pipeline.Steps.RemoveAt(fromIndex);
-        pipeline.Steps.Insert(toIndex, step);
+        var step = model.Steps[fromIndex];
+        model.Steps.RemoveAt(fromIndex);
+        model.Steps.Insert(toIndex, step);
 
         return PublishAsync();
     }
 
-    /// <summary>Runs a manual pipeline through the real backend, as WPF does.</summary>
     public async Task RunNowAsync(Guid pipelineId)
     {
         if (_processor is null)
@@ -217,14 +211,10 @@ public sealed class RealAutomationService : IAutomationService
     }
 
     /// <summary>
-    /// WPF's Revert: rebuilds from the backend's in-memory pipelines and discards the
-    /// uncommitted draft. The backend exposes no discard API, so this reloads rather
-    /// than writing anything.
+    /// WPF's Revert. The backend exposes no discard API, so this reloads the in-memory
+    /// pipelines and rebuilds the editor state, writing nothing to disk.
     /// </summary>
-    public async Task RevertAsync()
-    {
-        await ReloadAsync().ConfigureAwait(false);
-    }
+    public async Task RevertAsync() => await ReloadAsync().ConfigureAwait(false);
 
     public async Task SaveAsync()
     {
@@ -233,8 +223,8 @@ public sealed class RealAutomationService : IAutomationService
             return;
         }
 
-        // The single write path, exactly as WPF uses it: the backend deep-copies,
-        // persists automation.json, notifies listeners and raises PipelinesChanged.
+        // The one write path, as WPF uses it: the backend deep-copies, persists
+        // automation.json, re-evaluates listeners and raises PipelinesChanged.
         await _processor.ReloadPipelinesAsync([.. _draft]).ConfigureAwait(false);
     }
 
@@ -260,35 +250,41 @@ public sealed class RealAutomationService : IAutomationService
 
         foreach (var model in _draft)
         {
-            var projected = Project(model);
+            var projected = Project(model, model.Trigger is null);
 
-            // A pipeline with a trigger is automatic; one without is a quick action.
-            if (model.Trigger is not null)
-            {
-                AutomaticPipelines.Add(projected);
-            }
-            else
+            if (model.Trigger is null)
             {
                 ManualPipelines.Add(projected);
             }
+            else
+            {
+                AutomaticPipelines.Add(projected);
+            }
         }
 
-        return _dispatcher.InvokeAsync(() => PipelinesChanged?.Invoke());
+        return NotifyAsync();
     }
 
-    private static AutomationPipeline Project(RealPipeline model) => new()
+    private static AutomationPipeline Project(RealPipeline model, bool isManual)
     {
-        Id = model.Id,
-        Name = model.Name ?? "Unnamed",
-        Icon = model.IconName ?? string.Empty,
-        Steps = new ObservableCollection<AutomationStep>(
-            model.Steps.Select(s => new AutomationStep
-            {
-                Name = s.GetType().Name,
-                TypeName = s.GetType().Name,
-                Config = s
-            }))
-    };
+        var projected = new AutomationPipeline
+        {
+            Id = model.Id,
+            Name = model.Name ?? "Unnamed",
+            Icon = model.IconName ?? string.Empty,
+            TriggerTypeName = model.Trigger?.GetType().Name ?? string.Empty,
+            IsManual = isManual
+        };
+
+        for (var i = 0; i < model.Steps.Count; i++)
+        {
+            projected.Steps.Add(new AutomationStep { TypeName = model.Steps[i].GetType().Name });
+        }
+
+        return projected;
+    }
+
+    private Task NotifyAsync() => _dispatcher.InvokeAsync(() => PipelinesChanged?.Invoke());
 
     private void OnPipelinesChanged(object? sender, List<RealPipeline> pipelines) => _ = ReloadAsync();
 
