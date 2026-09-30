@@ -62,7 +62,9 @@ public sealed class DialogService : IDialogService
         ArgumentNullException.ThrowIfNull(dialog);
 
         var view = CreateView(dialog);
-        T("ShowAsync " + dialog.GetType().Name + " view=" + (view?.GetType().Name ?? "NULL-VIEW"));
+        T("ShowAsync " + dialog.GetType().Name + " view=" + (view?.GetType().Name ?? "NULL-VIEW")
+            + " hostField=" + (Host?.GetType().FullName ?? "NULL-HOST"));
+
         if (view is null)
             return Task.CompletedTask;
 
