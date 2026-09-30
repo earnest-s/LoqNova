@@ -158,14 +158,12 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        var created = await _automationService
+        await _automationService
             .AddPipelineAsync(new AutomationPipeline { Name = name[..Math.Min(name.Length, 50)] }, isManual: true)
             .ConfigureAwait(true);
 
         PendingManualName = null;
         IsManualNamePromptOpen = false;
-
-        _ = created;
 
         IsDirty = true;
     }

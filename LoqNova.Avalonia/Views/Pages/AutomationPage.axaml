@@ -15,8 +15,23 @@
                 <TextBlock Text="Automation" Classes="PageTitle" />
                 <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
                     <ToggleSwitch IsChecked="{Binding IsAutomationEnabled}" OnContent="Enabled" OffContent="Disabled" />
+
+                    <!-- WPF creates an automatic pipeline around a chosen trigger. -->
+                    <ComboBox Classes="Control" Width="220"
+                              ItemsSource="{Binding TriggerTypes}"
+                              SelectedItem="{Binding SelectedTriggerType, Mode=TwoWay}" />
                     <Button Classes="PrimaryButton" Content="Add Automatic" Command="{Binding AddAutomaticPipelineCommand}" />
                     <Button Classes="PrimaryButton" Content="Add Manual" Command="{Binding AddManualPipelineCommand}" />
+
+                    <!-- WPF's inline name prompt for quick actions, not a modal window. -->
+                    <TextBox Classes="Control" Width="220"
+                             Watermark="Quick action name"
+                             MaxLength="50"
+                             IsVisible="{Binding IsManualNamePromptOpen}"
+                             Text="{Binding PendingManualName, Mode=TwoWay}" />
+                    <Button Classes="SecondaryButton" Content="OK" IsVisible="{Binding IsManualNamePromptOpen}" Command="{Binding AddManualPipelineCommand}" />
+                    <Button Classes="GhostButton" Content="Cancel" IsVisible="{Binding IsManualNamePromptOpen}" Command="{Binding CancelManualNamePromptCommand}" />
+
                     <Button Classes="SecondaryButton" Content="Save" Command="{Binding SaveCommand}"
                             IsVisible="{Binding IsDirty}" />
                     <Button Classes="GhostButton" Content="Revert" Command="{Binding RevertCommand}"

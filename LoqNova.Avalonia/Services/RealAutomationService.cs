@@ -82,10 +82,16 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
         var model = new RealPipeline(pipeline.Name) { IconName = pipeline.Icon };
 
-        // A pipeline is automatic when it has a trigger; a quick action has none.
+        // A pipeline is automatic when it has a trigger; a quick action has none. The
+        // trigger must be a real backend instance, not a placeholder.
         if (!isManual)
         {
-            model.Trigger = new OnStartupAutomationPipelineTrigger();
+            var typeName = string.IsNullOrEmpty(pipeline.TriggerTypeName)
+                ? nameof(OnStartupAutomationPipelineTrigger)
+                : pipeline.TriggerTypeName;
+
+            model.Trigger = StepFactory.CreateTrigger(typeName)
+                ?? new OnStartupAutomationPipelineTrigger();
         }
 
         _draft.Add(model);
