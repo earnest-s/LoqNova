@@ -58,6 +58,9 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
         _logger = logger;
     }
 
+    /// <summary>True while the backend is being queried, so nothing is claimed yet.</summary>
+    public bool IsLoading { get; private set; } = true;
+
     public async Task InitializeAsync()
     {
         try

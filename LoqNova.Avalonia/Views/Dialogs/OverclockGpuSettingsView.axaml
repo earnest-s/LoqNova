@@ -17,15 +17,20 @@
             </StackPanel>
 
             <StackPanel DockPanel.Dock="Bottom" Margin="16,12,16,16">
+                <!-- One message, always the real one. A second hard-coded
+                     "not supported" panel was shown alongside this one, and because
+                     IsSupported starts false it appeared the instant the dialog
+                     opened — before the backend had been asked anything — and it
+                     stayed regardless of what the backend actually reported. -->
                 <Border Classes="InsetPanel" Padding="10" Margin="0,0,0,10"
                         IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
                     <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Classes="WidgetError" />
                 </Border>
 
                 <Border Classes="InsetPanel" Padding="10" Margin="0,0,0,10"
-                        IsVisible="{Binding !IsSupported}">
-                    <TextBlock TextWrapping="Wrap" Classes="WidgetWarning"
-                               Text="This machine does not report discrete GPU overclock support." />
+                        IsVisible="{Binding IsLoading}">
+                    <TextBlock Text="Reading the current overclock state from the machine..."
+                               TextWrapping="Wrap" Classes="WidgetWarning" />
                 </Border>
 
                 <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
