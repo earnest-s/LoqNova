@@ -292,5 +292,11 @@ public sealed class RealAutomationService : IAutomationService
 
     private void OnPipelinesChanged(object? sender, List<RealPipeline> pipelines) => _ = ReloadAsync();
 
-    public void Dispose() => _processor?.PipelinesChanged -= OnPipelinesChanged;
+    public void Dispose()
+    {
+        if (_processor is not null)
+        {
+            _processor.PipelinesChanged -= OnPipelinesChanged;
+        }
+    }
 }
