@@ -540,29 +540,39 @@ public partial class AutomationStepViewModel : ViewModelBase
 
     /// <summary>
     /// Loads the legal values and selects the one the step already carries, so the
-    /// editor shows the real configuration rather than a default.
+    /// editor shows the real configuration rather than a default. Failures are contained:
+    /// a step that cannot enumerate its states simply shows no picker.
     /// </summary>
     public async Task LoadStatesAsync()
     {
-        States.Clear();
-
-        var current = StepConfiguration.GetState(Model);
-
-        foreach (var value in await StepConfiguration.GetStatesAsync(Model).ConfigureAwait(true))
+        try
         {
-            if (value is null)
+            var values = await StepConfiguration.GetStatesAsync(Model).ConfigureAwait(true);
+
+            States.Clear();
+
+            var current = StepConfiguration.GetState(Model);
+
+            foreach (var value in values)
             {
-                continue;
+                if (value is null)
+                {
+                    continue;
+                }
+
+                var option = new StepStateOption(value, value.ToString() ?? string.Empty);
+
+                States.Add(option);
+
+                if (Equals(value, current))
+                {
+                    SelectedState = option;
+                }
             }
-
-            var option = new StepStateOption(value, value.ToString() ?? string.Empty);
-
-            States.Add(option);
-
-            if (Equals(value, current))
-            {
-                SelectedState = option;
-            }
+        }
+        catch (Exception)
+        {
+            States.Clear();
         }
 
         OnPropertyChanged(nameof(HasConfiguration));
