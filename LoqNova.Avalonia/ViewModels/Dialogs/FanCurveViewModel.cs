@@ -90,12 +90,24 @@ public partial class FanCurveViewModel : ViewModelBase
         // every point report the bottom of the ladder (1400 RPM on this machine).
         var tableValues = info.Table.GetTable();
 
-        for (var i = 0; i < data.Length; i++)
+        // WPF makes one slider per table slot (FSS0..FSS9, so ten), which is what gives
+        // its curve ten adjustable points. Only showing the entries in Data left the
+        // curve with three points and no room to shape it, so every slot gets a row and
+        // the ones the backend did not describe fall back to WPF's own 0-10 range.
+        var slots = Math.Max(tableValues.Length, data.Length);
+
+        for (var i = 0; i < slots; i++)
         {
-            var entry = data[i];
-            var speeds = entry.FanSpeeds ?? [];
+            var backed = i < data.Length;
+            var entry = backed ? data[i] : null;
+            var speeds = entry?.FanSpeeds ?? [];
             var selected = i < tableValues.Length ? tableValues[i] : 0;
-            if (selected > Math.Max(0, speeds.Length - 1))
+
+            var max = backed
+                ? Math.Max(0, speeds.Length - 1)
+                : 10;
+
+            if (selected > max)
             {
                 selected = 0;
             }
@@ -105,11 +117,13 @@ public partial class FanCurveViewModel : ViewModelBase
                 Index = i,
                 Speeds = speeds,
                 StepCount = speeds.Length,
-                // WPF reads the temperature from the same index it uses for the speed.
-                TemperatureLabel = entry.Temps is { Length: > 0 } temps && i < temps.Length
+                MaxSpeedIndexOverride = backed ? null : 10,
+                TemperatureLabel = entry?.Temps is { Length: > 0 } temps && i < temps.Length
                     ? $"{temps[i]}°C"
-                    : string.Empty,
-                Description = $"{entry.Type} fan {entry.FanId} / sensor {entry.SensorId}",
+                    : $"{i + 1}",
+                Description = backed
+                    ? $"{entry.Type} fan {entry.FanId} / sensor {entry.SensorId}"
+                    : "no fan data reported for this point",
                 SpeedIndex = selected
             });
         }
