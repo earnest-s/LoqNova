@@ -105,9 +105,11 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
             // kept off the UI thread. Either half can block indefinitely, so it is
             // bounded: a dialog that never finishes loading is indistinguishable from
             // one that is still working, and left the user with no way forward.
-            IsSupported = await WithTimeout(
+            var support = await WithTimeout(
                 () => controller.IsSupportedAsync(), TimeSpan.FromSeconds(15))
                 .ConfigureAwait(false);
+
+            IsSupported = !support.TimedOut && support.Value == true;
 
             if (!IsSupported)
             {
@@ -121,12 +123,15 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                         .IsSupportGpuOCAsync(), TimeSpan.FromSeconds(15))
                     .ConfigureAwait(false);
 
-                var message = wmi.TimedOut
+                var message = support.TimedOut
                     ? "The discrete GPU support check did not respond within 15 seconds. "
                       + "The backend's NVAPI and Lenovo WMI calls are not returning on this machine."
-                    : "The backend reports no discrete GPU overclock support. "
-                      + $"Lenovo IsSupportGpuOC value: {wmi.Value} (must be greater than 0). "
-                      + "A value of 0 is the firmware's own capability flag, not a driver fault.";
+                    : wmi.TimedOut
+                        ? "The backend reports no discrete GPU overclock support, and the direct "
+                          + "Lenovo WMI query also did not respond within 15 seconds."
+                        : "The backend reports no discrete GPU overclock support. "
+                          + $"Lenovo IsSupportGpuOC value: {wmi.Value} (must be greater than 0). "
+                          + "A value of 0 is the firmware's own capability flag, not a driver fault.";
 
                 await _dispatcher.InvokeAsync(() =>
                 {
