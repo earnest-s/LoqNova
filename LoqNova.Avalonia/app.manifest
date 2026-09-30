@@ -4,7 +4,13 @@
   <trustInfo xmlns="urn:schemas-microsoft-com:asm.v2">
     <security>
       <requestedPrivileges xmlns="urn:schemas-microsoft-com:asm.v3">
-        <requestedExecutionLevel level="highestAvailable" uiAccess="false" />
+        <!-- Administrator, matching the WPF front end. Every hardware write this app
+             makes goes through the LENOVO_GAMEZONE_DATA WMI namespace (GPU
+             overclock support, power-mode limits, brightness), which returns "access
+             denied" to an unelevated process. With highestAvailable the application
+             silently reported the hardware as unsupported whenever it was launched
+             normally. -->
+        <requestedExecutionLevel level="requireAdministrator" uiAccess="false" />
       </requestedPrivileges>
     </security>
   </trustInfo>
