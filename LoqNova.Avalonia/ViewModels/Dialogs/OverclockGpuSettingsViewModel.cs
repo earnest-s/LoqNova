@@ -4,6 +4,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib;
+using Microsoft.Extensions.Logging;
 using LoqNova.Lib.Controllers;
 
 namespace LoqNova.Avalonia.ViewModels.Dialogs;
@@ -18,6 +19,7 @@ namespace LoqNova.Avalonia.ViewModels.Dialogs;
 public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 {
     private readonly IMainThreadDispatcher _dispatcher;
+    private readonly ILogger<OverclockGpuSettingsViewModel> _logger;
 
     [ObservableProperty]
     private bool _isEnabled;
@@ -48,7 +50,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
     /// </summary>
     public int MaxMemoryDelta { get; private set; } = 1500;
 
-    public OverclockGpuSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
+    public OverclockGpuSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs, ILogger<OverclockGpuSettingsViewModel> logger)
         : base(dialogs)
     {
         _dispatcher = dispatcher;
