@@ -34,13 +34,78 @@ public partial class AutomationPage : UserControl
             return;
         }
 
+        await RunGuardedAsync(() => pipeline.AddSelectedStepAsync());
+    }
+
+    private async void OnPipelineMoveUpClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: AutomationPipelineViewModel pipeline })
+        {
+            await RunGuardedAsync(() => pipeline.MoveUpAsync());
+        }
+    }
+
+    private async void OnPipelineMoveDownClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: AutomationPipelineViewModel pipeline })
+        {
+            await RunGuardedAsync(() => pipeline.MoveDownAsync());
+        }
+    }
+
+    private async void OnPipelineRemoveClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: AutomationPipelineViewModel pipeline })
+        {
+            await RunGuardedAsync(() => pipeline.RemoveAsync());
+        }
+    }
+
+    private async void OnPipelineRunNowClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: AutomationPipelineViewModel pipeline })
+        {
+            await RunGuardedAsync(() => pipeline.RunNowAsync());
+        }
+    }
+
+    private async void OnStepMoveUpClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: AutomationStepViewModel step })
+        {
+            await RunGuardedAsync(() => step.MoveUpAsync());
+        }
+    }
+
+    private async void OnStepMoveDownClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: AutomationStepViewModel step })
+        {
+            await RunGuardedAsync(() => step.MoveDownAsync());
+        }
+    }
+
+    private async void OnStepRemoveClick(object? sender, global::Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        if (sender is Button { Tag: AutomationStepViewModel step })
+        {
+            await RunGuardedAsync(() => step.RemoveAsync());
+        }
+    }
+
+    /// <summary>
+    /// Runs an editor operation, containing any failure. These are all async void event
+    /// handlers, where an escaping exception terminates the process.
+    /// </summary>
+    private static async Task RunGuardedAsync(Func<Task> operation)
+    {
         try
         {
-            await pipeline.AddSelectedStepAsync();
+            await operation();
         }
         catch (Exception ex)
         {
-            Debug.WriteLine($"Adding an automation step failed: {ex}");
+            Debug.WriteLine($"Automation operation failed: {ex}");
         }
     }
 

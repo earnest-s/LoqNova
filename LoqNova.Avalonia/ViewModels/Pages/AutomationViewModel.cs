@@ -659,14 +659,11 @@ public partial class AutomationStepViewModel : ViewModelBase
     /// <summary>False when the backend reports the hardware for this step is absent.</summary>
     public bool IsSupported { get; private set; } = true;
 
-    [RelayCommand]
-    private Task MoveUpAsync() => Owner.MoveStepUpAsync(this);
+    public Task MoveUpAsync() => Owner.MoveStepUpAsync(this);
 
-    [RelayCommand]
-    private Task MoveDownAsync() => Owner.MoveStepDownAsync(this);
+    public Task MoveDownAsync() => Owner.MoveStepDownAsync(this);
 
-    [RelayCommand]
-    private Task RemoveAsync() => Owner.RemoveStepAsync(this);
+    public Task RemoveAsync() => Owner.RemoveStepAsync(this);
 
     /// <summary>
     /// The values this step accepts, straight from the backend's

@@ -85,11 +85,11 @@
 
                                         <StackPanel Orientation="Horizontal" Spacing="12">
                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                    Command="{Binding MoveUpCommand}" />
+                                                    Tag="{Binding}" Click="OnPipelineMoveUpClick" />
                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                    Command="{Binding MoveDownCommand}" />
+                                                    Tag="{Binding}" Click="OnPipelineMoveDownClick" />
                                             <Button Classes="IconButton" ToolTip.Tip="Remove"
-                                                    Command="{Binding RemoveCommand}" />
+                                                    Tag="{Binding}" Click="OnPipelineRemoveClick" />
                                         </StackPanel>
 
                                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -135,11 +135,11 @@
                                                                       SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
 
                                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                                    Command="{Binding MoveUpCommand}" />
+                                                                    Tag="{Binding}" Click="OnStepMoveUpClick" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                                    Command="{Binding MoveDownCommand}" />
+                                                                    Tag="{Binding}" Click="OnStepMoveDownClick" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Remove"
-                                                                    Command="{Binding RemoveCommand}" />
+                                                                    Tag="{Binding}" Click="OnStepRemoveClick" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
@@ -188,13 +188,13 @@
 
                                         <StackPanel Orientation="Horizontal" Spacing="12">
                                             <Button Classes="SecondaryButton" Content="Run"
-                                                    Command="{Binding RunNowCommand}" />
+                                                    Tag="{Binding}" Click="OnPipelineRunNowClick" />
                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                    Command="{Binding MoveUpCommand}" />
+                                                    Tag="{Binding}" Click="OnPipelineMoveUpClick" />
                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                    Command="{Binding MoveDownCommand}" />
+                                                    Tag="{Binding}" Click="OnPipelineMoveDownClick" />
                                             <Button Classes="IconButton" ToolTip.Tip="Remove"
-                                                    Command="{Binding RemoveCommand}" />
+                                                    Tag="{Binding}" Click="OnPipelineRemoveClick" />
                                         </StackPanel>
 
                                         <StackPanel Orientation="Horizontal" Spacing="8">
@@ -225,11 +225,11 @@
                                                                       SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
 
                                                             <Button Classes="IconButton" ToolTip.Tip="Move up"
-                                                                    Command="{Binding MoveUpCommand}" />
+                                                                    Tag="{Binding}" Click="OnStepMoveUpClick" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Move down"
-                                                                    Command="{Binding MoveDownCommand}" />
+                                                                    Tag="{Binding}" Click="OnStepMoveDownClick" />
                                                             <Button Classes="IconButton" ToolTip.Tip="Remove"
-                                                                    Command="{Binding RemoveCommand}" />
+                                                                    Tag="{Binding}" Click="OnStepRemoveClick" />
                                                         </StackPanel>
                                                     </Border>
                                                 </DataTemplate>
