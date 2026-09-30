@@ -123,7 +123,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 // since the same subsystem is what hung in the first place.
                 var wmi = support.TimedOut
                     ? new TimedResult<int?>(null, true)
-                    : await WithTimeout(
+                    : await WithTimeout<int?>(
                         () => LoqNova.Lib.System.Management.WMI.LenovoGameZoneData
                             .IsSupportGpuOCAsync(), TimeSpan.FromSeconds(5))
                         .ConfigureAwait(false);

@@ -99,7 +99,7 @@ public partial class FanCurveViewModel : ViewModelBase
         for (var i = 0; i < slots; i++)
         {
             var backed = i < data.Length;
-            var entry = backed ? data[i] : null;
+            FanTableData? entry = backed ? data[i] : null;
             var speeds = entry?.FanSpeeds ?? [];
             var selected = i < tableValues.Length ? tableValues[i] : 0;
 
