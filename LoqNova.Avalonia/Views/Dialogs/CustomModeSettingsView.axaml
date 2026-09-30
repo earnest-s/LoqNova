@@ -120,6 +120,14 @@
                             <TextBlock Text="Fan Full Speed" FontSize="12" Opacity="0.8" />
                             <ToggleSwitch IsChecked="{Binding FanFullSpeed, Mode=TwoWay}" />
                         </StackPanel>
+
+                        <!-- Fan curve. WPF hides the curve editor while full speed is
+                             on, because the two contradict each other. -->
+                        <StackPanel Spacing="6" IsVisible="{Binding !IsFanFullSpeedEnabled}">
+                            <TextBlock Text="Fan Curve" FontSize="12" Opacity="0.8" />
+                            <ContentControl Content="{Binding FanCurve}" />
+                        </StackPanel>
+
                         <TextBlock Classes="CardSubtitle"
                                    IsVisible="{Binding !IsFanFullSpeedSupported}"
                                    Text="Fan speed controls are not reported by this machine." />
