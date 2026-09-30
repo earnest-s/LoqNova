@@ -28,13 +28,19 @@ public partial class App : Application
 
     public override async void OnFrameworkInitializationCompleted()
     {
+        // An unhandled exception on the dispatcher, or on a background task, would end
+        // the process with no explanation. This reports it instead of silently killing
+        // the app, which is what an async void command did when a backend call threw.
+        Dispatcher.UIThread.UnhandledException += OnDispatcherUnhandledException;
+        TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+
         // LoqNova.Lib keeps its own Autofac container and is the single source of
         // truth for controllers, features and settings, so the same backend
         // singletons WPF uses are reused here. It is started on a background
         // thread because the library auto-activates Windows message listeners that
         // need Avalonia's dispatcher to be pumping; see LibContainer.Initialize.
-        // LoqNova.Lib.Automation is a separate project that is not referenced yet;
-        // its module joins the container when the Automation page is ported.
+        // LoqNova.Lib.Automation's module is registered with the container below and
+        // its processor is initialised once the readiness gate has passed.
         LibContainer.Initialize();
 
         // Build DI container
