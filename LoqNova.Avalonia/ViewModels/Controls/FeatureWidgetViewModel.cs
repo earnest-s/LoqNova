@@ -326,7 +326,8 @@ public sealed partial class FeatureToggleWidgetViewModel<TState> : FeatureWidget
     }
 
     /// <summary>Human-readable form of the state the machine reported.</summary>
-    public string StateLabel { get; private set; } = string.Empty;
+    [ObservableProperty]
+    private string _stateLabel = string.Empty;
 
     protected override void ApplyState(TState state)
     {

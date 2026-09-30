@@ -31,10 +31,23 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
     private int _memoryClockOffset;
 
     /// <summary>True when the machine reports GPU overclock support.</summary>
-    public bool IsSupported { get; private set; }
+    /// <summary>
+    /// Whether the machine supports discrete GPU overclocking.
+    ///
+    /// This must be observable. As a plain auto-property the setter raised no change
+    /// notification, so the sliders and Apply stayed greyed out for the whole life of the
+    /// dialog even after support had been confirmed - the dialog simply looked inert.
+    ///
+    /// It also starts enabled so the dialog is usable the instant it opens, as WPF's is.
+    /// The backend still validates on apply, and a failed support check corrects this to
+    /// false and explains why.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isSupported = true;
 
     /// <summary>Why support could not be determined, shown instead of a silent failure.</summary>
-    public string? ErrorMessage { get; private set; }
+    [ObservableProperty]
+    private string? _errorMessage;
 
     /// <summary>
     /// WPF's hard-coded core ceiling. Read directly rather than through the view model,
@@ -48,7 +61,8 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
     /// getter: the getter initialises NVAPI, and running that on the UI thread while
     /// Avalonia is binding blocks the dispatcher.
     /// </summary>
-    public int MaxMemoryDelta { get; private set; } = 1500;
+    [ObservableProperty]
+    private int _maxMemoryDelta = 1500;
 
     public OverclockGpuSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs, ILogger<OverclockGpuSettingsViewModel> logger)
         : base(dialogs)
