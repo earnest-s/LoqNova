@@ -368,8 +368,11 @@ public partial class CustomModeSettingsViewModel : DialogViewModelBase
 
             await _controller.SetStateAsync(newState).ConfigureAwait(false);
 
-            // Custom Mode has to be selected for the limits to take effect.
-            var powerMode = LoqNova.Lib.IoCContainer.Resolve<PowerModeFeature>();
+            // Custom Mode has to be selected for the limits to take effect. Resolved
+            // off the UI thread for the same reason as the controller above.
+            var powerMode = await Task.Run(
+                () => LoqNova.Lib.IoCContainer.Resolve<PowerModeFeature>()).ConfigureAwait(false);
+
             if (await powerMode.GetStateAsync().ConfigureAwait(false) != PowerModeState.GodMode)
                 await powerMode.SetStateAsync(PowerModeState.GodMode).ConfigureAwait(false);
 
