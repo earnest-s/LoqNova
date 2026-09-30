@@ -369,7 +369,9 @@ public partial class AutomationPipelineViewModel : ViewModelBase
 
         for (var i = 0; i < Model.Steps.Count; i++)
         {
-            Steps.Add(new AutomationStepViewModel(this, Model.Steps[i], i, Model.Steps.Count - 1));
+            var step = new AutomationStepViewModel(this, Model.Steps[i], i, Model.Steps.Count - 1);
+
+            Steps.Add(step);
         }
 
         OnPropertyChanged(nameof(StepsSubtitle));
@@ -492,6 +494,9 @@ public partial class AutomationStepViewModel : ViewModelBase
 
         TypeName = model.GetType().Name;
         DisplayName = StepFactoryAccess.Humanize(TypeName);
+
+        ConfigurationSummary = StepConfiguration.Describe(model);
+        _ = LoadStatesAsync();
     }
 
     [ObservableProperty]
@@ -588,6 +593,9 @@ public partial class AutomationStepViewModel : ViewModelBase
         }
     }
 }
+
+/// <summary>One selectable value of a real step's configuration.</summary>
+public sealed record StepStateOption(object Value, string DisplayName);
 
 /// <summary>Exposes the factory's humaniser to the view models.</summary>
 internal static class StepFactoryAccess
