@@ -242,7 +242,8 @@
                                                       ItemsSource="{Binding StepOptions}"
                                                       SelectedItem="{Binding SelectedStepOption, Mode=TwoWay}" />
                                             <Button Classes="SecondaryButton" Content="Add step"
-                                                    Command="{Binding AddStepCommand}" />
+                                                    Tag="{Binding}"
+                                                    Click="OnAddStepClick" />
                                         </StackPanel>
                                     </StackPanel>
                                 </Border>
