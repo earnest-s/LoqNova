@@ -582,46 +582,6 @@ public partial class AutomationStepViewModel : ViewModelBase
     [ObservableProperty]
     private StepStateOption? _selectedState;
 
-    /// <summary>
-    /// Loads the legal values and selects the one the step already carries, so the
-    /// editor shows the real configuration rather than a default. Failures are contained:
-    /// a step that cannot enumerate its states simply shows no picker.
-    /// </summary>
-    public async Task LoadStatesAsync()
-    {
-        try
-        {
-            var values = await StepConfiguration.GetStatesAsync(Model).ConfigureAwait(true);
-
-            States.Clear();
-
-            var current = StepConfiguration.GetState(Model);
-
-            foreach (var value in values)
-            {
-                if (value is null)
-                {
-                    continue;
-                }
-
-                var option = new StepStateOption(value, value.ToString() ?? string.Empty);
-
-                States.Add(option);
-
-                if (Equals(value, current))
-                {
-                    SelectedState = option;
-                }
-            }
-        }
-        catch (Exception)
-        {
-            States.Clear();
-        }
-
-        OnPropertyChanged(nameof(HasConfiguration));
-    }
-
     /// <summary>Rebuilds the step with the newly chosen state.</summary>
     public async Task CommitStateAsync()
     {
