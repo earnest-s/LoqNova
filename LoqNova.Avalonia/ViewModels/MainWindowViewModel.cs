@@ -12,6 +12,12 @@ namespace LoqNova.Avalonia.ViewModels;
 
 public partial class MainWindowViewModel : ViewModelBase
 {
+    private readonly IDialogService _dialogService;
+
+    /// <summary>True while a modal dialog is presented, used to show the scrim.</summary>
+    [ObservableProperty]
+    public bool IsDialogOpen { get; private set; }
+
     private readonly INavigationService _navigationService;
     private readonly ISettingsService _settingsService;
     private readonly IPerformanceService _performanceService;
@@ -65,6 +71,7 @@ public partial class MainWindowViewModel : ViewModelBase
         _rgbService = rgbService;
         _thermalService = thermalService;
         _batteryService = batteryService;
+     _dialogService = dialogService;
         
         InitializeNavigationItems();
         _navigationService.PageChanged += OnPageChanged;
