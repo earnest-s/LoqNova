@@ -14,6 +14,8 @@ namespace LoqNova.Avalonia.ViewModels.Pages;
 
 public partial class DashboardViewModel : ViewModelBase
 {
+    private readonly IDialogService _dialogService;
+    private readonly LoqNova.Avalonia.ViewModels.MainWindowViewModel _mainWindowViewModel;
     private readonly IPerformanceService _performanceService;
     private readonly IRgbService _rgbService;
     private readonly IThermalService _thermalService;
@@ -402,6 +404,42 @@ public partial class DashboardViewModel : ViewModelBase
     /// populated, which is how it previously displayed "--" beside a correct large
     /// status.
     /// </summary>
+    /// <summary>
+    /// True when the selected mode has settings worth opening. WPF only offers its
+    /// settings button for Balance and Custom Mode, and only when the machine reports
+    /// the matching capability.
+    /// </summary>
+    public bool HasPowerModeSettings => CurrentPowerMode switch
+    {
+        PowerModeState.Balance => _performanceService.IsAIModeSupported,
+        PowerModeState.GodMode => _performanceService.IsGodModeSupported,
+        _ => false
+    };
+
+    /// <summary>Icon for the settings button, reusing the dashboard's icon set.</summary>
+    public string SettingsIcon => "Settings64";
+
+    /// <summary>
+    /// Opens the settings dialog for the selected mode: the AI Engine toggle for
+    /// Balance, the full limit set for Custom Mode.
+    /// </summary>
+    [RelayCommand]
+    private async Task OpenPowerModeSettingsAsync()
+    {
+        if (CurrentPowerMode == PowerModeState.Balance)
+        {
+            var dialog = AppHost.Services.GetRequiredService<Dialogs.BalanceModeSettingsViewModel>();
+            await _mainWindowViewModel.ShowDialogAsync(dialog);
+            return;
+        }
+
+        if (CurrentPowerMode == PowerModeState.GodMode)
+        {
+            var dialog = AppHost.Services.GetRequiredService<Dialogs.CustomModeSettingsViewModel>();
+            await _mainWindowViewModel.ShowDialogAsync(dialog);
+        }
+    }
+
     private void EnsurePowerModeIsListed(PowerModeState? mode)
     {
         if (mode is not { } value)

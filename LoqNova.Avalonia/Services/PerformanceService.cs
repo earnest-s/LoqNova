@@ -34,6 +34,32 @@ public class PerformanceService : IPerformanceService
 
     public bool IsGodModeSupported => _availableStates.Contains(PowerModeState.GodMode);
 
+    /// <summary>
+    /// True when the machine reports the AI Chip capability. Read from the same machine
+    /// information the library exposes, so it is the same value that gates Balance
+    /// mode's settings button in WPF.
+    /// </summary>
+    public bool IsAIModeSupported
+    {
+        get
+        {
+            try
+            {
+                return LoqNova.Lib.Compatibility
+                    .GetMachineInformationAsync()
+                    .ConfigureAwait(false)
+                    .GetAwaiter()
+                    .GetResult()
+                    .Properties.SupportsAIMode;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Could not read the AI Chip capability.");
+                return false;
+            }
+        }
+    }
+
     public bool IsGodModeEnabled => IsSupported && CurrentMode == PowerModeState.GodMode;
 
     public PowerModeState[] AvailableStates => (PowerModeState[])_availableStates.Clone();

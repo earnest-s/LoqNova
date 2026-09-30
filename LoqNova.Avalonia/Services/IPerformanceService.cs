@@ -25,6 +25,12 @@ public interface IPerformanceService
     /// <summary>True when the machine reports God Mode as an available power mode.</summary>
     bool IsGodModeSupported { get; }
 
+    /// <summary>
+    /// True when the machine reports the AI Chip capability, which is what backs
+    /// Balance mode's "Enable AI Engine" setting.
+    /// </summary>
+    bool IsAIModeSupported { get; }
+
     /// <summary>True when the machine is currently in God Mode.</summary>
     bool IsGodModeEnabled { get; }
 
