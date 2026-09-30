@@ -61,6 +61,37 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
     /// <summary>True while the backend is being queried, so nothing is claimed yet.</summary>
     public bool IsLoading { get; private set; } = true;
 
+    /// <summary>Result of a bounded call, so a hang is reportable rather than silent.</summary>
+    private readonly record struct TimedResult<T>(T? Value, bool TimedOut);
+
+    /// <summary>
+    /// Runs a backend call off the UI thread and gives up after <paramref name="limit"/>.
+    /// The task is not cancelled, because NVAPI and WMI calls here have no cancellation
+    /// token, but the caller is released either way.
+    /// </summary>
+    private static async Task<TimedResult<T>> WithTimeout<T>(
+        Func<Task<T>> call, TimeSpan limit)
+    {
+        var work = Task.Run(call);
+
+        var finished = await Task.WhenAny(work, Task.Delay(limit)).ConfigureAwait(false);
+
+        if (finished == work)
+        {
+            try
+            {
+                return new TimedResult<T>(await work.ConfigureAwait(false), false);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException(
+                    $"GPU overclock backend call failed: {ex.Message}", ex);
+            }
+        }
+
+        return new TimedResult<T>(default, true);
+    }
+
     public async Task InitializeAsync()
     {
         try
@@ -71,8 +102,12 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 () => LoqNova.Lib.IoCContainer.Resolve<GPUOverclockController>()).ConfigureAwait(false);
 
             // Support detection initialises and unloads NVAPI and queries WMI, so it is
-            // kept off the UI thread.
-            IsSupported = await Task.Run(() => controller.IsSupportedAsync()).ConfigureAwait(false);
+            // kept off the UI thread. Either half can block indefinitely, so it is
+            // bounded: a dialog that never finishes loading is indistinguishable from
+            // one that is still working, and left the user with no way forward.
+            IsSupported = await WithTimeout(
+                () => controller.IsSupportedAsync(), TimeSpan.FromSeconds(15))
+                .ConfigureAwait(false);
 
             if (!IsSupported)
             {
@@ -81,23 +116,17 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 // the result, so a generic "unsupported" left it impossible to tell a
                 // driver problem from a firmware capability flag.
 
-                var wmi = await Task.Run(async () =>
-                {
-                    try
-                    {
-                        return (await LoqNova.Lib.System.Management.WMI.LenovoGameZoneData
-                            .IsSupportGpuOCAsync().ConfigureAwait(false)).ToString();
-                    }
-                    catch (Exception ex)
-                    {
-                        return "threw " + ex.GetType().Name;
-                    }
-                }).ConfigureAwait(false);
+                var wmi = await WithTimeout(
+                    () => LoqNova.Lib.System.Management.WMI.LenovoGameZoneData
+                        .IsSupportGpuOCAsync(), TimeSpan.FromSeconds(15))
+                    .ConfigureAwait(false);
 
-                var message =
-                    "The backend reports no discrete GPU overclock support. "
-                    + $"Lenovo IsSupportGpuOC value: {wmi} (must be greater than 0). "
-                    + "A value of 0 is the firmware's own capability flag, not a driver fault.";
+                var message = wmi.TimedOut
+                    ? "The discrete GPU support check did not respond within 15 seconds. "
+                      + "The backend's NVAPI and Lenovo WMI calls are not returning on this machine."
+                    : "The backend reports no discrete GPU overclock support. "
+                      + $"Lenovo IsSupportGpuOC value: {wmi.Value} (must be greater than 0). "
+                      + "A value of 0 is the firmware's own capability flag, not a driver fault.";
 
                 await _dispatcher.InvokeAsync(() =>
                 {
