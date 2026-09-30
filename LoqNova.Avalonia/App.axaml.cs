@@ -221,6 +221,16 @@ public partial class App : Application
             await Container.Resolve<IRgbService>().InitializeAsync();
             await Container.Resolve<IPerformanceService>().InitializeAsync();
             await Container.Resolve<IBatteryService>().InitializeAsync();
+
+            // The real automation engine, once and only once. It is resolved from the
+            // shared container and initialized after the readiness gate, so the
+            // IoCContainer lock is never held while awaiting UI-thread-dependent work.
+            // InitializeAsync subscribes the native listeners the engine relies on.
+            await Container.Resolve<IAutomationService>().InitializeAsync();
+
+            // Matches WPF: pipelines whose trigger matched at launch run once here.
+            LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Automation.AutomationProcessor>()
+                .RunOnStartup();
         }
         catch (Exception ex)
         {
