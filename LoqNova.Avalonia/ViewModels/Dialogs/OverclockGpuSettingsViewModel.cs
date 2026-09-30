@@ -102,6 +102,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 await _dispatcher.InvokeAsync(() =>
                 {
                     ErrorMessage = message;
+                    IsLoading = false;
                 }).ConfigureAwait(false);
                 return;
             }
@@ -116,6 +117,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
                 MaxMemoryDelta = maxMemory;
                 LoadState(enabled, info);
                 ErrorMessage = null;
+                IsLoading = false;
             }).ConfigureAwait(false);
 
             controller.Changed += (_, _) => _dispatcher.Post(() => LoadState(controller));
@@ -129,6 +131,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
             {
                 IsSupported = false;
                 ErrorMessage = ex.Message;
+                IsLoading = false;
             }).ConfigureAwait(false);
         }
     }
