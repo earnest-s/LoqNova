@@ -60,8 +60,9 @@
 		<PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\LoqNova.Lib.Macro\LoqNova.Lib.Macro.csproj" />
-		<ProjectReference Include="..\LoqNova.CLI.Lib\LoqNova.CLI.Lib.csproj" />
+  <ProjectReference Include="..\LoqNova.Lib.Macro\LoqNova.Lib.Macro.csproj" />
+  <ProjectReference Include="..\LoqNova.CLI.Lib\LoqNova.CLI.Lib.csproj" />
+  <ProjectReference Include="..\LoqNova.Lib.Automation\LoqNova.Lib.Automation.csproj" />
 	</ItemGroup>
 	<ItemGroup>
 		<None Remove="Assets\icon.ico" />

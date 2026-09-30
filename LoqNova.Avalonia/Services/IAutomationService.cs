@@ -49,6 +49,10 @@ public interface IAutomationService
     Task RemovePipelineAsync(Guid id);
     Task UpdatePipelineAsync(AutomationPipeline pipeline);
     Task MovePipelineAsync(Guid id, int newIndex);
+    Task MoveStepAsync(Guid pipelineId, int fromIndex, int toIndex);
+    Task SetEnabledAsync(bool enabled);
+    Task RevertAsync();
+    Task RunNowAsync(Guid pipelineId);
     Task AddStepAsync(Guid pipelineId, AutomationStep step);
     Task RemoveStepAsync(Guid pipelineId, int stepIndex);
     Task SaveAsync();
