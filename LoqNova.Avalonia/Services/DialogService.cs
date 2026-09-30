@@ -15,13 +15,20 @@ namespace LoqNova.Avalonia.Services;
 public sealed class DialogService : IDialogService
 {
     private readonly IMainThreadDispatcher _dispatcher;
-    private readonly Func<Control?> _hostAccessor;
+    private Control? _host;
 
-    public DialogService(IMainThreadDispatcher dispatcher, Func<Control?> hostAccessor)
+    public DialogService(IMainThreadDispatcher dispatcher)
     {
         _dispatcher = dispatcher;
-        _hostAccessor = hostAccessor;
     }
+
+    /// <summary>
+    /// Supplies the overlay that hosts dialogs. Bound after the main window exists,
+    /// which keeps the service free of a window reference at construction time.
+    /// </summary>
+    public void Attach(Control host) => _host = host;
+
+    private Control? Host => _host;
 
     public bool IsOpen { get; private set; }
 
@@ -39,7 +46,7 @@ public sealed class DialogService : IDialogService
         // dispatcher is used so a request from a background completion is still safe.
         return _dispatcher.InvokeAsync(() =>
         {
-            if (_hostAccessor() is not ContentControl host)
+            if (Host is not ContentControl host)
                 return;
 
             host.Content = view;
@@ -53,7 +60,7 @@ public sealed class DialogService : IDialogService
     {
         _dispatcher.Post(() =>
         {
-            if (_hostAccessor() is ContentControl host)
+            if (Host is ContentControl host)
             {
                 host.Content = null;
                 host.IsVisible = false;

@@ -168,7 +168,15 @@ public partial class App : Application
             {
                 DataContext = Container.Resolve<MainWindowViewModel>()
             };
-            
+
+            // The dialog host is this window's overlay ContentControl. The service is
+            // registered as a singleton with no host reference, so the accessor is
+            // supplied here once the window exists. Resolving the singleton here is
+            // safe: the library container is already up, and this is not a
+            // construction path that can run before the readiness gate.
+            if (Container.Resolve<DialogService>() is { } dialogs)
+                dialogs.Attach(mainWindow);
+
             desktop.MainWindow = mainWindow;
             
             // Initialize tray service
