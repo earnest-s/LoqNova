@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using CommunityToolkit.Mvvm.ComponentModel;
+using LoqNova.Avalonia.Services;
 using LoqNova.Lib;
 
 namespace LoqNova.Avalonia.ViewModels.Dialogs;
@@ -180,6 +181,8 @@ public partial class FanCurveViewModel : ViewModelBase
                 SpeedIndex = selected
             });
         }
+
+        RefreshLiveSpeeds();
 
         IsSupported = Points.Count > 0;
         OnPropertyChanged(nameof(IsSupported));
