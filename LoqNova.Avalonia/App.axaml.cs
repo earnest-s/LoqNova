@@ -93,7 +93,7 @@ public partial class App : Application
 
         // Automation and Macro still have Avalonia-invented contracts that do not
         // match the library models; they are replaced when those pages are ported.
-        builder.RegisterType<MockAutomationService>().As<IAutomationService>().SingleInstance();
+
         builder.RegisterType<MockMacroService>().As<IMacroService>().SingleInstance();
 
         // Real package downloader (Packages page) straight from LoqNova.Lib.
