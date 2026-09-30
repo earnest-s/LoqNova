@@ -183,9 +183,7 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        var pipelineId = step.PipelineId;
-
-        await _automationService.RemoveStepAsync(pipelineId, step.Index).ConfigureAwait(true);
+        await _automationService.RemoveStepAsync(step.PipelineId, step.Index).ConfigureAwait(true);
         IsDirty = true;
     }
 
@@ -218,7 +216,7 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        await _automationService.MoveStepAsync(pipelineId, step.Index, step.Index + 1)
+        await _automationService.MoveStepAsync(step.PipelineId, step.Index, step.Index + 1)
             .ConfigureAwait(true);
 
         IsDirty = true;
