@@ -145,7 +145,10 @@ public partial class AutomationViewModel : ViewModelBase
     private async Task AddAutomaticPipelineAsync()
     {
         // A real trigger instance, never null, so the pipeline is immediately valid.
-        var trigger = SelectedTriggerOption?.Create() ?? AvailableTriggers[0].Create();
+        // Constructing one resolves its listener from the global IoC container, so it is
+        // built off the UI thread.
+        var factory = SelectedTriggerOption ?? AvailableTriggers[0];
+        var trigger = await Task.Run(factory.Create).ConfigureAwait(true);
 
         await _automationService.AddPipelineAsync("New Pipeline", trigger).ConfigureAwait(true);
 
