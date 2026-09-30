@@ -50,11 +50,15 @@ public partial class BalanceModeSettingsViewModel : DialogViewModelBase
     /// </summary>
     public async Task InitializeAsync()
     {
+        ViewModels.MainWindowViewModel.Trace("Balance: begin init");
         await LibContainer.Initialization.ConfigureAwait(false);
+        ViewModels.MainWindowViewModel.Trace("Balance: lib ready");
 
         try
         {
+            ViewModels.MainWindowViewModel.Trace("Balance: resolving AIController");
             var controller = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<AIController>()).ConfigureAwait(false);
+            ViewModels.MainWindowViewModel.Trace("Balance: AIController resolved");
 
             // The property is the persisted value; availability is reported separately
             // by the capability check the controller performs internally.
@@ -92,7 +96,9 @@ public partial class BalanceModeSettingsViewModel : DialogViewModelBase
         {
             IsBusy = true;
 
-            await LibContainer.Initialization.ConfigureAwait(false);
+            ViewModels.MainWindowViewModel.Trace("Balance: begin init");
+        await LibContainer.Initialization.ConfigureAwait(false);
+        ViewModels.MainWindowViewModel.Trace("Balance: lib ready");
 
             var controller = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<AIController>()).ConfigureAwait(false);
             var powerMode = await Task.Run(() => LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Features.PowerModeFeature>()).ConfigureAwait(false);

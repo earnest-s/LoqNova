@@ -223,17 +223,19 @@ public partial class MainWindowViewModel : ViewModelBase
         Trace("host shown");
         IsDialogOpen = true;
 
-        // Resolving and hydrating can block on hardware queries, so it is kept off the
-        // UI thread entirely.
+        Trace("starting background init");
+
         await Task.Run(async () =>
         {
             try
             {
+                Trace("background init begin " + dialog.GetType().Name);
                 await InitializeDialogAsync(dialog);
+                Trace("background init done");
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Dialog initialisation failed: {ex}");
+                Trace("background init threw: " + ex.GetType().Name + " " + ex.Message);
             }
         });
     }

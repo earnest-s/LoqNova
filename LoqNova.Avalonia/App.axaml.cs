@@ -188,7 +188,7 @@ public partial class App : Application
         // diagnosed without a manual click.
         if (Environment.GetEnvironmentVariable("LOQ_DIALOG_PROBE") == "1")
         {
-            var probeTimer = new Avalonia.Threading.DispatcherTimer
+            var probeTimer = new global::Avalonia.Threading.DispatcherTimer
             {
                 Interval = TimeSpan.FromSeconds(6)
             };
