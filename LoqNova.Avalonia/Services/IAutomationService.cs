@@ -1,75 +1,81 @@
 using System;
-using System.Collections.ObjectModel;
+using System.Collections.Generic;
 using System.Threading.Tasks;
+using LoqNova.Lib.Automation.Pipeline;
+using LoqNova.Lib.Automation.Pipeline.Triggers;
+using LoqNova.Lib.Automation.Steps;
 
 namespace LoqNova.Avalonia.Services;
 
 /// <summary>
-/// A pipeline as the Avalonia views see it. This is a projection of the real
-/// <c>LoqNova.Lib.Automation.Pipeline.AutomationPipeline</c>, not a second model:
-/// <see cref="IAutomationService"/> owns the backend instances and keeps this in step
-/// with them. Note there is deliberately no per-pipeline or per-step Enabled flag,
-/// because the backend has no such concept.
+/// The Automation editor's contract with the real backend.
+///
+/// There is deliberately no Avalonia domain model here. Pipelines, triggers and steps
+/// are the backend's own types; this interface only names the operations the editor
+/// performs on the draft it owns. Any view model wraps a live backend object rather
+/// than copying it.
 /// </summary>
-public sealed class AutomationPipeline
-{
-    public Guid Id { get; init; } = Guid.NewGuid();
-
-    public string Name { get; set; } = string.Empty;
-
-    public string Icon { get; set; } = string.Empty;
-
-    /// <summary>Backend trigger type name; empty for a manual quick action.</summary>
-    public string TriggerTypeName { get; set; } = string.Empty;
-
-    public bool IsManual { get; init; }
-
-    public ObservableCollection<AutomationStep> Steps { get; init; } = [];
-}
-
-/// <summary>A step as the views see it, backed by a real <c>IAutomationStep</c>.</summary>
-public sealed class AutomationStep
-{
-    public string TypeName { get; set; } = string.Empty;
-}
-
 public interface IAutomationService
 {
     /// <summary>The one global automation state, owned by the backend.</summary>
     bool IsEnabled { get; }
 
-    ObservableCollection<AutomationPipeline> AutomaticPipelines { get; }
+    /// <summary>Live draft pipelines that have a trigger, in evaluation order.</summary>
+    IReadOnlyList<AutomationPipeline> AutomaticPipelines { get; }
 
-    ObservableCollection<AutomationPipeline> ManualPipelines { get; }
+    /// <summary>Live draft pipelines without a trigger: the quick actions.</summary>
+    IReadOnlyList<AutomationPipeline> ManualPipelines { get; }
 
-    event Action? PipelinesChanged;
+    event Action? DraftChanged;
+
+    event Action? EnabledChanged;
 
     Task InitializeAsync();
 
     Task SetEnabledAsync(bool enabled);
 
-    Task AddPipelineAsync(AutomationPipeline pipeline, bool isManual);
+    /// <summary>Adds a pipeline to the draft. Automatic when <paramref name="trigger"/> is set.</summary>
+    Task AddPipelineAsync(string? name, IAutomationPipelineTrigger? trigger);
 
-    Task RemovePipelineAsync(Guid id);
+    /// <summary>Removes a pipeline from the draft only. Save is what persists it.</summary>
+    Task RemovePipelineAsync(AutomationPipeline pipeline);
 
-    Task UpdatePipelineAsync(AutomationPipeline pipeline);
+    Task RenamePipelineAsync(AutomationPipeline pipeline, string? name);
 
-    Task MovePipelineAsync(Guid id, int newIndex);
+    Task SetIconAsync(AutomationPipeline pipeline, string? iconName);
 
-    Task SetTriggerAsync(Guid pipelineId, string triggerTypeName);
+    /// <summary>Replaces a pipeline's trigger. A null trigger makes it a quick action.</summary>
+    Task SetTriggerAsync(AutomationPipeline pipeline, IAutomationPipelineTrigger? trigger);
 
-    Task AddStepAsync(Guid pipelineId, AutomationStep step);
+    Task MovePipelineAsync(AutomationPipeline pipeline, int delta);
 
-    Task RemoveStepAsync(Guid pipelineId, int stepIndex);
+    Task AddStepAsync(AutomationPipeline pipeline, IAutomationStep step);
 
-    Task MoveStepAsync(Guid pipelineId, int fromIndex, int toIndex);
+    Task RemoveStepAsync(AutomationPipeline pipeline, IAutomationStep step);
 
-    /// <summary>Executes a manual pipeline through the real backend.</summary>
-    Task RunNowAsync(Guid pipelineId);
+    Task MoveStepAsync(AutomationPipeline pipeline, IAutomationStep step, int delta);
 
-    /// <summary>Discards uncommitted editor state by reloading from the backend.</summary>
+    /// <summary>Replaces a step with a reconfigured copy of itself.</summary>
+    Task ReplaceStepAsync(AutomationPipeline pipeline, IAutomationStep oldStep, IAutomationStep newStep);
+
+    /// <summary>Executes through the real processor.</summary>
+    Task RunNowAsync(AutomationPipeline pipeline);
+
+    /// <summary>Discards the draft and reloads from the backend. Writes nothing.</summary>
     Task RevertAsync();
 
     /// <summary>The single write path.</summary>
     Task SaveAsync();
+
+    /// <summary>Every real step type the backend supports, for the add-step picker.</summary>
+    IReadOnlyList<AutomationStepOption> AvailableSteps { get; }
+
+    /// <summary>Every real trigger type the backend supports, for the trigger picker.</summary>
+    IReadOnlyList<TriggerOption> AvailableTriggers { get; }
 }
+
+/// <summary>A real backend step type, with the display name shown to the user.</summary>
+public sealed record AutomationStepOption(string TypeName, string DisplayName, Func<IAutomationStep> Create);
+
+/// <summary>A real backend trigger type, with a prototype and its display name.</summary>
+public sealed record TriggerOption(string TypeName, string DisplayName, Func<IAutomationPipelineTrigger> Create);
