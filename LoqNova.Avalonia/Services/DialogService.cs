@@ -33,14 +33,11 @@ public sealed class DialogService : IDialogService
     /// application has built it. This is the only supported way for a presenter to
     /// obtain a dialog, so a page never has to depend on a global root being ready.
     /// </summary>
-    private static void Trace(string step)
-        => ViewModels.MainWindowViewModel.Trace("DialogService: " + step);
     public T Resolve<T>() where T : ViewModelBase
     {
         var services = _services ?? throw new InvalidOperationException(
             "The dialog service has no container yet. It is assigned during application startup.");
         var made = services.GetService(typeof(T));
-        Trace("resolved " + typeof(T).Name);
         return (T)made
             ?? throw new InvalidOperationException($"{typeof(T).Name} is not registered.");
     }
