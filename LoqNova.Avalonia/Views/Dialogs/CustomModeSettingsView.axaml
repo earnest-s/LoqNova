@@ -122,10 +122,40 @@
                         </StackPanel>
 
                         <!-- Fan curve. WPF hides the curve editor while full speed is
-                             on, because the two contradict each other. -->
+                             on, because the two contradict each other. The template is
+                             declared inline and resolved by type: a bare ContentControl
+                             has no template and renders the object's ToString(). -->
                         <StackPanel Spacing="6" IsVisible="{Binding !IsFanFullSpeedEnabled}">
                             <TextBlock Text="Fan Curve" FontSize="12" Opacity="0.8" />
-                            <ContentControl Content="{Binding FanCurve}" />
+                            <ContentControl Content="{Binding FanCurve}">
+                                <ContentControl.DataTemplates>
+                                    <DataTemplate x:DataType="dialogs:FanCurveViewModel">
+                                        <StackPanel Spacing="4" IsVisible="{Binding IsSupported}">
+                                            <ItemsControl ItemsSource="{Binding Points}">
+                                                <ItemsControl.ItemTemplate>
+                                                    <DataTemplate x:DataType="dialogs:FanCurvePointViewModel">
+                                                        <Grid ColumnDefinitions="Auto,Auto,*,Auto" Margin="0,0,0,6">
+                                                            <TextBlock Grid.Column="0" Text="{Binding TemperatureLabel}"
+                                                                       MinWidth="48" VerticalAlignment="Center" FontSize="11" />
+                                                            <TextBlock Grid.Column="1" Text="{Binding Description}"
+                                                                       MinWidth="140" Margin="8,0" VerticalAlignment="Center"
+                                                                       Opacity="0.7" FontSize="11" />
+                                                            <Slider Grid.Column="2" Minimum="0" Maximum="{Binding StepCount}"
+                                                                    TickFrequency="1" IsSnapToTickEnabled="True"
+                                                                    VerticalAlignment="Center"
+                                                                    Value="{Binding SpeedIndex, Mode=TwoWay}" />
+                                                            <TextBlock Grid.Column="3" Text="{Binding SpeedLabel}"
+                                                                       MinWidth="78" Margin="8,0,0,0"
+                                                                       VerticalAlignment="Center"
+                                                                       HorizontalAlignment="Right" FontSize="11" />
+                                                        </Grid>
+                                                    </DataTemplate>
+                                                </ItemsControl.ItemTemplate>
+                                            </ItemsControl>
+                                        </StackPanel>
+                                    </DataTemplate>
+                                </ContentControl.DataTemplates>
+                            </ContentControl>
                         </StackPanel>
 
                         <TextBlock Classes="CardSubtitle"
