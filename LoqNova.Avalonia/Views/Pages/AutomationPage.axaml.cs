@@ -24,6 +24,26 @@ public partial class AutomationPage : UserControl
         AvaloniaXamlLoader.Load(this);
     }
 
+    private async void OnAddStepClick(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+    {
+        // The button carries the pipeline it belongs to, so each pipeline adds the step
+        // chosen in its own picker. A RelayCommand cannot wrap a parameterless async
+        // Task, which is why this is a click handler rather than a command binding.
+        if (sender is not Button { Tag: AutomationPipelineViewModel pipeline })
+        {
+            return;
+        }
+
+        try
+        {
+            await pipeline.AddSelectedStepAsync();
+        }
+        catch (Exception ex)
+        {
+            Debug.WriteLine($"Adding an automation step failed: {ex}");
+        }
+    }
+
     private async void OnAttached(object? sender, EventArgs e)
     {
         if (DataContext is not AutomationViewModel viewModel)
