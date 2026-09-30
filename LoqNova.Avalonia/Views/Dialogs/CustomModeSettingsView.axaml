@@ -131,6 +131,8 @@
                                 <ContentControl.DataTemplates>
                                     <DataTemplate x:DataType="dialogs:FanCurveViewModel">
                                         <StackPanel Spacing="4" IsVisible="{Binding IsSupported}">
+                                            <TextBlock Classes="WidgetWarning" FontSize="11" TextWrapping="Wrap" Margin="0,0,0,4"
+                                                       Text="Read-only for now: these values are shown as the machine reports them, but editing them is not wired to the hardware yet." />
                                             <ItemsControl ItemsSource="{Binding Points}">
                                                 <ItemsControl.ItemTemplate>
                                                     <DataTemplate x:DataType="dialogs:FanCurvePointViewModel">
