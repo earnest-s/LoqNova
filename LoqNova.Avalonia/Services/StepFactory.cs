@@ -138,13 +138,17 @@ internal static class StepFactory
 
         foreach (var c in name)
         {
-            if (char.IsUpper(c) && previous != '\0' && !char.IsUpper(previous))
+            // Insert a space before an uppercase letter that starts a new word. The
+            // index is bounds-checked: a trailing uppercase run has no next character.
+            if (char.IsUpper(c) && previous != '\0' && !char.IsUpper(previous)
+                && builder.Length < name.Length)
             {
                 builder.Append(' ');
                 builder.Append(c);
             }
             else if (char.IsUpper(c) && previous != '\0' && char.IsUpper(previous)
-                     && builder.Length > 0 && char.IsLower(name[builder.Length]))
+                     && builder.Length > 0 && builder.Length < name.Length
+                     && char.IsLower(name[builder.Length]))
             {
                 builder.Append(' ');
                 builder.Append(c);
