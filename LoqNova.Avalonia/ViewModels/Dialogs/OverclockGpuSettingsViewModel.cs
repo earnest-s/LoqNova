@@ -71,11 +71,43 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
 
             if (!IsSupported)
             {
+                // Report what each half of the check returned. The backend combines an
+                // NVAPI GPU check with a Lenovo WMI capability check and reports only
+                // the result, so a generic "unsupported" left it impossible to tell a
+                // driver problem from a firmware capability flag.
+                var nvapi = await Task.Run(() =>
+                {
+                    try
+                    {
+                        return NvAPI.NvAPI.IsInitialized().ToString();
+                    }
+                    catch (Exception ex)
+                    {
+                        return "threw " + ex.GetType().Name;
+                    }
+                }).ConfigureAwait(false);
+
+                var wmi = await Task.Run(async () =>
+                {
+                    try
+                    {
+                        return (await LoqNova.Lib.System.Management.WMI.LenovoGameZoneData
+                            .IsSupportGpuOCAsync().ConfigureAwait(false)).ToString();
+                    }
+                    catch (Exception ex)
+                    {
+                        return "threw " + ex.GetType().Name;
+                    }
+                }).ConfigureAwait(false);
+
+                var message =
+                    "The backend reports no discrete GPU overclock support. "
+                    + $"NVAPI initialised: {nvapi}. Lenovo IsSupportGpuOC value: {wmi} (must be > 0). "
+                    + "A value of 0 is the firmware's own capability flag, not a driver fault.";
+
                 await _dispatcher.InvokeAsync(() =>
                 {
-                    ErrorMessage =
-                        "The backend reports no discrete GPU overclock support on this machine. "
-                        + "The stored values cannot be written to the GPU.";
+                    ErrorMessage = message;
                 }).ConfigureAwait(false);
                 return;
             }
