@@ -114,6 +114,7 @@ public partial class App : Application
         builder.RegisterType<KeyboardBacklightViewModel>().InstancePerDependency();
         builder.RegisterType<BatteryViewModel>().InstancePerDependency();
         builder.RegisterType<AutomationViewModel>().InstancePerDependency();
+        builder.RegisterType<RealAutomationService>().As<IAutomationService>().SingleInstance();
         builder.RegisterType<MacroViewModel>().InstancePerDependency();
         builder.RegisterType<PackagesViewModel>().InstancePerDependency();
         builder.RegisterType<SettingsViewModel>().InstancePerDependency();
