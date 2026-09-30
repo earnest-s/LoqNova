@@ -38,6 +38,24 @@ public partial class AutomationViewModel : ViewModelBase
     /// <summary>Real backend step types, not a hand-written list of names.</summary>
     public IReadOnlyList<string> StepTypes => StepFactory.SupportedStepTypes;
 
+    /// <summary>
+    /// WPF excludes QuickActionAutomationStep from a manual pipeline's step catalogue,
+    /// so the picker for Quick Actions omits it too.
+    /// </summary>
+    public IReadOnlyList<string> ManualStepTypes =>
+        [.. StepFactory.SupportedStepTypes.Where(t => t != nameof(QuickActionAutomationStep))];
+
+    /// <summary>The step type chosen in a pipeline's picker.</summary>
+    [ObservableProperty]
+    private string? _selectedStepType;
+
+    /// <summary>WPF asks for a quick action's name inline, capped at 50 characters.</summary>
+    [ObservableProperty]
+    private string? _pendingManualName;
+
+    [ObservableProperty]
+    private bool _isManualNamePromptOpen;
+
     /// <summary>Real backend trigger types.</summary>
     public IReadOnlyList<string> TriggerTypes =>
         [.. StepFactory.SupportedTriggers.Select(t => t.GetType().Name)];
@@ -113,20 +131,59 @@ public partial class AutomationViewModel : ViewModelBase
     [RelayCommand]
     private async Task AddAutomaticPipelineAsync()
     {
-        await _automationService.AddPipelineAsync(
-            new AutomationPipeline { Name = "New Pipeline" }, isManual: false).ConfigureAwait(true);
+        // WPF creates the pipeline with a real, chosen trigger rather than a decorative
+        // one, so the trigger type is picked first and a real backend trigger is built.
+        var triggerTypeName = SelectedTriggerType
+            ?? StepFactory.SupportedTriggers[0].GetType().Name;
 
+        var pipeline = new AutomationPipeline
+        {
+            Name = "New Pipeline",
+            TriggerTypeName = triggerTypeName
+        };
+
+        await _automationService.AddPipelineAsync(pipeline, isManual: false).ConfigureAwait(true);
         IsDirty = true;
     }
 
     [RelayCommand]
     private async Task AddManualPipelineAsync()
     {
-        await _automationService.AddPipelineAsync(
-            new AutomationPipeline { Name = "New Quick Action" }, isManual: true).ConfigureAwait(true);
+        // WPF asks for the name inline and aborts on a blank entry, with no duplicate
+        // checking. The inline field replaces that prompt.
+        var name = PendingManualName?.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        var created = await _automationService
+            .AddPipelineAsync(new AutomationPipeline { Name = name[..Math.Min(name.Length, 50)] }, isManual: true)
+            .ConfigureAwait(true);
+
+        PendingManualName = null;
+        IsManualNamePromptOpen = false;
+
+        _ = created;
 
         IsDirty = true;
     }
+
+    /// <summary>WPF shows an inline name box rather than opening a window.</summary>
+    [RelayCommand]
+    private void OpenManualNamePrompt() => IsManualNamePromptOpen = true;
+
+    [RelayCommand]
+    private void CancelManualNamePrompt()
+    {
+        PendingManualName = null;
+        IsManualNamePromptOpen = false;
+    }
+
+    /// <summary>Real backend trigger types, for the Add Automatic picker.</summary>
+    [ObservableProperty]
+    private string? _selectedTriggerType;
 
     [RelayCommand]
     private async Task RemovePipelineAsync(AutomationPipelineViewModel? pipeline)
