@@ -5,8 +5,10 @@
              x:DataType="vm:AutomationViewModel">
 
     <UserControl.Resources>
-        <!-- Options are records; show their friendly name rather than ToString(). -->
-        <DataTemplate x:Key="OptionTemplate" x:DataType="x:Object">
+        <!-- Shared by the trigger, step and state pickers, so it cannot be a compiled
+             binding: x:Object has no DisplayName member and the page's x:DataType would
+             otherwise be inherited, which threw when the first option was rendered. -->
+        <DataTemplate x:Key="OptionTemplate" x:CompileBindings="False">
             <TextBlock Text="{Binding DisplayName}" />
         </DataTemplate>
     </UserControl.Resources>
