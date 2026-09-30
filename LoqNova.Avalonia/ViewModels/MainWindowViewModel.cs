@@ -16,7 +16,7 @@ public partial class MainWindowViewModel : ViewModelBase
 
     /// <summary>True while a modal dialog is presented, used to show the scrim.</summary>
     [ObservableProperty]
-    public bool IsDialogOpen { get; private set; }
+    private bool _isDialogOpen;
 
     private readonly INavigationService _navigationService;
     private readonly ISettingsService _settingsService;
