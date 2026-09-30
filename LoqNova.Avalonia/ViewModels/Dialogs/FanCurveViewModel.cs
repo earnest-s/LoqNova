@@ -107,8 +107,9 @@ public partial class FanCurveViewModel : ViewModelBase
     }
 
     /// <summary>
-    /// Rebuilds the edited fan table for the preset. WPF does the equivalent by taking
-    /// the control's table and writing it into the preset before applying.
+    /// Rebuilds the edited fan table for the preset. WPF does the equivalent in
+    /// <c>GetFanTableInfo</c>: the slider values become the new <c>FanTable</c> while
+    /// the per-fan speed ladders in <c>Data</c> are passed through untouched.
     /// </summary>
     public FanTableInfo? BuildFanTableInfo(FanTableInfo? original)
     {
@@ -118,24 +119,20 @@ public partial class FanCurveViewModel : ViewModelBase
             return original;
         }
 
-        var edited = new FanTableData[data.Length];
+        // The table is wider than the data set, so start from what the machine has and
+        // only overwrite the slots this dialog actually edits.
+        var tableValues = source.Table.GetTable().ToArray();
 
-        for (var i = 0; i < data.Length; i++)
+        for (var i = 0; i < Points.Count && i < tableValues.Length; i++)
         {
-            var entry = data[i];
-            var speeds = entry.FanSpeeds is { Length: > 0 } s
-                ? (ushort[])[.. s]
-                : Array.Empty<ushort>();
+            var stepCount = data[i].FanSpeeds?.Length ?? 0;
+            var index = Points[i].SpeedIndex;
 
-            if (Points[i].SpeedIndex >= 0 && Points[i].SpeedIndex < speeds.Length)
-            {
-                // The selected step is the RPM the fan should run at this temperature.
-                speeds[Points[i].SpeedIndex] = speeds[Points[i].SpeedIndex];
-            }
-
-            edited[i] = new FanTableData(entry.Type, entry.FanId, entry.SensorId, speeds, entry.Temps);
+            tableValues[i] = stepCount > 0 && index >= 0 && index < stepCount
+                ? (ushort)index
+                : tableValues[i];
         }
 
-        return new FanTableInfo(edited, source.Table);
+        return new FanTableInfo(data, new FanTable(tableValues));
     }
 }
