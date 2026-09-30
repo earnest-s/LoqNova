@@ -162,61 +162,59 @@ public partial class AutomationViewModel : ViewModelBase
     }
 
     [RelayCommand]
-    private async Task AddStepAsync(AutomationPipelineViewModel? pipeline, string? typeName)
+    private async Task AddStepAsync(AutomationStepRequest? request)
     {
-        if (pipeline is null || string.IsNullOrEmpty(typeName))
+        if (request is null || string.IsNullOrEmpty(request.TypeName))
         {
             return;
         }
 
         await _automationService.AddStepAsync(
-            pipeline.Id, new AutomationStep { TypeName = typeName }).ConfigureAwait(true);
+            request.PipelineId, new AutomationStep { TypeName = request.TypeName }).ConfigureAwait(true);
 
         IsDirty = true;
     }
 
     [RelayCommand]
-    private async Task RemoveStepAsync(AutomationPipelineViewModel? pipeline, AutomationStepViewModel? step)
+    private async Task RemoveStepAsync(AutomationStepViewModel? step)
     {
-        if (pipeline is null || step is null)
+        if (step is null || step.PipelineId is not { } pipelineId)
         {
             return;
         }
 
-        await _automationService.RemoveStepAsync(pipeline.Id, step.Index).ConfigureAwait(true);
+        await _automationService.RemoveStepAsync(pipelineId, step.Index).ConfigureAwait(true);
         IsDirty = true;
     }
 
     [RelayCommand]
-    private async Task MoveStepUpAsync(AutomationPipelineViewModel? pipeline, AutomationStepViewModel? step)
+    private async Task MoveStepUpAsync(AutomationStepViewModel? step)
     {
-        if (pipeline is null || step is null || step.Index <= 0)
+        if (step is null || step.PipelineId is not { } pipelineId || step.Index <= 0)
         {
             return;
         }
 
-        await _automationService.MoveStepAsync(pipeline.Id, step.Index, step.Index - 1)
+        await _automationService.MoveStepAsync(pipelineId, step.Index, step.Index - 1)
             .ConfigureAwait(true);
 
         IsDirty = true;
     }
 
     [RelayCommand]
-    private async Task MoveStepDownAsync(AutomationPipelineViewModel? pipeline, AutomationStepViewModel? step)
+    private async Task MoveStepDownAsync(AutomationStepViewModel? step)
     {
-        if (pipeline is null || step is null)
+        if (step is null || step.PipelineId is not { } pipelineId)
         {
             return;
         }
 
-        var last = pipeline.Steps.Count - 1;
-
-        if (step.Index < 0 || step.Index >= last)
+        if (step.Index < 0 || step.Index >= step.LastIndex)
         {
             return;
         }
 
-        await _automationService.MoveStepAsync(pipeline.Id, step.Index, step.Index + 1)
+        await _automationService.MoveStepAsync(pipelineId, step.Index, step.Index + 1)
             .ConfigureAwait(true);
 
         IsDirty = true;
@@ -298,9 +296,21 @@ public partial class AutomationPipelineViewModel : ViewModelBase
 }
 
 /// <summary>A step projected from a real <see cref="IAutomationStep"/>.</summary>
+/// <summary>Parameter for the add-step command: which pipeline, and which real step type.</summary>
+public sealed class AutomationStepRequest
+{
+    public Guid PipelineId { get; init; }
+
+    public string TypeName { get; init; } = string.Empty;
+}
+
 public partial class AutomationStepViewModel : ViewModelBase
 {
     public int Index { get; init; }
+
+    public int LastIndex { get; init; }
+
+    public Guid PipelineId { get; init; }
 
     [ObservableProperty]
     private string _typeName = string.Empty;
