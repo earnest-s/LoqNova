@@ -58,8 +58,14 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
         _logger = logger;
     }
 
-    /// <summary>True while the backend is being queried, so nothing is claimed yet.</summary>
-    public bool IsLoading { get; private set; } = true;
+    /// <summary>
+    /// True while the backend is being queried, so nothing is claimed yet. This has to
+    /// be an observable property: as a plain auto-property the setter never raised
+    /// change notification, so the "Reading..." panel stayed on screen permanently even
+    /// after initialisation had finished and the real values had loaded.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isLoading = true;
 
     /// <summary>Result of a bounded call, so a hang is reportable rather than silent.</summary>
     private readonly record struct TimedResult<T>(T? Value, bool TimedOut);
@@ -173,6 +179,7 @@ public partial class OverclockGpuSettingsViewModel : DialogViewModelBase
             // A failure here used to look identical to "unsupported", which sent the
             // user looking for a hardware problem that was not there.
             _logger.LogError(ex, "GPU overclock settings could not be initialised.");
+            IsLoading = false;
             await _dispatcher.InvokeAsync(() =>
             {
                 IsSupported = false;
