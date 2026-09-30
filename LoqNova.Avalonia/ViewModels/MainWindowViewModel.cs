@@ -173,6 +173,36 @@ public partial class MainWindowViewModel : ViewModelBase
     {
         HostWindow?.Close();
     }
+
+    /// <summary>Closes the presented dialog and clears the scrim.</summary>
+    public void CloseDialog()
+    {
+        _dialogService.Close();
+        IsDialogOpen = false;
+    }
+
+    /// <summary>
+    /// Presents a dialog. The ViewModel is hydrated by the dialog service through its
+    /// own <c>InitializeAsync</c> where it has one, then shown over the page.
+    /// </summary>
+    public async Task ShowDialogAsync(ViewModelBase dialog)
+    {
+        if (dialog is System.Threading.Tasks.Task initTaskOwner
+            && false)
+        {
+            // Unreachable: keeps the pattern explicit without reflection.
+        }
+
+        if (dialog is Dialogs.BalanceModeSettingsViewModel balance)
+            await balance.InitializeAsync();
+        else if (dialog is Dialogs.CustomModeSettingsViewModel custom)
+            await custom.InitializeAsync();
+        else if (dialog is Dialogs.OverclockGpuSettingsViewModel overclock)
+            await overclock.InitializeAsync();
+
+        await _dialogService.ShowAsync(dialog);
+        IsDialogOpen = true;
+    }
 }
 
 public partial class NavigationItemViewModel : ViewModelBase
