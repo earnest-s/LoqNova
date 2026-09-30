@@ -375,17 +375,6 @@ public partial class AutomationPipelineViewModel : ViewModelBase
         OnPropertyChanged(nameof(StepsSubtitle));
     }
 
-    partial void OnNameChanged(string value) => OnPropertyChanged(nameof(DisplayTitle));
-
-    /// <summary>Keeps the backend object's name in step with the edited field.</summary>
-    public async Task CommitNameAsync()
-    {
-        Model.Name = Name;
-
-        await _service.RenamePipelineAsync(Model, Name);
-        MarkDirty();
-    }
-
     /// <summary>Applies a newly chosen trigger to the real backend object.</summary>
     public async Task CommitTriggerAsync()
     {
@@ -498,6 +487,15 @@ public partial class AutomationStepViewModel : ViewModelBase
 
     /// <summary>False when the backend reports the hardware for this step is absent.</summary>
     public bool IsSupported { get; private set; } = true;
+
+    [RelayCommand]
+    private Task MoveUpAsync() => Owner.MoveStepUpCommand.ExecuteAsync(this);
+
+    [RelayCommand]
+    private Task MoveDownAsync() => Owner.MoveStepDownCommand.ExecuteAsync(this);
+
+    [RelayCommand]
+    private Task RemoveAsync() => Owner.RemoveStepCommand.ExecuteAsync(this);
 
     public async Task RefreshSupportAsync()
     {
