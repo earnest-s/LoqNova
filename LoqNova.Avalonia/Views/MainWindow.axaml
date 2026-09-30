@@ -69,7 +69,7 @@
                  Native chrome is suppressed via the ExtendClientArea* hints on
                  the Window, so this bar is the application's only title bar.
                  Drag handling lives in MainWindow.axaml.cs. -->
-            <Border Grid.Row="0" Classes="TitleBar" PointerPressed="OnTitleBarPointerPressed">
+            <Border Grid.Row="0" Classes="TitleBar" PointerPressed="OnTitleBarPointerPressed" Tapped="OnTitleBarTapped">
                 <Grid ColumnDefinitions="Auto,*">
                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}" Margin="16,0,0,0" VerticalAlignment="Center">
                         <Image Source="avares://LOQ Nova/Assets/icon.ico" Width="14" Height="14" />
