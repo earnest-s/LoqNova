@@ -72,10 +72,21 @@ public partial class FanCurveViewModel : ViewModelBase
             return;
         }
 
+        // The table carries the selected step per point, one entry per temperature
+        // slot. WPF seeds each slider from this: slider.Value = tableValues[i], and
+        // the RPM shown is FanSpeeds[that value]. Reading a fixed 0 here is what made
+        // every point report the bottom of the ladder (1400 RPM on this machine).
+        var tableValues = fanTableInfo.Table.GetTable();
+
         for (var i = 0; i < data.Length; i++)
         {
             var entry = data[i];
             var speeds = entry.FanSpeeds ?? [];
+            var selected = i < tableValues.Length ? tableValues[i] : 0;
+            if (selected > Math.Max(0, speeds.Length - 1))
+            {
+                selected = 0;
+            }
 
             Points.Add(new FanCurvePointViewModel
             {
@@ -87,7 +98,7 @@ public partial class FanCurveViewModel : ViewModelBase
                     ? $"{temps[i]}°C"
                     : string.Empty,
                 Description = $"{entry.Type} fan {entry.FanId} / sensor {entry.SensorId}",
-                SpeedIndex = 0
+                SpeedIndex = selected
             });
         }
 
