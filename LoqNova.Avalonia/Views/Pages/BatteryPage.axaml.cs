@@ -9,7 +9,7 @@ namespace LoqNova.Avalonia.Views.Pages;
 
 public partial class BatteryPage : UserControl
 {
-    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1) };
+    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromSeconds(1.5) };
 
     public BatteryPage()
     {
