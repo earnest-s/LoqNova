@@ -6,16 +6,20 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
+using LoqNova.Lib;
+using LoqNova.Lib.Automation.Pipeline;
 using LoqNova.Lib.Automation.Pipeline.Triggers;
 using LoqNova.Lib.Automation.Steps;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
 /// <summary>
-/// Drives the Automation page from the real backend. There is no per-pipeline or
-/// per-step enable flag, because the backend has no such concept: WPF exposes one
-/// global toggle (AutomationProcessor.IsEnabled) and a pipeline is either automatic
-/// (it has a trigger) or a manual quick action (it has none).
+/// Drives the Automation page over the real backend. Every view model below wraps a
+/// live backend object rather than copying it, so edits mutate the draft directly.
+///
+/// There is no per-pipeline or per-step enable flag, because the backend has no such
+/// concept: WPF exposes one global toggle and distinguishes automatic pipelines (they
+/// have a trigger) from quick actions (they do not).
 /// </summary>
 public partial class AutomationViewModel : ViewModelBase
 {
@@ -27,27 +31,30 @@ public partial class AutomationViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isLoading;
 
-    /// <summary>True while there are uncommitted edits, which is when Save/Revert show.</summary>
+    /// <summary>True only while the draft differs from the persisted state.</summary>
     [ObservableProperty]
     private bool _isDirty;
 
-    public ObservableCollection<AutomationPipelineViewModel> AutomaticPipelines { get; } = new();
+    public ObservableCollection<AutomationPipelineViewModel> AutomaticPipelines { get; } = [];
 
-    public ObservableCollection<AutomationPipelineViewModel> ManualPipelines { get; } = new();
+    public ObservableCollection<AutomationPipelineViewModel> ManualPipelines { get; } = [];
 
-    /// <summary>Real backend step types, not a hand-written list of names.</summary>
-    public IReadOnlyList<string> StepTypes => StepFactory.SupportedStepTypes;
+    /// <summary>Real backend step types, labelled with their display names.</summary>
+    public IReadOnlyList<AutomationStepOption> AvailableSteps => _automationService.AvailableSteps;
 
     /// <summary>
-    /// WPF excludes QuickActionAutomationStep from a manual pipeline's step catalogue,
-    /// so the picker for Quick Actions omits it too.
+    /// WPF excludes QuickActionAutomationStep from a quick action's step catalogue, so
+    /// the picker for manual pipelines omits it too.
     /// </summary>
-    public IReadOnlyList<string> ManualStepTypes =>
-        [.. StepFactory.SupportedStepTypes.Where(t => t != nameof(QuickActionAutomationStep))];
+    public IReadOnlyList<AutomationStepOption> AvailableManualSteps =>
+        [.. AvailableSteps.Where(s => s.TypeName != nameof(QuickActionAutomationStep))];
 
-    /// <summary>The step type chosen in a pipeline's picker.</summary>
+    /// <summary>Real backend trigger types, labelled by their own DisplayName.</summary>
+    public IReadOnlyList<TriggerOption> AvailableTriggers => _automationService.AvailableTriggers;
+
+    /// <summary>The trigger chosen for the next Add Automatic.</summary>
     [ObservableProperty]
-    private string? _selectedStepType;
+    private TriggerOption? _selectedTriggerOption;
 
     /// <summary>WPF asks for a quick action's name inline, capped at 50 characters.</summary>
     [ObservableProperty]
@@ -56,29 +63,21 @@ public partial class AutomationViewModel : ViewModelBase
     [ObservableProperty]
     private bool _isManualNamePromptOpen;
 
-    /// <summary>Real backend trigger types.</summary>
-    public IReadOnlyList<string> TriggerTypes =>
-        [.. StepFactory.SupportedTriggers.Select(t => t.GetType().Name)];
-
     public AutomationViewModel(IAutomationService automationService)
     {
         _automationService = automationService;
 
-        _automationService.PipelinesChanged += OnPipelinesChanged;
+        _automationService.DraftChanged += Rebuild;
+        _automationService.EnabledChanged += OnEnabledChanged;
 
+        // A valid trigger is preselected so Add Automatic can never produce a pipeline
+        // whose trigger is null while still being listed as automatic.
+        SelectedTriggerOption = AvailableTriggers.FirstOrDefault();
+
+        Rebuild();
         IsAutomationEnabled = _automationService.IsEnabled;
-
-        // The service loads during app startup, which happens before this view model is
-        // constructed, so the initial publish has already been missed. Populate from
-        // whatever the service currently holds rather than waiting for the next change.
-        OnPipelinesChanged();
     }
 
-    /// <summary>
-    /// Called once the backend container is ready. Resolving the processor and running
-    /// its initialization both happen off the UI thread and behind the readiness gate,
-    /// so this must not be awaited from a constructor.
-    /// </summary>
     [RelayCommand]
     public async Task InitializeAsync()
     {
@@ -87,7 +86,6 @@ public partial class AutomationViewModel : ViewModelBase
         try
         {
             await _automationService.InitializeAsync().ConfigureAwait(true);
-
             IsAutomationEnabled = _automationService.IsEnabled;
         }
         finally
@@ -96,26 +94,39 @@ public partial class AutomationViewModel : ViewModelBase
         }
     }
 
-    private void OnPipelinesChanged()
-    {
-        IsAutomationEnabled = _automationService.IsEnabled;
+    private void OnEnabledChanged() => IsAutomationEnabled = _automationService.IsEnabled;
 
-        // The service holds the projected pipelines; the view binds to these copies, so
-        // they have to be rebuilt whenever the backend republishes. This previously only
-        // refreshed the toggle, which left both containers permanently empty.
+    /// <summary>
+    /// Rebuilds the wrappers around the current draft. The draft itself is never
+    /// replaced, so any in-place edit already applied to a step or trigger survives.
+    /// </summary>
+    private void Rebuild()
+    {
+        var selectedAutomatic = SelectedPipeline?.Model;
+        var selectedManual = SelectedManual?.Model;
+
         AutomaticPipelines.Clear();
         ManualPipelines.Clear();
 
         foreach (var pipeline in _automationService.AutomaticPipelines)
         {
-            AutomaticPipelines.Add(AutomationPipelineViewModel.Create(pipeline, isManual: false));
+            AutomaticPipelines.Add(new AutomationPipelineViewModel(this, pipeline, isManual: false));
         }
 
         foreach (var pipeline in _automationService.ManualPipelines)
         {
-            ManualPipelines.Add(AutomationPipelineViewModel.Create(pipeline, isManual: true));
+            ManualPipelines.Add(new AutomationPipelineViewModel(this, pipeline, isManual: true));
         }
+
+        SelectedPipeline = AutomaticPipelines.FirstOrDefault(p => p.Model == selectedAutomatic);
+        SelectedManual = ManualPipelines.FirstOrDefault(p => p.Model == selectedManual);
     }
+
+    [ObservableProperty]
+    private AutomationPipelineViewModel? _selectedPipeline;
+
+    [ObservableProperty]
+    private AutomationPipelineViewModel? _selectedManual;
 
     partial void OnIsAutomationEnabledChanged(bool value) => _ = SetEnabledAsync(value);
 
@@ -123,52 +134,19 @@ public partial class AutomationViewModel : ViewModelBase
     private async Task SetEnabledAsync(bool enabled)
     {
         await _automationService.SetEnabledAsync(enabled).ConfigureAwait(true);
-
-        // Re-read rather than trusting the toggle: the backend is the source of truth.
-        IsAutomationEnabled = _automationService.IsEnabled;
     }
 
     [RelayCommand]
     private async Task AddAutomaticPipelineAsync()
     {
-        // WPF creates the pipeline with a real, chosen trigger rather than a decorative
-        // one, so the trigger type is picked first and a real backend trigger is built.
-        var triggerTypeName = SelectedTriggerType
-            ?? StepFactory.SupportedTriggers[0].GetType().Name;
+        // A real trigger instance, never null, so the pipeline is immediately valid.
+        var trigger = SelectedTriggerOption?.Create() ?? AvailableTriggers[0].Create();
 
-        var pipeline = new AutomationPipeline
-        {
-            Name = "New Pipeline",
-            TriggerTypeName = triggerTypeName
-        };
-
-        await _automationService.AddPipelineAsync(pipeline, isManual: false).ConfigureAwait(true);
-        IsDirty = true;
-    }
-
-    [RelayCommand]
-    private async Task AddManualPipelineAsync()
-    {
-        // WPF asks for the name inline and aborts on a blank entry, with no duplicate
-        // checking. The inline field replaces that prompt.
-        var name = PendingManualName?.Trim();
-
-        if (string.IsNullOrWhiteSpace(name))
-        {
-            return;
-        }
-
-        await _automationService
-            .AddPipelineAsync(new AutomationPipeline { Name = name[..Math.Min(name.Length, 50)] }, isManual: true)
-            .ConfigureAwait(true);
-
-        PendingManualName = null;
-        IsManualNamePromptOpen = false;
+        await _automationService.AddPipelineAsync("New Pipeline", trigger).ConfigureAwait(true);
 
         IsDirty = true;
     }
 
-    /// <summary>WPF shows an inline name box rather than opening a window.</summary>
     [RelayCommand]
     private void OpenManualNamePrompt() => IsManualNamePromptOpen = true;
 
@@ -179,9 +157,26 @@ public partial class AutomationViewModel : ViewModelBase
         IsManualNamePromptOpen = false;
     }
 
-    /// <summary>Real backend trigger types, for the Add Automatic picker.</summary>
-    [ObservableProperty]
-    private string? _selectedTriggerType;
+    [RelayCommand]
+    private async Task AddManualPipelineAsync()
+    {
+        // WPF: blank input aborts silently, no duplicate-name validation.
+        var name = PendingManualName?.Trim();
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return;
+        }
+
+        // A null trigger is what makes this a quick action.
+        await _automationService.AddPipelineAsync(name[..Math.Min(name.Length, 50)], trigger: null)
+            .ConfigureAwait(true);
+
+        PendingManualName = null;
+        IsManualNamePromptOpen = false;
+
+        IsDirty = true;
+    }
 
     [RelayCommand]
     private async Task RemovePipelineAsync(AutomationPipelineViewModel? pipeline)
@@ -191,9 +186,7 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        // WPF deletes from the editor only; the backend is untouched until Save.
-        await _automationService.RemovePipelineAsync(pipeline.Id).ConfigureAwait(true);
-
+        await _automationService.RemovePipelineAsync(pipeline.Model).ConfigureAwait(true);
         IsDirty = true;
     }
 
@@ -205,15 +198,7 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        var list = pipeline.IsManual ? ManualPipelines : AutomaticPipelines;
-        var index = list.IndexOf(pipeline);
-
-        if (index <= 0)
-        {
-            return;
-        }
-
-        await _automationService.MovePipelineAsync(pipeline.Id, index - 1).ConfigureAwait(true);
+        await _automationService.MovePipelineAsync(pipeline.Model, -1).ConfigureAwait(true);
         IsDirty = true;
     }
 
@@ -225,80 +210,94 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        var list = pipeline.IsManual ? ManualPipelines : AutomaticPipelines;
-        var index = list.IndexOf(pipeline);
-
-        if (index < 0 || index >= list.Count - 1)
-        {
-            return;
-        }
-
-        await _automationService.MovePipelineAsync(pipeline.Id, index + 1).ConfigureAwait(true);
+        await _automationService.MovePipelineAsync(pipeline.Model, 1).ConfigureAwait(true);
         IsDirty = true;
     }
 
     [RelayCommand]
-    private async Task AddStepAsync(AutomationStepRequest? request)
+    private async Task RenamePipelineAsync(AutomationPipelineViewModel? pipeline)
     {
-        if (request is null || string.IsNullOrEmpty(request.TypeName))
+        if (pipeline is null || string.IsNullOrWhiteSpace(pipeline.Name))
         {
             return;
         }
 
-        await _automationService.AddStepAsync(
-            request.PipelineId, new AutomationStep { TypeName = request.TypeName }).ConfigureAwait(true);
+        await _automationService.RenamePipelineAsync(pipeline.Model, pipeline.Name).ConfigureAwait(true);
+        IsDirty = true;
+    }
 
+    [RelayCommand]
+    private async Task SetIconAsync(AutomationPipelineViewModel? pipeline, string? iconName)
+    {
+        if (pipeline is null)
+        {
+            return;
+        }
+
+        await _automationService.SetIconAsync(pipeline.Model, iconName).ConfigureAwait(true);
+        IsDirty = true;
+    }
+
+    [RelayCommand]
+    private async Task SetTriggerAsync(AutomationPipelineViewModel? pipeline, TriggerOption? option)
+    {
+        if (pipeline is null || option is null)
+        {
+            return;
+        }
+
+        await _automationService.SetTriggerAsync(pipeline.Model, option.Create()).ConfigureAwait(true);
+        IsDirty = true;
+    }
+
+    [RelayCommand]
+    private async Task AddStepAsync(AutomationPipelineViewModel? pipeline, AutomationStepOption? option)
+    {
+        if (pipeline is null || option is null)
+        {
+            return;
+        }
+
+        await _automationService.AddStepAsync(pipeline.Model, option.Create()).ConfigureAwait(true);
         IsDirty = true;
     }
 
     [RelayCommand]
     private async Task RemoveStepAsync(AutomationStepViewModel? step)
     {
-        if (step is null)
+        if (step?.Owner is not { } pipeline)
         {
             return;
         }
 
-        await _automationService.RemoveStepAsync(step.PipelineId, step.Index).ConfigureAwait(true);
+        await _automationService.RemoveStepAsync(pipeline.Model, step.Model).ConfigureAwait(true);
         IsDirty = true;
     }
 
     [RelayCommand]
     private async Task MoveStepUpAsync(AutomationStepViewModel? step)
     {
-        if (step is null || step.Index <= 0)
+        if (step?.Owner is not { } pipeline)
         {
             return;
         }
 
-        await _automationService.MoveStepAsync(step.PipelineId, step.Index, step.Index - 1)
-            .ConfigureAwait(true);
-
+        await _automationService.MoveStepAsync(pipeline.Model, step.Model, -1).ConfigureAwait(true);
         IsDirty = true;
     }
 
     [RelayCommand]
     private async Task MoveStepDownAsync(AutomationStepViewModel? step)
     {
-        if (step is null)
+        if (step?.Owner is not { } pipeline)
         {
             return;
         }
 
-        var pipelineId = step.PipelineId;
-
-        if (step.Index < 0 || step.Index >= step.LastIndex)
-        {
-            return;
-        }
-
-        await _automationService.MoveStepAsync(step.PipelineId, step.Index, step.Index + 1)
-            .ConfigureAwait(true);
-
+        await _automationService.MoveStepAsync(pipeline.Model, step.Model, 1).ConfigureAwait(true);
         IsDirty = true;
     }
 
-    /// <summary>Runs a manual quick action through the real backend.</summary>
     [RelayCommand]
     private async Task RunNowAsync(AutomationPipelineViewModel? pipeline)
     {
@@ -307,44 +306,9 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        await _automationService.RunNowAsync(pipeline.Id).ConfigureAwait(true);
+        await _automationService.RunNowAsync(pipeline.Model).ConfigureAwait(true);
     }
 
-    [RelayCommand]
-    private async Task RenamePipelineAsync(PipelineRenameRequest? request)
-    {
-        if (request is null || string.IsNullOrWhiteSpace(request.Name))
-        {
-            return;
-        }
-
-        await _automationService.UpdatePipelineAsync(
-            new AutomationPipeline
-            {
-                Id = request.PipelineId,
-                Name = request.Name,
-                Icon = request.Icon
-            })
-            .ConfigureAwait(true);
-
-        IsDirty = true;
-    }
-
-    [RelayCommand]
-    private async Task SetTriggerAsync(PipelineTriggerRequest? request)
-    {
-        if (request is null)
-        {
-            return;
-        }
-
-        await _automationService.SetTriggerAsync(request.PipelineId, request.TriggerTypeName)
-            .ConfigureAwait(true);
-
-        IsDirty = true;
-    }
-
-    /// <summary>The single write path, exactly as WPF uses it.</summary>
     [RelayCommand]
     private async Task SaveAsync()
     {
@@ -352,98 +316,166 @@ public partial class AutomationViewModel : ViewModelBase
         IsDirty = false;
     }
 
-    /// <summary>WPF's Revert: rebuild from the backend and discard uncommitted edits.</summary>
+    /// <summary>WPF's Revert: reload from the backend and discard every uncommitted edit.</summary>
     [RelayCommand]
     private async Task RevertAsync()
     {
         await _automationService.RevertAsync().ConfigureAwait(true);
+
         IsDirty = false;
+        IsAutomationEnabled = _automationService.IsEnabled;
     }
 }
 
-/// <summary>A pipeline projected from the real backend model.</summary>
+/// <summary>A thin binding wrapper around a live backend <see cref="AutomationPipeline"/>.</summary>
 public partial class AutomationPipelineViewModel : ViewModelBase
 {
-    public Guid Id { get; init; }
+    private readonly AutomationViewModel _owner;
 
-    public bool IsManual { get; init; }
+    /// <summary>The real backend object. Never a copy; edits mutate the draft.</summary>
+    public AutomationPipeline Model { get; }
+
+    public Guid Id => Model.Id;
+
+    public bool IsManual { get; }
+
+    public ObservableCollection<AutomationStepViewModel> Steps { get; } = [];
+
+    public AutomationPipelineViewModel(
+        AutomationViewModel owner, AutomationPipeline model, bool isManual)
+    {
+        _owner = owner;
+        Model = model;
+        IsManual = isManual;
+
+        Name = model.Name ?? string.Empty;
+        IconName = model.IconName ?? string.Empty;
+        SelectedTrigger = owner.AvailableTriggers
+            .FirstOrDefault(t => t.TypeName == model.Trigger?.GetType().Name);
+
+        RefreshSteps();
+    }
 
     [ObservableProperty]
     private string _name = string.Empty;
 
     [ObservableProperty]
-    private string _icon = string.Empty;
+    private string _iconName = string.Empty;
 
+    /// <summary>The pipeline's real trigger, expressed as the matching picker option.</summary>
     [ObservableProperty]
-    private string _triggerTypeName = string.Empty;
+    private TriggerOption? _selectedTrigger;
 
-    public ObservableCollection<AutomationStepViewModel> Steps { get; } = [];
+    /// <summary>WPF's header falls back to the trigger's display name when unnamed.</summary>
+    public string DisplayTitle =>
+        !string.IsNullOrWhiteSpace(Name) ? Name : SelectedTrigger?.DisplayName ?? "Unnamed";
 
-    /// <summary>
-    /// Projects the service's pipeline for binding. The step rows carry their position
-    /// because Move Up/Down and Delete are index based, exactly as WPF's are.
-    /// </summary>
-    public static AutomationPipelineViewModel Create(AutomationPipeline source, bool isManual)
+    /// <summary>The real trigger instance, or null for a quick action.</summary>
+    public IAutomationPipelineTrigger? Trigger => Model.Trigger;
+
+    public string TriggerDisplayName => Model.Trigger?.DisplayName ?? string.Empty;
+
+    /// <summary>WPF's step-count subtitle.</summary>
+    public string StepsSubtitle => Steps.Count == 1 ? "1 step" : $"{Steps.Count} steps";
+
+    /// <summary>Re-wraps the step rows around the live steps on the backend object.</summary>
+    public void RefreshSteps()
     {
-        var viewModel = new AutomationPipelineViewModel
-        {
-            Id = source.Id,
-            IsManual = isManual,
-            Name = source.Name,
-            Icon = source.Icon,
-            TriggerTypeName = source.TriggerTypeName
-        };
+        Steps.Clear();
 
-        for (var i = 0; i < source.Steps.Count; i++)
+        for (var i = 0; i < Model.Steps.Count; i++)
         {
-            viewModel.Steps.Add(new AutomationStepViewModel
-            {
-                Index = i,
-                LastIndex = source.Steps.Count - 1,
-                PipelineId = source.Id,
-                TypeName = source.Steps[i].TypeName
-            });
+            Steps.Add(new AutomationStepViewModel(this, Model.Steps[i], i, Model.Steps.Count - 1));
         }
 
-        return viewModel;
+        OnPropertyChanged(nameof(StepsSubtitle));
     }
+
+    partial void OnNameChanged(string value) => OnPropertyChanged(nameof(DisplayTitle));
+
+    /// <summary>Keeps the backend object's name in step with the edited field.</summary>
+    public async Task CommitNameAsync()
+    {
+        Model.Name = Name;
+        await _owner.RenamePipelineCommand.ExecuteAsync(this);
+    }
+
+    /// <summary>Applies a newly chosen trigger to the real backend object.</summary>
+    public async Task CommitTriggerAsync()
+    {
+        if (SelectedTrigger is null)
+        {
+            return;
+        }
+
+        await _owner.SetTriggerCommand.ExecuteAsync(this);
+    }
+
+    /// <summary>Adds a real backend step of the chosen type.</summary>
+    public Task AddStepAsync(AutomationStepOption? option) =>
+        _owner.AddStepCommand.ExecuteAsync((this, option));
+
+    public Task AddManualStepAsync(AutomationStepOption? option) =>
+        _owner.AddStepCommand.ExecuteAsync((this, option));
 }
 
-/// <summary>A step projected from a real <see cref="IAutomationStep"/>.</summary>
-/// <summary>Parameter for rename: which pipeline, and the new name.</summary>
-public sealed class PipelineRenameRequest
-{
-    public Guid PipelineId { get; init; }
-
-    public string Name { get; init; } = string.Empty;
-
-    public string Icon { get; init; } = string.Empty;
-}
-
-/// <summary>Parameter for the trigger command: which pipeline, and which real trigger type.</summary>
-public sealed class PipelineTriggerRequest
-{
-    public Guid PipelineId { get; init; }
-
-    public string TriggerTypeName { get; init; } = string.Empty;
-}
-
-/// <summary>Parameter for the add-step command: which pipeline, and which real step type.</summary>
-public sealed class AutomationStepRequest
-{
-    public Guid PipelineId { get; init; }
-
-    public string TypeName { get; init; } = string.Empty;
-}
-
+/// <summary>A thin binding wrapper around a live backend <see cref="IAutomationStep"/>.</summary>
 public partial class AutomationStepViewModel : ViewModelBase
 {
-    public int Index { get; init; }
+    /// <summary>The real backend step. Configuration edits act on this object.</summary>
+    public IAutomationStep Model { get; }
 
-    public int LastIndex { get; init; }
+    public AutomationPipelineViewModel Owner { get; }
 
-    public Guid PipelineId { get; init; }
+    public int Index { get; }
+
+    public int LastIndex { get; }
+
+    public AutomationStepViewModel(
+        AutomationPipelineViewModel owner, IAutomationStep model, int index, int lastIndex)
+    {
+        Owner = owner;
+        Model = model;
+        Index = index;
+        LastIndex = lastIndex;
+
+        TypeName = model.GetType().Name;
+        DisplayName = StepFactoryAccess.Humanize(TypeName);
+    }
 
     [ObservableProperty]
     private string _typeName = string.Empty;
+
+    [ObservableProperty]
+    private string _displayName = string.Empty;
+
+    /// <summary>
+    /// The step's current configuration, as text, taken from the real state where the
+    /// step exposes one via <c>IAutomationStep&lt;T&gt;</c>.
+    /// </summary>
+    public string ConfigurationSummary => StepConfiguration.Describe(Model);
+
+    /// <summary>False when the backend reports the hardware for this step is absent.</summary>
+    public bool IsSupported { get; private set; } = true;
+
+    public async Task RefreshSupportAsync()
+    {
+        try
+        {
+            IsSupported = await Model.IsSupportedAsync().ConfigureAwait(false);
+            OnPropertyChanged(nameof(IsSupported));
+        }
+        catch (Exception)
+        {
+            // A step that cannot even report support is not offered as usable.
+            IsSupported = false;
+            OnPropertyChanged(nameof(IsSupported));
+        }
+    }
+}
+
+/// <summary>Exposes the factory's humaniser to the view models.</summary>
+internal static class StepFactoryAccess
+{
+    public static string Humanize(string typeName) => StepFactory.Humanize(typeName);
 }
