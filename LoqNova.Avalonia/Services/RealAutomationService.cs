@@ -140,6 +140,7 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             _draft.Insert(target, pipeline);
         }
 
+        return PublishReloadedAsync();
     }
 
     public Task AddStepAsync(AutomationPipeline pipeline, IAutomationStep step)
@@ -216,10 +217,12 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
         var pipelines = await _processor.GetPipelinesAsync().ConfigureAwait(false);
 
+        // GetPipelinesAsync already deep-copies, so these are independent objects the
+        // editor owns. Mutating them cannot affect the backend until Save.
         _draft.Clear();
         _draft.AddRange(pipelines);
 
-        await PublishEditedAsync(pipeline).ConfigureAwait(false);
+        await PublishReloadedAsync().ConfigureAwait(false);
     }
 
     /// <summary>

@@ -76,7 +76,8 @@ public partial class AutomationViewModel : ViewModelBase
     {
         _automationService = automationService;
 
-        _automationService.DraftChanged += Rebuild;
+        _automationService.PipelinesReloaded += Rebuild;
+        _automationService.PipelineEdited += OnPipelineEdited;
         _automationService.EnabledChanged += OnEnabledChanged;
 
         // A valid trigger is preselected so Add Automatic can never produce a pipeline
