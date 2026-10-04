@@ -124,6 +124,25 @@ public partial class AutomationViewModel : ViewModelBase
     private void OnEnabledChanged() => IsAutomationEnabled = _automationService.IsEnabled;
 
     /// <summary>
+    /// One pipeline changed in place. Its existing wrapper is refreshed rather than
+    /// rebuilt, so the rest of the editor keeps its state. This is the difference
+    /// between an edit and a reload: rebuilding everything on every change is what made
+    /// the page appear to revert while the user was typing.
+    /// </summary>
+    private void OnPipelineEdited(AutomationPipeline model)
+    {
+        var existing = AutomaticPipelines.FirstOrDefault(p => p.Model == model)
+                        ?? ManualPipelines.FirstOrDefault(p => p.Model == model);
+
+        existing?.RefreshSteps();
+
+        if (existing is not null)
+        {
+            existing.RefreshTrigger();
+        }
+    }
+
+    /// <summary>
     /// Rebuilds the wrappers around the current draft. The draft itself is never
     /// replaced, so any in-place edit already applied to a step or trigger survives.
     /// </summary>
@@ -405,6 +424,16 @@ public partial class AutomationPipelineViewModel : ViewModelBase
 
     /// <summary>WPF's step-count subtitle.</summary>
     public string StepsSubtitle => Steps.Count == 1 ? "1 step" : $"{Steps.Count} steps";
+
+    /// <summary>Re-reads the real trigger after an in-place change.</summary>
+    public void RefreshTrigger()
+    {
+        SelectedTrigger = _owner.AvailableTriggers
+            .FirstOrDefault(t => t.TypeName == Model.Trigger?.GetType().Name);
+
+        OnPropertyChanged(nameof(TriggerDisplayName));
+        OnPropertyChanged(nameof(DisplayTitle));
+    }
 
     /// <summary>Re-wraps the step rows around the live steps on the backend object.</summary>
     public void RefreshSteps()
