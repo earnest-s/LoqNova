@@ -474,7 +474,6 @@ public partial class AutomationPipelineViewModel : ViewModelBase
         }
 
         await _service.SetTriggerAsync(Model, trigger);
-        OnPropertyChanged(nameof(TriggerDisplayName));
 
         MarkDirty();
     }
@@ -514,7 +513,6 @@ public partial class AutomationPipelineViewModel : ViewModelBase
             return;
         }
 
-        RefreshSteps();
         MarkDirty();
     }
 
@@ -541,7 +539,6 @@ public partial class AutomationPipelineViewModel : ViewModelBase
 
         await _service.ReplaceStepAsync(Model, step.Model, replacement);
 
-        RefreshSteps();
         MarkDirty();
     }
 
@@ -572,21 +569,18 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     internal async Task MoveStepUpAsync(AutomationStepViewModel step)
     {
         await _service.MoveStepAsync(Model, step.Model, -1);
-        RefreshSteps();
         MarkDirty();
     }
 
     internal async Task MoveStepDownAsync(AutomationStepViewModel step)
     {
         await _service.MoveStepAsync(Model, step.Model, 1);
-        RefreshSteps();
         MarkDirty();
     }
 
     internal async Task RemoveStepAsync(AutomationStepViewModel step)
     {
         await _service.RemoveStepAsync(Model, step.Model);
-        RefreshSteps();
         MarkDirty();
     }
 
