@@ -91,7 +91,9 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
     public async Task AddPipelineAsync(string? name, IAutomationPipelineTrigger? trigger)
     {
-        var pipeline = new AutomationPipeline(name ?? string.Empty) { Trigger = trigger };
+        // A null name is preserved: WPF leaves new automatic pipelines unnamed so the
+        // header falls back to the trigger display name.
+        var pipeline = new AutomationPipeline(name) { Trigger = trigger };
 
         _draft.Add(pipeline);
 

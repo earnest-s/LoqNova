@@ -203,7 +203,10 @@ public partial class AutomationViewModel : ViewModelBase
             return;
         }
 
-        await _automationService.AddPipelineAsync("New Pipeline", trigger).ConfigureAwait(true);
+        // WPF creates an automatic pipeline with no name at all - `new AutomationPipeline(trigger)` -
+        // and its header falls back to the trigger's display name. Inventing a "New Pipeline"
+        // string here is what made a freshly added card look like fabricated data.
+        await _automationService.AddPipelineAsync(name: null, trigger).ConfigureAwait(true);
 
         IsDirty = true;
     }
