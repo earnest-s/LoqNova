@@ -95,7 +95,7 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
         _draft.Add(pipeline);
 
-        await PublishAsync().ConfigureAwait(false);
+        await PublishReloadedAsync().ConfigureAwait(false);
     }
 
     public Task RemovePipelineAsync(AutomationPipeline pipeline)
@@ -103,18 +103,21 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         // Draft only. The processor keeps running this pipeline until Save, as in WPF.
         _draft.Remove(pipeline);
 
+        return PublishReloadedAsync();
     }
 
     public Task RenamePipelineAsync(AutomationPipeline pipeline, string? name)
     {
         pipeline.Name = name;
 
+        return PublishEditedAsync(pipeline);
     }
 
     public Task SetIconAsync(AutomationPipeline pipeline, string? iconName)
     {
         pipeline.IconName = iconName;
 
+        return PublishEditedAsync(pipeline);
     }
 
     public Task SetTriggerAsync(AutomationPipeline pipeline, IAutomationPipelineTrigger? trigger)
@@ -122,6 +125,7 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         // A null trigger is what makes a pipeline a manual quick action.
         pipeline.Trigger = trigger;
 
+        return PublishReloadedAsync();
     }
 
     public Task MovePipelineAsync(AutomationPipeline pipeline, int delta)
@@ -142,12 +146,14 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
     {
         pipeline.Steps.Add(step);
 
+        return PublishEditedAsync(pipeline);
     }
 
     public Task RemoveStepAsync(AutomationPipeline pipeline, IAutomationStep step)
     {
         pipeline.Steps.Remove(step);
 
+        return PublishEditedAsync(pipeline);
     }
 
     public Task MoveStepAsync(AutomationPipeline pipeline, IAutomationStep step, int delta)
@@ -161,6 +167,7 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             pipeline.Steps.Insert(target, step);
         }
 
+        return PublishEditedAsync(pipeline);
     }
 
     public Task ReplaceStepAsync(AutomationPipeline pipeline, IAutomationStep oldStep, IAutomationStep newStep)
@@ -172,6 +179,7 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             pipeline.Steps[index] = newStep;
         }
 
+        return PublishEditedAsync(pipeline);
     }
 
     public async Task RunNowAsync(AutomationPipeline pipeline)
@@ -211,7 +219,7 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         _draft.Clear();
         _draft.AddRange(pipelines);
 
-        await PublishAsync().ConfigureAwait(false);
+        await PublishEditedAsync(pipeline).ConfigureAwait(false);
     }
 
     /// <summary>
