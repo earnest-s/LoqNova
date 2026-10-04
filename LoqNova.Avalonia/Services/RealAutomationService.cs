@@ -36,7 +36,9 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
     public IReadOnlyList<TriggerOption> AvailableTriggers => StepFactory.Triggers;
 
-    public event Action? DraftChanged;
+    public event Action? PipelinesReloaded;
+
+    public event Action<AutomationPipeline>? PipelineEdited;
 
     public event Action? EnabledChanged;
 
@@ -101,21 +103,18 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         // Draft only. The processor keeps running this pipeline until Save, as in WPF.
         _draft.Remove(pipeline);
 
-        return PublishAsync();
     }
 
     public Task RenamePipelineAsync(AutomationPipeline pipeline, string? name)
     {
         pipeline.Name = name;
 
-        return PublishAsync();
     }
 
     public Task SetIconAsync(AutomationPipeline pipeline, string? iconName)
     {
         pipeline.IconName = iconName;
 
-        return PublishAsync();
     }
 
     public Task SetTriggerAsync(AutomationPipeline pipeline, IAutomationPipelineTrigger? trigger)
@@ -123,7 +122,6 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         // A null trigger is what makes a pipeline a manual quick action.
         pipeline.Trigger = trigger;
 
-        return PublishAsync();
     }
 
     public Task MovePipelineAsync(AutomationPipeline pipeline, int delta)
@@ -138,21 +136,18 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             _draft.Insert(target, pipeline);
         }
 
-        return PublishAsync();
     }
 
     public Task AddStepAsync(AutomationPipeline pipeline, IAutomationStep step)
     {
         pipeline.Steps.Add(step);
 
-        return PublishAsync();
     }
 
     public Task RemoveStepAsync(AutomationPipeline pipeline, IAutomationStep step)
     {
         pipeline.Steps.Remove(step);
 
-        return PublishAsync();
     }
 
     public Task MoveStepAsync(AutomationPipeline pipeline, IAutomationStep step, int delta)
@@ -166,7 +161,6 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             pipeline.Steps.Insert(target, step);
         }
 
-        return PublishAsync();
     }
 
     public Task ReplaceStepAsync(AutomationPipeline pipeline, IAutomationStep oldStep, IAutomationStep newStep)
@@ -178,7 +172,6 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             pipeline.Steps[index] = newStep;
         }
 
-        return PublishAsync();
     }
 
     public async Task RunNowAsync(AutomationPipeline pipeline)
@@ -221,7 +214,19 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         await PublishAsync().ConfigureAwait(false);
     }
 
-    private Task PublishAsync() => _dispatcher.InvokeAsync(() => DraftChanged?.Invoke());
+    /// <summary>
+    /// The draft was reloaded wholesale (initial load, Revert or a backend change), so
+    /// every wrapper must be rebuilt.
+    /// </summary>
+    private Task PublishReloadedAsync() =>
+        _dispatcher.InvokeAsync(() => PipelinesReloaded?.Invoke());
+
+    /// <summary>
+    /// One pipeline changed in place. Its wrapper is kept and only its contents are
+    /// refreshed, so the rest of the editor keeps its state.
+    /// </summary>
+    private Task PublishEditedAsync(AutomationPipeline pipeline) =>
+        _dispatcher.InvokeAsync(() => PipelineEdited?.Invoke(pipeline));
 
     private void OnPipelinesChanged(object? sender, List<AutomationPipeline> pipelines) => _ = ReloadDraftAsync();
 

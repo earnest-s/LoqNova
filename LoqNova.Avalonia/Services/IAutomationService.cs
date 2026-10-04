@@ -26,7 +26,14 @@ public interface IAutomationService
     /// <summary>Live draft pipelines without a trigger: the quick actions.</summary>
     IReadOnlyList<AutomationPipeline> ManualPipelines { get; }
 
-    event Action? DraftChanged;
+    /// <summary>Raised only when the pipeline collection itself is replaced.</summary>
+    event Action? PipelinesReloaded;
+
+    /// <summary>
+    /// Raised after an in-place edit. Carries the affected pipeline so subscribers can
+    /// refresh just that one, rather than rebuilding every wrapper.
+    /// </summary>
+    event Action<AutomationPipeline>? PipelineEdited;
 
     event Action? EnabledChanged;
 
