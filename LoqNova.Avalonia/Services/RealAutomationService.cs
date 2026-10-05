@@ -241,7 +241,37 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
     private Task PublishEditedAsync(AutomationPipeline pipeline) =>
         _dispatcher.InvokeAsync(() => PipelineEdited?.Invoke(pipeline));
 
-    private void OnPipelinesChanged(object? sender, List<AutomationPipeline> pipelines) => _ = ReloadDraftAsync();
+    /// <summary>
+    /// The backend changed its pipelines. Reloading unconditionally would destroy an
+    /// unsaved draft - including on Save, because ReloadPipelinesAsync raises this very
+    /// event - so a draft with unsaved work is left alone and the page is told the
+    /// backend has moved on instead.
+    /// </summary>
+    private void OnPipelinesChanged(object? sender, List<AutomationPipeline> pipelines)
+    {
+        if (_draftDirty)
+        {
+            BackendChangedWhileDirty = true;
+            return;
+        }
+
+        _ = ReloadDraftAsync();
+    }
+
+    /// <summary>
+    /// True when the backend changed while the editor held unsaved work. The draft is
+    /// preserved; saving it will overwrite the backend's change, which is the user's
+    /// explicit choice.
+    /// </summary>
+    public bool BackendChangedWhileDirty { get; private set; }
+
+    /// <summary>
+    /// Marks the draft as holding unsaved work, so a backend change cannot discard it.
+    /// Cleared by Save and Revert.
+    /// </summary>
+    public void MarkDirty() => _draftDirty = true;
+
+    private bool _draftDirty;
 
     public void Dispose()
     {
