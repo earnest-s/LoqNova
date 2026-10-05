@@ -196,7 +196,15 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         await _processor.RunNowAsync(pipeline.Id).ConfigureAwait(false);
     }
 
-    public async Task RevertAsync() => await ReloadDraftAsync().ConfigureAwait(false);
+    public async Task RevertAsync()
+    {
+        // Reload first, then clear: clearing before would let the event this raises
+        // discard the draft that was just rebuilt.
+        await ReloadDraftAsync().ConfigureAwait(false);
+
+        _draftDirty = false;
+        BackendChangedWhileDirty = false;
+    }
 
     public async Task SaveAsync()
     {
@@ -207,7 +215,12 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
         // The one write path, as WPF uses it: the processor deep-copies, persists
         // automation.json, re-evaluates its listeners and raises PipelinesChanged.
+        // IsDirty is cleared only once that has actually succeeded, so a failed save
+        // leaves the user's draft and the dirty flag intact.
         await _processor.ReloadPipelinesAsync([.. _draft]).ConfigureAwait(false);
+
+        _draftDirty = false;
+        BackendChangedWhileDirty = false;
     }
 
     private async Task ReloadDraftAsync()
