@@ -97,6 +97,8 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
         _draft.Add(pipeline);
 
+        _draftDirty = true;
+
         await PublishReloadedAsync().ConfigureAwait(false);
     }
 
@@ -105,12 +107,16 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         // Draft only. The processor keeps running this pipeline until Save, as in WPF.
         _draft.Remove(pipeline);
 
+        _draftDirty = true;
+
         return PublishReloadedAsync();
     }
 
     public Task RenamePipelineAsync(AutomationPipeline pipeline, string? name)
     {
         pipeline.Name = name;
+
+        _draftDirty = true;
 
         return PublishEditedAsync(pipeline);
     }
@@ -119,6 +125,8 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
     {
         pipeline.IconName = iconName;
 
+        _draftDirty = true;
+
         return PublishEditedAsync(pipeline);
     }
 
@@ -126,6 +134,8 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
     {
         // A null trigger is what makes a pipeline a manual quick action.
         pipeline.Trigger = trigger;
+
+        _draftDirty = true;
 
         return PublishReloadedAsync();
     }
@@ -142,6 +152,8 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             _draft.Insert(target, pipeline);
         }
 
+        _draftDirty = true;
+
         return PublishReloadedAsync();
     }
 
@@ -149,12 +161,16 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
     {
         pipeline.Steps.Add(step);
 
+        _draftDirty = true;
+
         return PublishEditedAsync(pipeline);
     }
 
     public Task RemoveStepAsync(AutomationPipeline pipeline, IAutomationStep step)
     {
         pipeline.Steps.Remove(step);
+
+        _draftDirty = true;
 
         return PublishEditedAsync(pipeline);
     }
@@ -170,6 +186,8 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             pipeline.Steps.Insert(target, step);
         }
 
+        _draftDirty = true;
+
         return PublishEditedAsync(pipeline);
     }
 
@@ -181,6 +199,8 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
         {
             pipeline.Steps[index] = newStep;
         }
+
+        _draftDirty = true;
 
         return PublishEditedAsync(pipeline);
     }
