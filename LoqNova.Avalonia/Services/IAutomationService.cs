@@ -37,6 +37,12 @@ public interface IAutomationService
 
     event Action? EnabledChanged;
 
+    /// <summary>
+    /// True when the backend changed its pipelines while the editor held unsaved work.
+    /// The draft is preserved; saving overwrites the backend change deliberately.
+    /// </summary>
+    bool BackendChangedWhileDirty { get; }
+
     Task InitializeAsync();
 
     Task SetEnabledAsync(bool enabled);
