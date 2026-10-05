@@ -215,6 +215,28 @@ public partial class AutomationViewModel : ViewModelBase
     internal void ReportError(string message)
     {
         System.Diagnostics.Debug.WriteLine($"Automation: {message}");
+
+        // Also written to disk: the on-page banner truncates a long stack trace, and a
+        // swallowed exception here is otherwise impossible to diagnose after the fact.
+        try
+        {
+            var path = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "LOQNova",
+                "automation-errors.log");
+
+            System.IO.Directory.CreateDirectory(
+                System.IO.Path.GetDirectoryName(path)!);
+
+            System.IO.File.AppendAllText(
+                path,
+                $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {message}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch
+        {
+            // Logging must never be the thing that fails.
+        }
+
         ErrorMessage = message;
     }
 
@@ -499,7 +521,7 @@ public partial class AutomationPipelineViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _owner.ReportError($"Could not add {option.DisplayName}: {ex.Message}");
+            _owner.ReportError($"Could not add {option.DisplayName}: {ex}");
             return;
         }
 
@@ -509,7 +531,7 @@ public partial class AutomationPipelineViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            _owner.ReportError($"Could not add {option.DisplayName}: {ex.Message}");
+            _owner.ReportError($"Could not add {option.DisplayName}: {ex}");
             return;
         }
 
