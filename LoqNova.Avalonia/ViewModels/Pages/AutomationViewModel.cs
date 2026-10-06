@@ -81,7 +81,6 @@ public partial class AutomationViewModel : ViewModelBase
 
     private AutomationViewModel(IAutomationService automationService, bool _)
     {
-    {
         _automationService = automationService;
 
         _automationService.PipelinesReloaded += Rebuild;
