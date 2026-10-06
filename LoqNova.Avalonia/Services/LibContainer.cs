@@ -41,6 +41,7 @@ public static class LibContainer
                 IoCContainer.Initialize(
                     new LoqNova.Lib.IoCModule(),
                     new LoqNova.Lib.Macro.IoCModule(),
+                    new LoqNova.Lib.Automation.IoCModule(),
                     new Avalonia.IoCModule());
 
                 Source.TrySetResult(true);

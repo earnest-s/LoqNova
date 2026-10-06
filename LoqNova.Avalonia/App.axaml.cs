@@ -51,7 +51,7 @@ public partial class App : Application
         // AutomationSettings. Registered as a module rather than by hand so the backend
         // stays the single source of truth for its container setup. These are only
         // resolved after LibContainer.Initialization, never during construction.
-        builder.RegisterModule(new LoqNova.Lib.Automation.IoCModule());
+
         
         // Register IServiceProvider adapter
         builder.Register<IServiceProvider>(c => new AutofacServiceProvider(c.Resolve<ILifetimeScope>())).SingleInstance();
