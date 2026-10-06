@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using LoqNova.Avalonia.Services;
+using LoqNova.Lib.Macro;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 

@@ -1,49 +1,65 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using LoqNova.Lib.Macro;
 
 namespace LoqNova.Avalonia.Services;
 
+/// <summary>
+/// One number-pad slot. This is a UI row, not a macro model: the events are the real
+/// backend <see cref="MacroEvent"/> and the slot is identified by a real
+/// <see cref="MacroIdentifier"/>, so the Avalonia layer never redefines the domain.
+/// </summary>
 public class MacroKey
 {
-    public int KeyNumber { get; set; }
-    public string Name { get; set; } = "";
-    public ObservableCollection<MacroEvent> Events { get; init; } = new();
-    public bool Enabled { get; set; }
-}
+    /// <summary>Number-pad position, 0-9.</summary>
+    public int KeyNumber { get; init; }
 
-public abstract class MacroEvent
-{
-    public double DelayMs { get; set; }
-}
+    /// <summary>Display label for the slot.</summary>
+    public string Name { get; init; } = "";
 
-public class MacroKeyEvent : MacroEvent
-{
-    public string Key { get; set; } = "";
-    public bool IsPress { get; set; } = true;
-}
+    /// <summary>The real backend identifier this row stands for.</summary>
+    public MacroIdentifier Identifier { get; init; }
 
-public class MacroMouseEvent : MacroEvent
-{
-    public int X { get; set; }
-    public int Y { get; set; }
-    public string Button { get; set; } = "Left";
-    public bool IsPress { get; set; } = true;
+    /// <summary>Real backend events held by this slot.</summary>
+    public ObservableCollection<MacroEvent> Events { get; set; } = [];
+
+    /// <summary>Whether the slot currently has any events.</summary>
+    public bool HasEvents => Events.Count > 0;
 }
 
 public interface IMacroService
 {
+    /// <summary>The real MacroController enable state.</summary>
     bool IsEnabled { get; set; }
+
+    /// <summary>The ten number-pad slots, backed by real identifiers.</summary>
     ObservableCollection<MacroKey> MacroKeys { get; }
+
+    /// <summary>Currently selected slot.</summary>
     int SelectedKeyNumber { get; set; }
+
+    /// <summary>True while the backend recorder is running.</summary>
     bool IsRecording { get; }
-    
+
     event Action<MacroKey>? MacroKeyChanged;
+
     event Action<bool>? RecordingStateChanged;
-    
+
     Task InitializeAsync();
+
+    /// <summary>Loads a slot's real sequence from the backend.</summary>
+    void LoadSlot(int slot);
+
+    /// <summary>The backend identifier for a slot.</summary>
+    MacroIdentifier IdentifierFor(int slot);
+
     Task StartRecordingAsync(int keyNumber);
+
     Task StopRecordingAsync();
+
     Task PlayMacroAsync(int keyNumber);
+
+    /// <summary>Writes the edited slots back through the backend.</summary>
     Task SaveAsync();
 }
