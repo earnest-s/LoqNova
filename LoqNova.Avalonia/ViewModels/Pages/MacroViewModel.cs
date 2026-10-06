@@ -110,7 +110,7 @@ public partial class MacroKeyViewModel : ViewModelBase
     {
         KeyNumber = model.KeyNumber;
         _name = model.Name;
-        _enabled = model.Enabled;
+        _enabled = model.HasEvents;
         
         foreach (var evt in model.Events)
         {
@@ -120,18 +120,17 @@ public partial class MacroKeyViewModel : ViewModelBase
     
     private MacroEventViewModel CreateEventViewModel(MacroEvent model)
     {
-        return model switch
-        {
-            MacroKeyEvent keyEvent => new MacroKeyEventViewModel(keyEvent),
-            MacroMouseEvent mouseEvent => new MacroMouseEventViewModel(mouseEvent),
-            _ => throw new ArgumentException($"Unknown macro event type: {model.GetType()}")
-        };
+        // The backend models keyboard and mouse events as one struct,
+        // distinguished by Source. There is no subclass to switch on.
+        return model.Source == MacroSource.Mouse
+            ? new MacroMouseEventViewModel(model)
+            : new MacroKeyEventViewModel(model);
     }
     
     public void UpdateFromModel(MacroKey model)
     {
         Name = model.Name;
-        Enabled = model.Enabled;
+        Enabled = model.HasEvents;
         Events.Clear();
         foreach (var evt in model.Events)
         {
@@ -142,14 +141,28 @@ public partial class MacroKeyViewModel : ViewModelBase
     [RelayCommand]
     private void AddKeyEvent(string key)
     {
-        var evt = new MacroKeyEvent { Key = key, IsPress = true, DelayMs = 0 };
+        // Real backend event: keyboard source, Down direction, virtual-key code.
+        var evt = new MacroEvent
+        {
+            Source = MacroSource.Keyboard,
+            Direction = MacroDirection.Down,
+            Key = uint.TryParse(key, out var k) ? k : 0,
+            Delay = TimeSpan.Zero
+        };
         Events.Add(new MacroKeyEventViewModel(evt));
     }
     
     [RelayCommand]
     private void AddMouseEvent(string button)
     {
-        var evt = new MacroMouseEvent { Button = button, IsPress = true, DelayMs = 0 };
+        // Mouse events reuse Key for the button code, as the backend does.
+        var evt = new MacroEvent
+        {
+            Source = MacroSource.Mouse,
+            Direction = MacroDirection.Down,
+            Key = uint.TryParse(button, out var b) ? b : 0,
+            Delay = TimeSpan.Zero
+        };
         Events.Add(new MacroMouseEventViewModel(evt));
     }
     
@@ -186,13 +199,9 @@ public partial class MacroKeyEventViewModel : MacroEventViewModel
     
     public MacroKeyEventViewModel(MacroEvent model)
     {
-        if (model is MacroKeyEvent keyEvent)
-        {
-            _key = keyEvent.Key;
-            _isPress = keyEvent.IsPress;
-            _delayMs = keyEvent.DelayMs;
-        }
-    }
+        _key = model.Key.ToString();
+        _isPress = model.Direction == MacroDirection.Down;
+        _delayMs = model.Delay.TotalMilliseconds;
 }
 
 public partial class MacroMouseEventViewModel : MacroEventViewModel
@@ -215,13 +224,9 @@ public partial class MacroMouseEventViewModel : MacroEventViewModel
     
     public MacroMouseEventViewModel(MacroEvent model)
     {
-        if (model is MacroMouseEvent mouseEvent)
-        {
-            _x = mouseEvent.X;
-            _y = mouseEvent.Y;
-            _button = mouseEvent.Button;
-            _isPress = mouseEvent.IsPress;
-            _delayMs = mouseEvent.DelayMs;
-        }
-    }
+        _x = model.Point.X;
+        _y = model.Point.Y;
+        _button = model.Key.ToString();
+        _isPress = model.Direction == MacroDirection.Down;
+        _delayMs = model.Delay.TotalMilliseconds;
 }
