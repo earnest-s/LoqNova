@@ -50,7 +50,7 @@ internal static class DispatcherProbe
         {
             try
             {
-                return Avalonia.Threading.Dispatcher.UIThread.CheckAccess();
+                return global::Avalonia.Threading.Dispatcher.UIThread.CheckAccess();
             }
             catch
             {

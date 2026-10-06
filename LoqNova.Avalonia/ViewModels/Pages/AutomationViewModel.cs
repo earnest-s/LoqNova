@@ -75,7 +75,7 @@ public partial class AutomationViewModel : ViewModelBase
     public AutomationViewModel(IAutomationService automationService)
     {
         LoqNova.Avalonia.Services.AutoDiag.Mark("VM AutomationViewModel ctor enter");
-        BuildViewModel(automationService);
+        BuildRest(automationService);
         LoqNova.Avalonia.Services.AutoDiag.Mark("VM AutomationViewModel ctor exit");
     }
 
@@ -89,6 +89,18 @@ public partial class AutomationViewModel : ViewModelBase
 
         // A valid trigger is preselected so Add Automatic can never produce a pipeline
         // whose trigger is null while still being listed as automatic.
+        SelectedTriggerOption = AvailableTriggers.FirstOrDefault();
+
+        Rebuild();
+        IsAutomationEnabled = _automationService.IsEnabled;
+    }
+
+    private void BuildRest(IAutomationService automationService)
+    {
+        _automationService.PipelinesReloaded += Rebuild;
+        _automationService.PipelineEdited += OnPipelineEdited;
+        _automationService.EnabledChanged += OnEnabledChanged;
+
         SelectedTriggerOption = AvailableTriggers.FirstOrDefault();
 
         Rebuild();

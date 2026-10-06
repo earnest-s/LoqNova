@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
+using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels.Pages;
 
 namespace LoqNova.Avalonia.Views.Pages;
