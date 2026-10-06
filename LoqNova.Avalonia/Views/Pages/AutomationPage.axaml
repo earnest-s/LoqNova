@@ -46,8 +46,8 @@
                 <Button Classes="PrimaryButton" Content="Add Automatic"
                         Command="{Binding AddAutomaticPipelineCommand}" />
 
-                <Button Classes="PrimaryButton" Content="Add Manual"
-                        Command="{Binding AddManualPipelineCommand}" />
+<Button Classes="PrimaryButton" Content="Add Manual"
+                            Command="{Binding OpenManualNamePromptCommand}" />
 
                 <!-- WPF asks for the name inline, capped at 50 characters. -->
                 <TextBox Classes="Control" Width="200" MaxLength="50"
