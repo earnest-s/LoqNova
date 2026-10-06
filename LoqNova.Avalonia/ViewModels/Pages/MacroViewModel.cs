@@ -202,6 +202,7 @@ public partial class MacroKeyEventViewModel : MacroEventViewModel
         _key = model.Key.ToString();
         _isPress = model.Direction == MacroDirection.Down;
         _delayMs = model.Delay.TotalMilliseconds;
+    }
 }
 
 public partial class MacroMouseEventViewModel : MacroEventViewModel
