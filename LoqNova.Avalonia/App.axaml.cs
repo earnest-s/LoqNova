@@ -34,6 +34,7 @@ public partial class App : Application
         // Automation page's editor operations catch their own failures and report them;
         // this is the backstop for anything that does not.
         TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        AppDomain.CurrentDomain.UnhandledException += OnDomainUnhandledException;
 
         // LoqNova.Lib keeps its own Autofac container and is the single source of
         // truth for controllers, features and settings, so the same backend
@@ -249,7 +250,33 @@ public partial class App : Application
     {
         System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
 
-        e.SetObserved();
+        // AppDomain exceptions cannot be marked handled, but on .NET the process is
+        // not terminated from this handler, so logging is enough to see the cause.
+    }
+
+    /// <summary>
+    /// Catches what would otherwise end the process silently. Avalonia raises this for an
+    /// exception escaping the UI thread - which is how a failure while expanding an
+    /// automation page template killed the app with no message.
+    /// </summary>
+    private static void OnDomainUnhandledException(object? sender, global::System.UnhandledExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"Unhandled UI exception: {e.ExceptionObject}");
+
+        try
+        {
+            var path = System.IO.Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                "LOQNova",
+                "ui-errors.log");
+
+            System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(path)!);
+            System.IO.File.AppendAllText(path, $"[{DateTime.Now:HH:mm:ss.fff}] {e.ExceptionObject}{Environment.NewLine}{Environment.NewLine}");
+        }
+        catch { }
+
+        // AppDomain exceptions cannot be marked handled, but on .NET the process is
+        // not terminated from this handler, so logging is enough to see the cause.
     }
 
     private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
