@@ -400,11 +400,16 @@ public partial class AutomationPipelineViewModel : ViewModelBase
     public ObservableCollection<AutomationStepViewModel> Steps { get; } = [];
 
     public AutomationPipelineViewModel(
-        AutomationViewModel owner, AutomationPipeline model, bool isManual)
-    {
-        _owner = owner;
-        Model = model;
-        IsManual = isManual;
+AutomationViewModel owner, AutomationPipeline model, bool isManual)
+      {
+          _owner = owner;
+
+          // Was never assigned, which is why every step add failed with a
+          // NullReferenceException on the line that calls _service.AddStepAsync.
+          _service = owner.Service;
+
+          Model = model;
+          IsManual = isManual;
 
         Name = model.Name ?? string.Empty;
         IconName = model.IconName ?? string.Empty;
