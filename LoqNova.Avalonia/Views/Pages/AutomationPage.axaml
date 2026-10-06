@@ -115,7 +115,7 @@
                                             <TextBlock Text="Trigger" Classes="Caption"
                                                        VerticalAlignment="Center" MinWidth="52" />
                                             <ComboBox Classes="Control" Width="280"
-                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
+                                                      ItemTemplate="{StaticResource TriggerOptionTemplate}"
                                                       ItemsSource="{Binding TriggerOptions}"
                                                       SelectedItem="{Binding SelectedTrigger, Mode=TwoWay}" />
                                         </StackPanel>
@@ -149,7 +149,7 @@
                                                                  the step actually takes a state. -->
                                                             <ComboBox Classes="Control" Width="170"
                                                                       IsVisible="{Binding HasConfiguration}"
-                                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
+                                                                      ItemTemplate="{StaticResource StateOptionTemplate}"
                                                                       ItemsSource="{Binding States}"
                                                                       SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
 
@@ -251,7 +251,7 @@
 
                                                             <ComboBox Classes="Control" Width="170"
                                                                       IsVisible="{Binding HasConfiguration}"
-                                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
+                                                                      ItemTemplate="{StaticResource StateOptionTemplate}"
                                                                       ItemsSource="{Binding States}"
                                                                       SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
 
