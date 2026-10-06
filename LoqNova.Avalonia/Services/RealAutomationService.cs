@@ -147,7 +147,9 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
         _draftDirty = true;
 
-        return PublishReloadedAsync();
+        // Targeted, not a reload: a reload rebuilds every wrapper, and each rebuilt
+        // pipeline re-reads its trigger.
+        return PublishEditedAsync(pipeline);
     }
 
     public Task MovePipelineAsync(AutomationPipeline pipeline, int delta)

@@ -422,10 +422,19 @@ AutomationViewModel owner, AutomationPipeline model, bool isManual)
           Model = model;
           IsManual = isManual;
 
-        Name = model.Name ?? string.Empty;
-        IconName = model.IconName ?? string.Empty;
-        SelectedTrigger = owner.AvailableTriggers
-            .FirstOrDefault(t => t.TypeName == model.Trigger?.GetType().Name);
+        _isHydrating = true;
+
+        try
+        {
+            Name = model.Name ?? string.Empty;
+            IconName = model.IconName ?? string.Empty;
+            SelectedTrigger = owner.AvailableTriggers
+                .FirstOrDefault(t => t.TypeName == model.Trigger?.GetType().Name);
+        }
+        finally
+        {
+            _isHydrating = false;
+        }
 
         RefreshSteps();
     }
@@ -469,8 +478,19 @@ AutomationViewModel owner, AutomationPipeline model, bool isManual)
     /// <summary>Re-reads the real trigger after an in-place change.</summary>
     public void RefreshTrigger()
     {
-        SelectedTrigger = _owner.AvailableTriggers
-            .FirstOrDefault(t => t.TypeName == Model.Trigger?.GetType().Name);
+        // Same reason as the constructor: this re-reads the trigger already on the
+        // pipeline, so it must not be treated as a user edit.
+        _isHydrating = true;
+
+        try
+        {
+            SelectedTrigger = _owner.AvailableTriggers
+                .FirstOrDefault(t => t.TypeName == Model.Trigger?.GetType().Name);
+        }
+        finally
+        {
+            _isHydrating = false;
+        }
 
         OnPropertyChanged(nameof(TriggerDisplayName));
         OnPropertyChanged(nameof(DisplayTitle));
@@ -634,7 +654,21 @@ AutomationViewModel owner, AutomationPipeline model, bool isManual)
     }
 
     /// <summary>Applying a new trigger builds a real trigger and attaches it.</summary>
-    partial void OnSelectedTriggerChanged(TriggerOption? value) => _ = CommitTriggerAsync();
+    partial void OnSelectedTriggerChanged(TriggerOption? value)
+    {
+        // While hydrating, SelectedTrigger is being set to reflect the object already on
+        // the pipeline. Committing that would call SetTriggerAsync, which publishes a
+        // reload, which rebuilds these wrappers, which sets SelectedTrigger again -
+        // an unbounded loop that spins the UI thread and freezes the window.
+        if (_isHydrating)
+        {
+            return;
+        }
+
+        _ = CommitTriggerAsync();
+    }
+
+    private bool _isHydrating;
 }
 
 /// <summary>A thin binding wrapper around a live backend <see cref="IAutomationStep"/>.</summary>
