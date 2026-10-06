@@ -260,7 +260,9 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
             return;
         }
 
+        AutoDiag.Mark("SVC GetPipelinesAsync begin");
         var pipelines = await _processor.GetPipelinesAsync().ConfigureAwait(false);
+        AutoDiag.Mark($"SVC GetPipelinesAsync returned {pipelines.Count} pipelines");
 
         // GetPipelinesAsync already deep-copies, so these are independent objects the
         // editor owns. Mutating them cannot affect the backend until Save.
@@ -291,6 +293,12 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
     /// backend has moved on instead.
     /// </summary>
     private void OnPipelinesChanged(object? sender, List<AutomationPipeline> pipelines)
+    {
+        AutoDiag.Mark("SVC OnPipelinesChanged fired");
+        OnPipelinesChangedCore(sender, pipelines);
+    }
+
+    private void OnPipelinesChangedCore(object? sender, List<AutomationPipeline> pipelines)
     {
         if (_draftDirty)
         {

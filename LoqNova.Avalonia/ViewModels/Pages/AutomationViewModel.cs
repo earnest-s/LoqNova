@@ -74,6 +74,14 @@ public partial class AutomationViewModel : ViewModelBase
 
     public AutomationViewModel(IAutomationService automationService)
     {
+        LoqNova.Avalonia.Services.AutoDiag.Mark("VM AutomationViewModel ctor enter");
+        BuildViewModel(automationService);
+        LoqNova.Avalonia.Services.AutoDiag.Mark("VM AutomationViewModel ctor exit");
+    }
+
+    private AutomationViewModel(IAutomationService automationService, bool _)
+    {
+    {
         _automationService = automationService;
 
         _automationService.PipelinesReloaded += Rebuild;
