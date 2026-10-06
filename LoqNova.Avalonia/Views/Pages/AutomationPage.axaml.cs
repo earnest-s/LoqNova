@@ -111,17 +111,23 @@ public partial class AutomationPage : UserControl
 
     private async void OnAttached(object? sender, EventArgs e)
     {
+        AutoDiag.Mark("PAGE OnAttached begin");
+
         if (DataContext is not AutomationViewModel viewModel)
         {
+            AutoDiag.Mark("PAGE OnAttached: no AutomationViewModel DataContext");
             return;
         }
 
         try
         {
+            AutoDiag.Mark("PAGE calling RefreshStepConfigurationsAsync");
             await viewModel.RefreshStepConfigurationsAsync();
+            AutoDiag.Mark("PAGE RefreshStepConfigurationsAsync done");
         }
         catch (Exception ex)
         {
+            AutoDiag.Mark($"PAGE refresh threw {ex.GetType().Name}: {ex.Message}");
             Debug.WriteLine($"Automation step configuration refresh failed: {ex}");
         }
     }

@@ -54,24 +54,34 @@ public sealed class RealAutomationService : IAutomationService, IDisposable
 
     public async Task InitializeAsync()
     {
+        AutoDiag.Mark("SVC InitializeAsync enter");
+
         if (_initialised)
         {
+            AutoDiag.Mark("SVC InitializeAsync already initialised, returning");
             return;
         }
 
         // Resolved after the readiness gate and off the UI thread: IoCContainer.Resolve
         // holds a global lock and InitializeAsync subscribes native listeners.
+        AutoDiag.Mark("SVC awaiting Task.Run(Resolve<AutomationProcessor>)");
         _processor = await Task.Run(() => IoCContainer.Resolve<AutomationProcessor>())
             .ConfigureAwait(false);
+        AutoDiag.Mark("SVC AutomationProcessor resolved");
 
+        AutoDiag.Mark("SVC awaiting processor.InitializeAsync");
         await _processor.InitializeAsync().ConfigureAwait(false);
+        AutoDiag.Mark("SVC processor.InitializeAsync done");
 
         _processor.PipelinesChanged += OnPipelinesChanged;
+        AutoDiag.Mark("SVC PipelinesChanged subscribed");
 
         _enabledBeforeInit = _processor.IsEnabled;
         _initialised = true;
 
+        AutoDiag.Mark("SVC awaiting ReloadDraftAsync");
         await ReloadDraftAsync().ConfigureAwait(false);
+        AutoDiag.Mark("SVC InitializeAsync complete");
     }
 
     public async Task SetEnabledAsync(bool enabled)
