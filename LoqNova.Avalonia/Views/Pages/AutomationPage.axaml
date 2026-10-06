@@ -1,14 +1,18 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:services="clr-namespace:LoqNova.Avalonia.Services"
              x:Class="LoqNova.Avalonia.Views.Pages.AutomationPage"
              x:DataType="vm:AutomationViewModel">
 
     <UserControl.Resources>
-        <!-- Shared by the trigger, step and state pickers, so it cannot be a compiled
-             binding: x:Object has no DisplayName member and the page's x:DataType would
-             otherwise be inherited, which threw when the first option was rendered. -->
-        <DataTemplate x:Key="OptionTemplate" x:CompileBindings="False">
+        <DataTemplate x:Key="TriggerOptionTemplate" x:DataType="services:TriggerOption">
+            <TextBlock Text="{Binding DisplayName}" />
+        </DataTemplate>
+        <DataTemplate x:Key="StepOptionTemplate" x:DataType="services:AutomationStepOption">
+            <TextBlock Text="{Binding DisplayName}" />
+        </DataTemplate>
+        <DataTemplate x:Key="StateOptionTemplate" x:DataType="vm:StepStateOption">
             <TextBlock Text="{Binding DisplayName}" />
         </DataTemplate>
     </UserControl.Resources>
@@ -35,7 +39,7 @@
 
                 <!-- Real trigger types, labelled by the backend's own DisplayName. -->
                 <ComboBox Classes="Control" Width="240" VerticalAlignment="Center"
-                          ItemTemplate="{StaticResource OptionTemplate}"
+                          ItemTemplate="{StaticResource TriggerOptionTemplate}"
                           ItemsSource="{Binding AvailableTriggers}"
                           SelectedItem="{Binding SelectedTriggerOption, Mode=TwoWay}" />
 
@@ -105,7 +109,7 @@
                                             <TextBlock Text="Trigger" Classes="Caption"
                                                        VerticalAlignment="Center" MinWidth="52" />
                                             <ComboBox Classes="Control" Width="280"
-                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
                                                       ItemsSource="{Binding TriggerOptions}"
                                                       SelectedItem="{Binding SelectedTrigger, Mode=TwoWay}" />
                                         </StackPanel>
@@ -139,7 +143,7 @@
                                                                  the step actually takes a state. -->
                                                             <ComboBox Classes="Control" Width="170"
                                                                       IsVisible="{Binding HasConfiguration}"
-                                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
                                                                       ItemsSource="{Binding States}"
                                                                       SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
 
@@ -157,7 +161,7 @@
 
                                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,4,0,0">
                                             <ComboBox Classes="Control" Width="260"
-                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
                                                       ItemsSource="{Binding StepOptions}"
                                                       SelectedItem="{Binding SelectedStepOption, Mode=TwoWay}" />
                                             <Button Classes="SecondaryButton" Content="Add step"
@@ -229,7 +233,7 @@
 
                                                             <ComboBox Classes="Control" Width="170"
                                                                       IsVisible="{Binding HasConfiguration}"
-                                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
                                                                       ItemsSource="{Binding States}"
                                                                       SelectedItem="{Binding SelectedState, Mode=TwoWay}" />
 
@@ -247,7 +251,7 @@
 
                                         <StackPanel Orientation="Horizontal" Spacing="8" Margin="16,4,0,0">
                                             <ComboBox Classes="Control" Width="260"
-                                                      ItemTemplate="{StaticResource OptionTemplate}"
+                                                      ItemTemplate="{StaticResource StepOptionTemplate}"
                                                       ItemsSource="{Binding StepOptions}"
                                                       SelectedItem="{Binding SelectedStepOption, Mode=TwoWay}" />
                                             <Button Classes="SecondaryButton" Content="Add step"

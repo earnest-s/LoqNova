@@ -29,6 +29,8 @@ public class NavigationService : INavigationService
         if (_contentHost != null)
         {
             await NavigateToAsync(NavigationPage.Dashboard);
+            // TEMP DIAGNOSTIC: reproduce the Automation failure without a click.
+            await NavigateToAsync(NavigationPage.Automation);
         }
     }
     
