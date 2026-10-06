@@ -68,8 +68,6 @@ public sealed class RealMacroService : IMacroService
         _controller = await Task.Run(() => IoCContainer.Resolve<MacroController>())
             .ConfigureAwait(false);
 
-        }
-
         var sequences = _controller.GetSequences();
 
         // Seed the ten slots so the number pad is bound to real identifiers rather than
