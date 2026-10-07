@@ -26,6 +26,15 @@ public class MacroKey
 
     /// <summary>Whether the slot currently has any events.</summary>
     public bool HasEvents => Events.Count > 0;
+
+    /// <summary>Playback repeat count. WPF clamps this to 1-10.</summary>
+    public int RepeatCount { get; set; } = 1;
+
+    /// <summary>Whether delays are skipped during playback.</summary>
+    public bool IgnoreDelays { get; set; }
+
+    /// <summary>Whether another key press interrupts playback.</summary>
+    public bool InterruptOnOtherKey { get; set; }
 }
 
 public interface IMacroService

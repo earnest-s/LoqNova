@@ -146,7 +146,7 @@ public partial class MacroKeyViewModel : ViewModelBase
         {
             Source = MacroSource.Keyboard,
             Direction = MacroDirection.Down,
-            Key = uint.TryParse(key, out var k) ? k : 0,
+            Key = RealMacroService.ResolveKeyCode(key),
             Delay = TimeSpan.Zero
         };
         Events.Add(new MacroKeyEventViewModel(evt));
@@ -160,7 +160,7 @@ public partial class MacroKeyViewModel : ViewModelBase
         {
             Source = MacroSource.Mouse,
             Direction = MacroDirection.Down,
-            Key = uint.TryParse(button, out var b) ? b : 0,
+            Key = RealMacroService.ResolveMouseButton(button),
             Delay = TimeSpan.Zero
         };
         Events.Add(new MacroMouseEventViewModel(evt));
