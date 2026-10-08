@@ -64,9 +64,6 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
     private bool _isRecording;
 
     [ObservableProperty]
-    private int _prepareCountdown;
-
-    [ObservableProperty]
     private RecordingPhase _recordingPhase = RecordingPhase.None;
 
     /// <summary>True during the three-second countdown shown before a recording.</summary>
@@ -74,6 +71,13 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
 
     /// <summary>True once the recorder is capturing.</summary>
     public bool IsCapturing => RecordingPhase == RecordingPhase.Recording;
+
+    /// <summary>
+    /// WPF sets <c>Mouse.OverrideCursor = Cursors.Wait</c> while recording and clears it
+    /// in Save. Avalonia has no global override, so the page binds this instead.
+    /// </summary>
+    [ObservableProperty]
+    private bool _isWaitCursor;
 
     partial void OnRecordingPhaseChanged(RecordingPhase value)
     {
@@ -97,7 +101,12 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
         new(MacroRecorderSettings.Keyboard | MacroRecorderSettings.Mouse | MacroRecorderSettings.Movement, "All inputs")
     ];
 
-    public IReadOnlyList<int> RepeatOptions { get; private set; } = [];
+    /// <summary>
+    /// Repeat counts from <c>MacroController.AllowedRepeatCounts</c>. WPF boxes each
+    /// value for display and labels 1 as "Don't repeat"; selection is by value, which is
+    /// what <c>SelectedValue</c> with a value binding reproduces.
+    /// </summary>
+    public ObservableCollection<MacroRepeatOption> RepeatOptions { get; } = new();
 
     public MacroViewModel(IMacroService macroService)
     {
@@ -114,8 +123,15 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
     {
         await _macroService.InitializeAsync();
 
-        RepeatOptions = _macroService.AllowedRepeatCounts;
-        OnPropertyChanged(nameof(RepeatOptions));
+        // Same values and the same "Don't repeat" label WPF builds in
+        // MacroSequenceControl.Set via ComboBoxExtensions.SetItems.
+        if (RepeatOptions.Count == 0)
+        {
+            foreach (var count in _macroService.AllowedRepeatCounts)
+            {
+                RepeatOptions.Add(new MacroRepeatOption(count, count == 1 ? "Don't repeat" : count.ToString()));
+            }
+        }
 
         // WPF assigns _enableMacroToggle.IsChecked directly, which does not raise Click
         // and therefore does not write back. The same guard keeps opening the page from
@@ -214,6 +230,9 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
             {
                 AddEventCard(macroEvent);
             }
+
+            // WPF's Set ends with Mouse.OverrideCursor = null and Record re-enabled.
+            IsWaitCursor = false;
         }
         finally
         {
@@ -312,21 +331,22 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
     [RelayCommand]
     private async Task RecordAsync()
     {
+        // WPF reads the combo when Record is pressed; the combo itself has no handler.
         var settings = RecorderSettings;
 
         EventCards.Clear();
+
+        // WPF collapses the Clear button for the duration of the recording.
+        HasEvents = false;
+
+        IsWaitCursor = true;
         IsRecording = true;
 
         if (settings.HasFlag(MacroRecorderSettings.Mouse) && settings.HasFlag(MacroRecorderSettings.Movement))
         {
             RecordingPhase = RecordingPhase.Preparing;
 
-            for (var seconds = 3; seconds > 0; seconds--)
-            {
-                PrepareCountdown = seconds;
-                OnPropertyChanged(nameof(PrepareCountdown));
-                await Task.Delay(TimeSpan.FromSeconds(1));
-            }
+            await Task.Delay(TimeSpan.FromSeconds(3));
         }
 
         RecordingPhase = RecordingPhase.Recording;
@@ -391,6 +411,12 @@ public partial class MacroPadKey : ObservableObject
 
 /// <summary>An entry in the recording-options selector.</summary>
 public sealed record MacroRecorderOption(MacroRecorderSettings Value, string Label);
+
+/// <summary>
+/// A repeat count with its display text. WPF boxes each allowed count through
+/// ComboBoxExtensions.SetItems and shows 1 as "Don't repeat", selecting by value.
+/// </summary>
+public sealed record MacroRepeatOption(int Value, string Label);
 
 /// <summary>
 /// A read-only event card, matching WPF's <c>AbstractMacroEventControl</c>. The cards are
