@@ -109,7 +109,7 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
         _macroService.RecorderStopped += OnRecorderStopped;
     }
 
-    /// <summary>Navigation loads the backend before the page is shown.</summary>
+    /// <summary>Loads the backend before the page is shown.</summary>
     async Task INavigationAware.OnNavigatedToAsync()
     {
         await _macroService.InitializeAsync();
@@ -117,7 +117,19 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
         RepeatOptions = _macroService.AllowedRepeatCounts;
         OnPropertyChanged(nameof(RepeatOptions));
 
-        IsEnabled = _macroService.IsEnabled;
+        // WPF assigns _enableMacroToggle.IsChecked directly, which does not raise Click
+        // and therefore does not write back. The same guard keeps opening the page from
+        // persisting the value it just read.
+        _suppressOptionSave = true;
+
+        try
+        {
+            IsEnabled = _macroService.IsEnabled;
+        }
+        finally
+        {
+            _suppressOptionSave = false;
+        }
 
         // WPF selects the last button in the number pad, which is key "0" (0x60).
         var zeroKey = PadKeys.FirstOrDefault(k => k?.Label == "0");
@@ -256,7 +268,7 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
 
     partial void OnIsEnabledChanged(bool value)
     {
-        if (_isRefreshing)
+        if (_suppressOptionSave)
         {
             return;
         }

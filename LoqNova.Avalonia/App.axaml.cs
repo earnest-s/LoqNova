@@ -332,14 +332,45 @@ public partial class App : Application
 
             var zero = new MacroIdentifier(MacroSource.Keyboard, 0x60);
 
-            // 1. Enable state must come from the controller, not a local bool.
-            Services.NavDiag.Log($"{Tag} enable-read", $"controller={service.IsEnabled} vm={viewModel.IsEnabled}");
+            // Mode comes from the marker file: "seed" writes a known state through the
+            // real controller, "verify" reads it back in a fresh process and restores
+            // the store to how the app started.
+            var mode = "seed";
 
-            // 2. Enable round trip.
+            try
+            {
+                var marker = Path.Combine(Path.GetTempPath(), "loqnova-navdiag.flag");
+                var first = File.ReadAllLines(marker).FirstOrDefault()?.Trim();
+
+                if (!string.IsNullOrEmpty(first))
+                {
+                    mode = first;
+                }
+            }
+            catch (Exception)
+            {
+                // Default mode is fine.
+            }
+
+            if (mode.StartsWith("verify", StringComparison.OrdinalIgnoreCase))
+            {
+                var reloaded = service.GetSequence(zero);
+                Services.NavDiag.Log($"{Tag} reload-after-restart", $"controller={service.IsEnabled} " +
+                    $"vm={viewModel.IsEnabled} repeat={reloaded.RepeatCount} " +
+                    $"ignoreDelays={reloaded.IgnoreDelays} interrupt={reloaded.InterruptOnOtherKey} " +
+                    $"events={reloaded.Events?.Length} storedKey={reloaded.Events?[0].Key:X2}");
+
+                service.SetSequence(zero, new MacroSequence { RepeatCount = 1, Events = [] });
+                service.SetEnabled(false);
+                Services.NavDiag.Log($"{Tag} restored", $"controller={service.IsEnabled}");
+                return;
+            }
+
+            // Enable state must come from the controller, not a local bool.
+            Services.NavDiag.Log($"{Tag} enable-before", $"controller={service.IsEnabled} vm={viewModel.IsEnabled}");
+
             service.SetEnabled(true);
-            Services.NavDiag.Log($"{Tag} enable-write", $"controller={service.IsEnabled}");
 
-            // 3. Sequence round trip with a real MacroEvent.
             service.SetSequence(zero, new MacroSequence
             {
                 RepeatCount = 4,
@@ -365,19 +396,10 @@ public partial class App : Application
             });
 
             var readBack = service.GetSequence(zero);
-            Services.NavDiag.Log($"{Tag} sequence-read", $"repeat={readBack.RepeatCount} " +
-                $"ignoreDelays={readBack.IgnoreDelays} interrupt={readBack.InterruptOnOtherKey} " +
-                $"events={readBack.Events?.Length} storedKey={readBack.Events?[0].Key:X2}");
-
-            // 4. Emptying the sequence must make the backend drop it entirely,
-            //    which is what Clear does in WPF.
-            service.SetSequence(zero, new MacroSequence { RepeatCount = 1, Events = [] });
-            var cleared = service.GetSequence(zero);
-            Services.NavDiag.Log($"{Tag} after-clear", $"events={cleared.Events?.Length}");
-
-            // Restore the state this app started with.
-            service.SetEnabled(false);
-            Services.NavDiag.Log($"{Tag} restored", $"controller={service.IsEnabled}");
+            Services.NavDiag.Log($"{Tag} seeded-and-read-back", $"controller={service.IsEnabled} " +
+                $"repeat={readBack.RepeatCount} ignoreDelays={readBack.IgnoreDelays} " +
+                $"interrupt={readBack.InterruptOnOtherKey} events={readBack.Events?.Length} " +
+                $"storedKey={readBack.Events?[0].Key:X2} delayMs={readBack.Events?[0].Delay.TotalMilliseconds}");
         }
         catch (Exception ex)
         {
