@@ -58,6 +58,31 @@ public partial class MacroViewModel : ViewModelBase
             MacroKeys.Add(new MacroKeyViewModel(key));
         }
     }
+
+    /// <summary>
+    /// Selects a number-pad slot and loads its real sequence from the backend. WPF
+    /// does this in NumberPadButton_Click -> Reload, which builds
+    /// <c>MacroIdentifier(MacroSource.Keyboard, key)</c> and reads GetSequences().
+    /// The page had no such command at all, so every number-pad button was inert.
+    /// </summary>
+    [RelayCommand]
+    private void SelectKey(int keyNumber)
+    {
+        SelectedKeyNumber = keyNumber;
+
+        _macroService.LoadSlot(keyNumber);
+
+        var model = _macroService.MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
+
+        if (model is not null)
+        {
+            SelectedMacroKey = MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
+        }
+    }
+
+    /// <summary>The slot currently open in the editor.</summary>
+    [ObservableProperty]
+    private MacroKeyViewModel? _selectedMacroKey;
     
     partial void OnIsEnabledChanged(bool value)
     {
