@@ -224,6 +224,10 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
             IgnoreDelays = sequence.IgnoreDelays;
             InterruptOnOtherKey = sequence.InterruptOnOtherKey;
 
+            // WPF re-runs SetItems for the recording options on every Set, with
+            // Keyboard as the default, so switching key or saving resets the selector.
+            RecorderSettings = MacroRecorderSettings.Keyboard;
+
             EventCards.Clear();
 
             foreach (var macroEvent in events)
