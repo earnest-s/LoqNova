@@ -1,9 +1,19 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:converters="using:Avalonia.Data.Converters"
              x:Class="LoqNova.Avalonia.Views.Pages.MacroPage"
              x:DataType="vm:MacroViewModel"
              x:CompileBindings="True">
+
+    <UserControl.Styles>
+        <!-- WPF sets Mouse.OverrideCursor = Cursors.Wait for the duration of a
+             recording and clears it on save. Avalonia has no global override, so the
+             page toggles this class instead. -->
+        <Style Selector="Grid.waitcursor">
+            <Setter Property="Cursor" Value="Wait" />
+        </Style>
+    </UserControl.Styles>
 
     <UserControl.Resources>
         <!-- One number-pad key. WPF paints the selected key with the primary
@@ -17,7 +27,7 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid Cursor="{Binding IsWaitCursor, Converter={x:Static BoolConverters.IsCursorWait}}">
+    <Grid Classes.waitcursor="{Binding IsWaitCursor}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,16,12" Spacing="0">
 
