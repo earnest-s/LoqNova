@@ -45,6 +45,7 @@ public sealed class RealMacroService : IMacroService
     {
         if (_controller is null || IsHookInstalled)
         {
+            Services.NavDiag.Log("HOOK-START-SKIPPED", $"controllerNull={_controller is null} installed={IsHookInstalled}");
             return;
         }
 
@@ -52,10 +53,14 @@ public sealed class RealMacroService : IMacroService
         _controller.Start();
 
         IsHookInstalled = true;
+
+        Services.NavDiag.Log("HOOK-INSTALLED", $"controllerHash={_controller.GetHashCode()} installed={IsHookInstalled}");
     }
 
     public void StopHook()
     {
+        Services.NavDiag.Log("HOOK-STOP-CALLED", $"controllerNull={_controller is null} installed={IsHookInstalled}");
+
         if (_controller is null || !IsHookInstalled)
         {
             return;
@@ -65,6 +70,8 @@ public sealed class RealMacroService : IMacroService
         _controller.Dispose();
 
         IsHookInstalled = false;
+
+        Services.NavDiag.Log("HOOK-REMOVED", $"installed={IsHookInstalled}");
     }
 
     public async Task InitializeAsync()

@@ -268,6 +268,20 @@ public partial class App : Application
             LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Automation.AutomationProcessor>()
                 .RunOnStartup();
 
+            // The macro keyboard hook, once for the application lifetime. WPF does this
+            // in App.xaml.cs InitMacroController, which resolves the controller and
+            // calls Start(); without it WH_KEYBOARD_LL is never installed and physical
+            // number-pad keys cannot play macros. Done here rather than in the page so
+            // opening or revisiting the Macro page never re-installs it.
+            var macroService = Container.Resolve<IMacroService>();
+            await macroService.InitializeAsync();
+            macroService.StartHook();
+
+            // The hook must not outlive the process.
+            var lifetime = ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+            lifetime.ShutdownRequested += (_, _) => macroService.StopHook();
+            lifetime.Exit += (_, _) => macroService.StopHook();
+
             // First navigation happens only now: the shared container is up and every
             // adapter a page view model reads in its constructor has been hydrated.
             var navigation = Container.Resolve<INavigationService>();
