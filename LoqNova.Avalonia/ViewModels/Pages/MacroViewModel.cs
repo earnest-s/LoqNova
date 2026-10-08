@@ -214,6 +214,8 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
             {
                 AddEventCard(macroEvent);
             }
+
+            Services.NavDiag.Log("MACRO-RELOAD", $"id={identifier} storedEvents={events.Length} cards={EventCards.Count} hasEvents={HasEvents}");
         }
         finally
         {
@@ -254,6 +256,8 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
         {
             return;
         }
+
+        Services.NavDiag.Log("MACRO-SAVE", $"cards={EventCards.Count} events={EventCards.Sum(card => card.Events.Count)}");
 
         _macroService.SetSequence(SelectedPadKey.Identifier, new MacroSequence
         {
@@ -341,7 +345,12 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
         _macroService.StopRecording();
     }
 
-    private void OnRecorderReceived(MacroEvent macroEvent) => AddEventCard(macroEvent);
+    private void OnRecorderReceived(MacroEvent macroEvent)
+    {
+        Services.NavDiag.Log("MACRO-RECORDER-EVENT", $"src={macroEvent.Source} dir={macroEvent.Direction} key={macroEvent.Key:X2}");
+
+        AddEventCard(macroEvent);
+    }
 
     /// <summary>
     /// The recorder stopped on its own, either because ESC was pressed or because the
