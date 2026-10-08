@@ -144,11 +144,35 @@ public partial class MainWindowViewModel : ViewModelBase
         }
     }
     
+/// <summary>
+    /// Navigates to a page.
+    /// <para>
+    /// This used to discard the navigation task with <c>_ =</c>. Navigation resolves the
+    /// page view model and constructs the view, and either step can throw; discarding
+    /// the task turned every such failure into a silent no-op, leaving the content host
+    /// on an empty near-black surface with no exception anywhere. It is awaited and
+    /// reported now.
+    /// </para>
+    /// </summary>
     [RelayCommand]
-    private void Navigate(NavigationPage page)
+    private async Task NavigateAsync(NavigationPage page)
     {
-        _ = _navigationService.NavigateToAsync(page);
+        try
+        {
+            await _navigationService.NavigateToAsync(page);
+        }
+        catch (Exception ex)
+        {
+            Services.NavDiag.LogException($"NAVIGATE-COMMAND-FAILED target={page}", ex);
+            System.Diagnostics.Debug.WriteLine($"Navigation to {page} failed: {ex}");
+            System.Diagnostics.Debug.WriteLine(ex.ToString());
+
+            OnNavigationFailed?.Invoke(page, ex);
+        }
     }
+
+    /// <summary>Raised when a navigation could not be completed.</summary>
+    public event Action<NavigationPage, Exception>? OnNavigationFailed;
 
     private static Window? HostWindow =>
         (global::Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;

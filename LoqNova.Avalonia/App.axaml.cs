@@ -208,10 +208,16 @@ public partial class App : Application
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
             await trayService.InitializeAsync(mainWindow);
-            
-            // Initialize navigation
+
+            // Navigation is deliberately NOT initialized here. Page view models read
+            // settings from their constructors (BatteryViewModel reads
+            // TemperatureUnitFahrenheit, for example), and SettingsService refuses those
+            // reads until InitializeAsync has run. Initializing navigation before the
+            // readiness gate made every such page fail to construct, and because the
+            // navigate command discarded the task, the failure was silent: the content
+            // host was left holding no page at all, which is the near-black screen.
+            // Navigation starts after the gate and hydration instead.
             var navigationService = Container.Resolve<INavigationService>();
-            await navigationService.InitializeAsync(mainWindow);
 
             // TEMPORARY: navigation diagnostics. Inert unless a marker file exists.
             var diagMarker = Path.Combine(Path.GetTempPath(), "loqnova-navdiag.flag");
@@ -222,7 +228,6 @@ public partial class App : Application
                 Services.NavDiag.Reset();
                 Services.NavDiag.Enabled = true;
                 Services.NavDiag.Log("APP-READY", $"diagnostics enabled marker={diagMarker} log={diagLog}");
-                _ = RunNavDiagnosticsAsync(navigationService, mainWindow, diagLog);
             }
         }
         
@@ -254,6 +259,16 @@ public partial class App : Application
             // Matches WPF: pipelines whose trigger matched at launch run once here.
             LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Automation.AutomationProcessor>()
                 .RunOnStartup();
+
+            // First navigation happens only now: the shared container is up and every
+            // adapter a page view model reads in its constructor has been hydrated.
+            var navigation = Container.Resolve<INavigationService>();
+            await navigation.InitializeAsync(mainWindow);
+
+            if (Services.NavDiag.Enabled)
+            {
+                _ = RunNavDiagnosticsAsync(navigation, mainWindow, string.Empty);
+            }
         }
         catch (Exception ex)
         {
