@@ -13,6 +13,7 @@ using LoqNova.Avalonia.Localization;
 using LoqNova.Avalonia.Services;
 using LoqNova.Avalonia.ViewModels;
 using LoqNova.Avalonia.ViewModels.Pages;
+using LoqNova.Lib.Macro;
 using LoqNova.Avalonia.ViewModels.Dialogs;
 using LoqNova.Avalonia.Views;
 using Autofac;
