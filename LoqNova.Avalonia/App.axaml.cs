@@ -176,6 +176,8 @@ public partial class App : Application
         // The theme is applied after the shared library container is ready, because
         // reading the persisted theme goes through ISettingsService, which resolves
         // its backing store from that container.
+        Window? shellWindow = null;
+
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             // Release the library's RGB ownership before the process goes away.
@@ -204,6 +206,7 @@ public partial class App : Application
             }
 
             desktop.MainWindow = mainWindow;
+                shellWindow = mainWindow;
             
             // Initialize tray service
             var trayService = Container.Resolve<ITrayService>();
@@ -263,11 +266,11 @@ public partial class App : Application
             // First navigation happens only now: the shared container is up and every
             // adapter a page view model reads in its constructor has been hydrated.
             var navigation = Container.Resolve<INavigationService>();
-            await navigation.InitializeAsync(mainWindow);
+            await navigation.InitializeAsync(shellWindow!);
 
             if (Services.NavDiag.Enabled)
             {
-                _ = RunNavDiagnosticsAsync(navigation, mainWindow, string.Empty);
+                _ = RunNavDiagnosticsAsync(navigation, shellWindow!, string.Empty);
             }
         }
         catch (Exception ex)
