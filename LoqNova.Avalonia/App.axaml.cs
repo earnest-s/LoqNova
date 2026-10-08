@@ -276,7 +276,6 @@ public partial class App : Application
             if (Services.NavDiag.Enabled)
             {
                 _ = RunNavDiagnosticsAsync(navigation, shellWindow!, string.Empty);
-                _ = VerifyMacroBackendAsync();
             }
         }
         catch (Exception ex)
