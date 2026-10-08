@@ -281,6 +281,11 @@ public partial class App : Application
             // adapter a page view model reads in its constructor has been hydrated.
             var navigation = Container.Resolve<INavigationService>();
             await navigation.InitializeAsync(shellWindow!);
+
+            if (Services.NavDiag.Enabled)
+            {
+                _ = VerifyMacroRowsAsync();
+            }
         }
         catch (Exception ex)
         {
@@ -288,7 +293,60 @@ public partial class App : Application
         }
     }
 
-private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+/// <summary>
+    /// TEMPORARY: proves the display grouping is presentation only, by flattening the
+    /// rows back to raw events and comparing them with the stored sequence.
+    /// </summary>
+    private static async Task VerifyMacroRowsAsync()
+    {
+        const string Tag = "ROWS";
+
+        try
+        {
+            var vm = Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.MacroViewModel>();
+            var service = Container.Resolve<IMacroService>();
+
+            await ((INavigationAware)vm).OnNavigatedToAsync();
+
+            var padKey = vm.PadKeys.First(k => k is not null && k.Label == "0");
+            vm.SelectPadKeyCommand.Execute(padKey);
+
+            var stored = service.GetSequence(padKey.Identifier).Events ?? [];
+
+            foreach (var row in vm.EventCards)
+            {
+                Services.NavDiag.Log($"{Tag} row", $"kind={row.Kind} title={row.Title} " +
+                    $"subtitle={row.Subtitle} rawEvents={row.Events.Count} icon={row.Icon}");
+            }
+
+            var flattened = vm.EventCards.SelectMany(row => row.Events).ToArray();
+
+            Services.NavDiag.Log($"{Tag} totals", $"storedEvents={stored.Length} rows={vm.EventCards.Count} " +
+                $"flattenedEvents={flattened.Length}");
+
+            var identical = stored.Length == flattened.Length &&
+                !stored.Where((t, i) =>
+                    t.Source != flattened[i].Source ||
+                    t.Direction != flattened[i].Direction ||
+                    t.Key != flattened[i].Key ||
+                    t.Delay != flattened[i].Delay).Any();
+
+            Services.NavDiag.Log($"{Tag} raw-events-identical", identical.ToString());
+
+            // Round-trip through a real save and confirm the store still holds every event.
+            vm.IgnoreDelays = !vm.IgnoreDelays;
+            var afterSave = service.GetSequence(padKey.Identifier).Events ?? [];
+
+            Services.NavDiag.Log($"{Tag} after-save", $"storedEvents={afterSave.Length} " +
+                $"sequence={string.Join(",", afterSave.Select(e => $"{e.Direction}:{e.Key:X2}"))}");
+        }
+        catch (Exception ex)
+        {
+            Services.NavDiag.LogException($"{Tag}-FAILED", ex);
+        }
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
 

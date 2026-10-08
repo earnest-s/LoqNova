@@ -445,76 +445,105 @@ public sealed record MacroRecorderOption(MacroRecorderSettings Value, string Lab
 /// </summary>
 public sealed record MacroRepeatOption(int Value, string Label);
 
+public enum MacroRowKind
+{
+    KeyPress,
+    Movement,
+    Standalone
+}
+
 /// <summary>
-/// A read-only event card, matching WPF's <c>AbstractMacroEventControl</c>. The cards are
-/// never edited in WPF; the events they hold are collected again on save.
+/// A display row over one or more raw <see cref="MacroEvent"/> values. The rows are
+/// presentation only: <see cref="Events"/> keeps the raw values in capture order so
+/// saving reproduces the sequence exactly.
 /// </summary>
 public sealed partial class MacroEventCardViewModel : ViewModelBase
 {
     private readonly List<MacroEvent> _events = [];
 
-    public MacroEventCardViewModel(MacroEvent macroEvent, bool isMovement)
+    public MacroEventCardViewModel(MacroRowKind kind, MacroEvent macroEvent)
     {
-        IsMovement = isMovement;
+        Kind = kind;
         _events.Add(macroEvent);
         Refresh();
     }
 
-    /// <summary>True for a card that aggregates consecutive mouse-movement events.</summary>
-    public bool IsMovement { get; }
+    public MacroRowKind Kind { get; }
 
-    /// <summary>The real events behind this card, in capture order.</summary>
+    public bool IsMovement => Kind == MacroRowKind.Movement;
+
+    /// <summary>The real events behind this row, in capture order.</summary>
     public IReadOnlyList<MacroEvent> Events => _events;
 
-    /// <summary>Summed delay across the events, which is what a movement card shows.</summary>
-    public TimeSpan TotalDelay => _events.Aggregate(TimeSpan.Zero, (total, e) => total + e.Delay);
+    /// <summary>
+    /// The time this row represents: the hold time for a key press, the accumulated
+    /// travel time for a movement run, and the single event's own delay otherwise.
+    /// </summary>
+    public TimeSpan TotalDelay => Kind switch
+    {
+        MacroRowKind.KeyPress when _events.Count > 1 => _events[^1].Delay,
+        MacroRowKind.Movement => _events.Aggregate(TimeSpan.Zero, (total, e) => total + e.Delay),
+        _ => _events[0].Delay
+    };
 
     public string Title { get; private set; } = "";
 
     public string Subtitle { get; private set; } = "";
 
-    /// <summary>Direction glyph, chosen as WPF chooses its card icon.</summary>
+    /// <summary>Direction glyph, mirroring the icon WPF puts on each card.</summary>
     public string Icon { get; private set; } = "";
 
-    /// <summary>Folds another movement event into this card.</summary>
     public void Add(MacroEvent macroEvent)
     {
         _events.Add(macroEvent);
         Refresh();
     }
 
+    /// <summary>True when this release completes the press this row opened.</summary>
+    public bool Closes(MacroEvent release) =>
+        Kind == MacroRowKind.KeyPress &&
+        _events.Count == 1 &&
+        _events[0].Direction == MacroDirection.Down &&
+        release.Direction == MacroDirection.Up &&
+        release.Source == _events[0].Source &&
+        release.Key == _events[0].Key;
+
     private void Refresh()
     {
-        var macroEvent = _events[^1];
+        var representative = _events[0];
 
-        Icon = macroEvent.Direction switch
+        Icon = Kind switch
         {
-            MacroDirection.Up => "ArrowUp",
-            MacroDirection.Down => "ArrowDown",
-            MacroDirection.Wheel => "Rotate",
-            MacroDirection.HorizontalWheel => "Rotate",
-            MacroDirection.Move => "Move",
-            _ => "None"
+            MacroRowKind.Movement => "↔",
+            MacroRowKind.KeyPress => "↓",
+            _ => representative.Direction switch
+            {
+                MacroDirection.Up => "↑",
+                MacroDirection.Down => "↓",
+                MacroDirection.Wheel or MacroDirection.HorizontalWheel => "↻",
+                MacroDirection.Move => "↔",
+                _ => "•"
+            }
         };
 
         // The same discrimination WPF performs in AbstractMacroEventControl.Set.
-        Title = (macroEvent.Source, macroEvent.Direction, macroEvent.Key) switch
+        Title = (representative.Source, representative.Direction, representative.Key) switch
         {
-            (MacroSource.Keyboard, _, _) => RealMacroService.KeyName(macroEvent.Key),
+            (MacroSource.Keyboard, _, _) => RealMacroService.KeyName(representative.Key),
             (MacroSource.Mouse, MacroDirection.Move, _) => "MOVE",
             (MacroSource.Mouse, MacroDirection.Wheel, >= 0x80000000) => "WHEEL DOWN",
             (MacroSource.Mouse, MacroDirection.Wheel, _) => "WHEEL UP",
             (MacroSource.Mouse, MacroDirection.HorizontalWheel, >= 0x80000000) => "WHEEL LEFT",
             (MacroSource.Mouse, MacroDirection.HorizontalWheel, _) => "WHEEL RIGHT",
-            (MacroSource.Mouse, _, >= 0xFF) => "XBUTTON" + (macroEvent.Key >> 16),
+            (MacroSource.Mouse, _, >= 0xFF) => "XBUTTON" + (representative.Key >> 16),
             (MacroSource.Mouse, _, 1) => "LBUTTON",
             (MacroSource.Mouse, _, 2) => "RBUTTON",
             (MacroSource.Mouse, _, 3) => "MBUTTON",
-            (MacroSource.Mouse, _, _) => "BUTTON" + macroEvent.Key,
+            (MacroSource.Mouse, _, _) => "BUTTON" + representative.Key,
             _ => string.Empty
         };
 
-        Subtitle = $"{macroEvent.Source.GetDisplayName()} • {FormatDelay(TotalDelay)}";
+        Subtitle = $"{representative.Source.GetDisplayName()} • {FormatDelay(TotalDelay)}";
 
         OnPropertyChanged(nameof(Title));
         OnPropertyChanged(nameof(Subtitle));
