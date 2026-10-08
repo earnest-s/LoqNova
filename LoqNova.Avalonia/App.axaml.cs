@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
@@ -209,6 +210,18 @@ public partial class App : Application
             // Initialize navigation
             var navigationService = Container.Resolve<INavigationService>();
             await navigationService.InitializeAsync(mainWindow);
+
+            // TEMPORARY: navigation diagnostics. Inert unless a marker file exists.
+            var diagMarker = Path.Combine(Path.GetTempPath(), "loqnova-navdiag.flag");
+            var diagLog = Path.Combine(Path.GetTempPath(), "loqnova-navdiag.log");
+
+            if (File.Exists(diagMarker))
+            {
+                Services.NavDiag.Reset();
+                Services.NavDiag.Enabled = true;
+                Services.NavDiag.Log("APP-READY", $"diagnostics enabled marker={diagMarker} log={diagLog}");
+                _ = RunNavDiagnosticsAsync(navigationService, mainWindow, diagLog);
+            }
         }
         
         base.OnFrameworkInitializationCompleted();
@@ -243,6 +256,41 @@ public partial class App : Application
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Library container failed to initialize: {ex}");
+        }
+    }
+
+    /// <summary>
+    /// TEMPORARY: runs the navigation acceptance sequence unattended and records the
+    /// [NAV-DIAG] trace. Uses the same INavigationService entry point as the sidebar.
+    /// </summary>
+    private static async Task RunNavDiagnosticsAsync(
+        INavigationService navigation, Window window, string logPath)
+    {
+        try
+        {
+            var cycles = 5;
+
+            try
+            {
+                var marker = Path.Combine(Path.GetTempPath(), "loqnova-navdiag.flag");
+                var first = File.ReadAllLines(marker).FirstOrDefault()?.Trim();
+                if (int.TryParse(first, out var parsed))
+                {
+                    cycles = parsed;
+                }
+            }
+            catch (Exception)
+            {
+                // Default cycle count is fine.
+            }
+
+            Services.NavDiag.Log("DRIVER-START", $"cycles={cycles} log={logPath}");
+
+            await Services.NavDiag.RunNavigationCycleAsync(navigation, () => window, cycles);
+        }
+        catch (Exception ex)
+        {
+            Services.NavDiag.LogException("NAV-DIAG-DRIVER", ex);
         }
     }
 

@@ -62,6 +62,8 @@ public partial class MacroViewModel : ViewModelBase
             {
                 SelectedKeyViewModel = existing;
             }
+
+            SyncCursorPosition(key);
         };
         
         _macroService.RecordingStateChanged += recording => IsRecording = recording;
@@ -72,7 +74,28 @@ public partial class MacroViewModel : ViewModelBase
         MacroKeys.Clear();
         foreach (var key in _macroService.MacroKeys)
         {
-            MacroKeys.Add(new MacroKeyViewModel(key));
+            var view = new MacroKeyViewModel(key);
+            MacroKeys.Add(view);
+            SyncCursorPosition(key);
+        }
+    }
+
+    /// <summary>
+    /// Remembers where the pointer was last seen so an appended mouse event lands
+    /// under the cursor instead of at the origin.
+    /// </summary>
+    private void SyncCursorPosition(MacroKey key)
+    {
+        foreach (var evt in key.Events.Reverse())
+        {
+            if (evt.Source != MacroSource.Mouse)
+            {
+                continue;
+            }
+
+            var view = MacroKeys.FirstOrDefault(k => k.KeyNumber == key.KeyNumber);
+            view?.SetCursorPosition(evt.Point.X, evt.Point.Y);
+            return;
         }
     }
 
