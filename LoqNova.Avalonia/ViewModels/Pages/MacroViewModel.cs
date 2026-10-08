@@ -76,13 +76,32 @@ public partial class MacroViewModel : ViewModelBase
 
         if (model is not null)
         {
-            SelectedMacroKey = MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
+            var view = MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
+
+            if (view is not null)
+            {
+                view.UpdateFromModel(model);
+                SelectedKeyViewModel = view;
+            }
         }
     }
 
-    /// <summary>The slot currently open in the editor.</summary>
+    /// <summary>
+    /// The slot currently open in the editor. The page binds this name, so the editor
+    /// card stays hidden unless a slot has actually been loaded.
+    /// </summary>
     [ObservableProperty]
     private MacroKeyViewModel? _selectedMacroKey;
+
+    /// <summary>Alias the page binds to.</summary>
+    public MacroKeyViewModel? SelectedKeyViewModel
+    {
+        get => SelectedMacroKey;
+        set
+        {
+            SelectedMacroKey = value;
+        }
+    }
     
     partial void OnIsEnabledChanged(bool value)
     {
