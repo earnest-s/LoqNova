@@ -33,6 +33,40 @@ public sealed class RealMacroService : IMacroService
 
     public event Action<bool>? RecorderStopped;
 
+    /// <summary>
+    /// Tracks the single controller instance this adapter owns. <c>IoCModule</c> registers
+    /// <c>MacroController</c> without <c>SingleInstance()</c>, so resolving it a second time
+    /// would hand back a different object with its own settings and its own hook. Startup
+    /// and shutdown therefore go through the same instance held here.
+    /// </summary>
+    public bool IsHookInstalled { get; private set; }
+
+    public void StartHook()
+    {
+        if (_controller is null || IsHookInstalled)
+        {
+            return;
+        }
+
+        // The backend installs WH_KEYBOARD_LL and returns early if a hook already exists.
+        _controller.Start();
+
+        IsHookInstalled = true;
+    }
+
+    public void StopHook()
+    {
+        if (_controller is null || !IsHookInstalled)
+        {
+            return;
+        }
+
+        // Dispose unhooks and latches, so the hook cannot outlive the process.
+        _controller.Dispose();
+
+        IsHookInstalled = false;
+    }
+
     public async Task InitializeAsync()
     {
         if (_initialised)
