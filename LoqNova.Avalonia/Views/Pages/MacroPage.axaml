@@ -17,7 +17,7 @@
         </DataTemplate>
     </UserControl.Resources>
 
-    <Grid>
+    <Grid Cursor="{Binding IsWaitCursor, Converter={x:Static BoolConverters.IsCursorWait}}">
         <ScrollViewer VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="0,0,16,12" Spacing="0">
 
@@ -67,8 +67,15 @@
                                 <ComboBox MinWidth="150"
                                           HorizontalAlignment="Left"
                                           ItemsSource="{Binding RepeatOptions}"
-                                          SelectedItem="{Binding RepeatCount, Mode=TwoWay}"
-                                          AutomationProperties.Name="Repeat" />
+                                          SelectedValue="{Binding RepeatCount, Mode=TwoWay}"
+                                          SelectedValueBinding="{Binding Value}"
+                                          AutomationProperties.Name="Repeat">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:MacroRepeatOption">
+                                            <TextBlock Text="{Binding Label}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
                             </StackPanel>
                         </Border>
 
@@ -108,14 +115,16 @@
                             </StackPanel>
                         </Border>
 
-                        <!-- Clear only exists while the sequence has events, as in WPF. -->
+                        <!-- Record is always available, exactly as WPF's Set leaves _recordButton.IsEnabled
+                         true. Only Clear is conditional, because WPF collapses just
+                         _clearButton when the sequence has no events. -->
                         <StackPanel Orientation="Horizontal"
                                     HorizontalAlignment="Right"
-                                    Spacing="8"
-                                    IsVisible="{Binding HasEvents}">
+                                    Spacing="8">
                             <Button Classes="IconButton"
                                     ToolTip.Tip="Clear"
-                                    Command="{Binding ClearCommand}">
+                                    Command="{Binding ClearCommand}"
+                                    IsVisible="{Binding HasEvents}">
                                 <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z"
                                           Width="20" Height="20" />
                             </Button>
@@ -124,12 +133,13 @@
                                     MinWidth="150"
                                     Content="Record"
                                     Command="{Binding RecordCommand}"
-                                    IsEnabled="{Binding !IsRecording}" />
+                                    IsVisible="{Binding !IsRecording}" />
                         </StackPanel>
 
-                        <!-- Read-only event cards. WPF has no event editing UI. -->
-                        <ItemsControl ItemsSource="{Binding EventCards}"
-                                      IsVisible="{Binding HasEvents}">
+                        <!-- Read-only event cards. WPF has no event editing UI, and the
+                             panel is always present; it is simply empty when the
+                             sequence has no events. -->
+                        <ItemsControl ItemsSource="{Binding EventCards}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="vm:MacroEventCardViewModel">
                                     <Border Classes="ContentCard" Margin="0,0,0,8">
