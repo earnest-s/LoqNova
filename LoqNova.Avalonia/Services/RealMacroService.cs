@@ -85,6 +85,8 @@ public sealed class RealMacroService : IMacroService
         // lock, and MacroController's constructor builds the recorder and player.
         _controller = await Task.Run(() => IoCContainer.Resolve<MacroController>()).ConfigureAwait(false);
 
+        Services.NavDiag.Log("HOOK-CONTROLLER-RESOLVED", $"controllerHash={_controller.GetHashCode()}");
+
         _controller.RecorderReceived += OnRecorderReceived;
         _controller.RecorderStopped += OnRecorderStopped;
 
