@@ -57,13 +57,29 @@ internal static class NavDiag
         }
     }
 
-    public static void LogException(string stage, Exception ex) =>
-        Log(stage + ":EXCEPTION", $"{ex.GetType().Name}: {ex.Message}");
+    public static void LogException(string stage, Exception ex)
+    {
+        // Walk the whole chain: Autofac wraps the real cause in a
+        // DependencyResolutionException whose own message hides it.
+        var parts = new List<string>();
+        var current = ex;
+        var depth = 0;
+
+        while (current is not null && depth < 8)
+        {
+            parts.Add($"{current.GetType().Name}: {current.Message}");
+            current = current.InnerException;
+            depth++;
+        }
+
+        Log(stage + ":EXCEPTION", string.Join(" <-- ", parts) + Environment.NewLine +
+            "        " + ex.ToString().Replace(Environment.NewLine, Environment.NewLine + "        "));
+    }
 
     /// <summary>
-    /// Renders the window and reports how much of it is still the near-black window
-    /// background (#0B0D11). This distinguishes "the page failed to paint" from
-    /// "an overlay dimmed a correctly painted page".
+    /// Renders the content host (not the Window: a top-level Window renders through the
+    /// compositor, so RenderTargetBitmap returns an empty surface for it) and reports how
+    /// much of it is still the near-black page background (#0B0D11).
     /// </summary>
     public static string ProbeVisualState(Window window, string label)
     {
@@ -74,12 +90,24 @@ internal static class NavDiag
 
         try
         {
-            var width = (int)Math.Max(1, window.Bounds.Width);
-            var height = (int)Math.Max(1, window.Bounds.Height);
-            var size = new PixelSize(width, height);
+            var host = window.FindControl<ContentControl>("ContentHost");
 
+            if (host is null)
+            {
+                return "contenthost-missing";
+            }
+
+            var width = (int)Math.Max(1, host.Bounds.Width);
+            var height = (int)Math.Max(1, host.Bounds.Height);
+
+            if (width < 2 || height < 2)
+            {
+                return $"contenthost-zero-size w={host.Bounds.Width} h={host.Bounds.Height}";
+            }
+
+            var size = new PixelSize(width, height);
             var rtb = new RenderTargetBitmap(size, new Vector(96, 96));
-            rtb.Render(window);
+            rtb.Render(host);
 
             var stride = width * 4;
             var buffer = System.Runtime.InteropServices.Marshal.AllocHGlobal(stride * height);
@@ -88,7 +116,6 @@ internal static class NavDiag
             {
                 rtb.CopyPixels(new PixelRect(size), buffer, stride * height, stride);
 
-                // Window background is #0B0D11.
                 long dark = 0;
                 long total = width * (long)height;
 
@@ -105,11 +132,10 @@ internal static class NavDiag
                 }
 
                 var pct = total == 0 ? 0 : dark * 100 / total;
-                var content = (Visual?)window.Content;
-                var childCount = content is null ? 0 : content.GetVisualDescendants().Count();
 
-                return $"darkPct={pct}% visualDescendants={childCount} " +
-                       $"window={width}x{height} opacity={window.Opacity}";
+                return $"darkPct={pct}% descendants={host.GetVisualDescendants().Count()} " +
+                       $"host={width}x{height} hostOpacity={host.Opacity} hostVisible={host.IsVisible} " +
+                       $"content={(host.Content is null ? "null" : host.Content.GetType().Name)}";
             }
             finally
             {
