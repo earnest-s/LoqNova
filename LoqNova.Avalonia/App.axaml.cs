@@ -351,8 +351,8 @@ public partial class App : Application
 
                 var seq = service.GetSequence(padKey.Identifier);
                 Services.NavDiag.Log($"{Tag} select-{label}", $"vk=0x{padKey.VirtualKey:X2} " +
-                    $"events={seq.Events?.Length} repeat={seq.RepeatCount} cards={vm.EventCards.Count} " +
-                    $"hasEvents={vm.HasEvents}");
+                    $"backendEvents={seq.Events?.Length} backendRepeatRaw={seq.RepeatCount} " +
+                    $"vmRepeat={vm.RepeatCount} cards={vm.EventCards.Count} hasEvents={vm.HasEvents}");
             }
 
             // 2. Put a real sequence on key 0 so the option rules have something to act on.
