@@ -133,7 +133,12 @@ public partial class App : Application
         builder.RegisterType<BatteryViewModel>().InstancePerDependency();
         builder.RegisterType<AutomationViewModel>().InstancePerDependency();
         builder.RegisterType<RealAutomationService>().As<IAutomationService>().SingleInstance();
-        builder.RegisterType<MacroViewModel>().InstancePerDependency();
+        // SingleInstance, not InstancePerDependency: MacroViewModel subscribes to the
+        // controller's RecorderReceived/RecorderStopped for the life of the page VM. A
+        // per-dependency instance was created on every navigation and never unsubscribed,
+        // so each recorded key press was delivered once per past visit and written back
+        // into the sequence repeatedly.
+        builder.RegisterType<MacroViewModel>().SingleInstance();
         builder.RegisterType<PackagesViewModel>().InstancePerDependency();
         builder.RegisterType<SettingsViewModel>().InstancePerDependency();
         builder.RegisterType<AboutViewModel>().InstancePerDependency();
