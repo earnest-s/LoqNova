@@ -319,9 +319,19 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
         }
     }
 
-    /// <summary>Clears the sequence, which also removes it from the store.</summary>
+    /// <summary>
+    /// Empties the event cards and then saves, which is what WPF's Clear does: the
+    /// panel is cleared first and Save then writes an event-less sequence, so the
+    /// backend's ClearEmptySequences removes the key entirely.
+    /// </summary>
     [RelayCommand]
-    private void Clear() => Save();
+    private void Clear()
+    {
+        EventCards.Clear();
+        HasEvents = false;
+
+        Save();
+    }
 
     /// <summary>
     /// Starts a recording. WPF clears the event list first, so recording replaces the
