@@ -1,75 +1,54 @@
 using System;
-using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using LoqNova.Lib.Macro;
 
 namespace LoqNova.Avalonia.Services;
 
 /// <summary>
-/// One number-pad slot. This is a UI row, not a macro model: the events are the real
-/// backend <see cref="MacroEvent"/> and the slot is identified by a real
-/// <see cref="MacroIdentifier"/>, so the Avalonia layer never redefines the domain.
+/// Thin adapter over the real <see cref="MacroController"/>.
+/// <para>
+/// This interface deliberately exposes only the backend's own vocabulary.
+/// <see cref="MacroEvent"/>, <see cref="MacroSequence"/>, <see cref="MacroIdentifier"/>
+/// and <see cref="MacroRecorderSettings"/> are passed straight through, because WPF's
+/// Macro page works in exactly those types and the Avalonia layer must not introduce a
+/// parallel model. There is no second macro engine and no second persistence path:
+/// every read and write goes through the controller, which owns macro.json.
+/// </para>
 /// </summary>
-public class MacroKey
-{
-    /// <summary>Number-pad position, 0-9.</summary>
-    public int KeyNumber { get; init; }
-
-    /// <summary>Display label for the slot.</summary>
-    public string Name { get; init; } = "";
-
-    /// <summary>The real backend identifier this row stands for.</summary>
-    public MacroIdentifier Identifier { get; init; }
-
-    /// <summary>Real backend events held by this slot.</summary>
-    public ObservableCollection<MacroEvent> Events { get; set; } = [];
-
-    /// <summary>Whether the slot currently has any events.</summary>
-    public bool HasEvents => Events.Count > 0;
-
-    /// <summary>Playback repeat count. WPF clamps this to 1-10.</summary>
-    public int RepeatCount { get; set; } = 1;
-
-    /// <summary>Whether delays are skipped during playback.</summary>
-    public bool IgnoreDelays { get; set; }
-
-    /// <summary>Whether another key press interrupts playback.</summary>
-    public bool InterruptOnOtherKey { get; set; }
-}
-
 public interface IMacroService
 {
-    /// <summary>The real MacroController enable state.</summary>
-    bool IsEnabled { get; set; }
+    /// <summary>
+    /// The real <c>MacroController.IsEnabled</c> state.
+    /// </summary>
+    bool IsEnabled { get; }
 
-    /// <summary>The ten number-pad slots, backed by real identifiers.</summary>
-    ObservableCollection<MacroKey> MacroKeys { get; }
-
-    /// <summary>Currently selected slot.</summary>
-    int SelectedKeyNumber { get; set; }
-
-    /// <summary>True while the backend recorder is running.</summary>
+    /// <summary>True while the backend recorder holds its hooks.</summary>
     bool IsRecording { get; }
 
-    event Action<MacroKey>? MacroKeyChanged;
+    /// <summary>The repeat counts WPF offers, from the real controller.</summary>
+    int[] AllowedRepeatCounts { get; }
 
-    event Action<bool>? RecordingStateChanged;
-
+    /// <summary>Resolves the real controller once the shared container is ready.</summary>
     Task InitializeAsync();
 
-    /// <summary>Loads a slot's real sequence from the backend.</summary>
-    void LoadSlot(int slot);
+    /// <summary>Mirrors a change onto the real controller, which persists it.</summary>
+    void SetEnabled(bool enabled);
 
-    /// <summary>The backend identifier for a slot.</summary>
-    MacroIdentifier IdentifierFor(int slot);
+    /// <summary>Reads the real sequence for a key, or an empty one when unset.</summary>
+    MacroSequence GetSequence(MacroIdentifier identifier);
 
-    Task StartRecordingAsync(int keyNumber);
+    /// <summary>Writes the sequence through the controller, which cleans and persists it.</summary>
+    void SetSequence(MacroIdentifier identifier, MacroSequence sequence);
 
-    Task StopRecordingAsync();
+    /// <summary>Starts the real recorder with the chosen capture settings.</summary>
+    void StartRecording(MacroRecorderSettings settings);
 
-    Task PlayMacroAsync(int keyNumber);
+    /// <summary>Stops the real recorder. ESC and session switches stop it from the backend.</summary>
+    void StopRecording();
 
-    /// <summary>Writes the edited slots back through the backend.</summary>
-    Task SaveAsync(IEnumerable<KeyValuePair<MacroIdentifier, MacroSequence>> sequences);
+    /// <summary>Raised for every captured real event, on the UI thread.</summary>
+    event Action<MacroEvent>? RecorderReceived;
+
+    /// <summary>Raised when recording ends; the argument is the backend's Interrupted flag.</summary>
+    event Action<bool>? RecorderStopped;
 }

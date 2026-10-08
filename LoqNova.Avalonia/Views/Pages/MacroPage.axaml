@@ -2,154 +2,188 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
              x:Class="LoqNova.Avalonia.Views.Pages.MacroPage"
-             x:DataType="vm:MacroViewModel">
+             x:DataType="vm:MacroViewModel"
+             x:CompileBindings="True">
 
-    <Design.DataContext>
-        <vm:MacroViewModel />
-    </Design.DataContext>
+    <UserControl.Resources>
+        <!-- One number-pad key. WPF paints the selected key with the primary
+             appearance and every other key with the secondary appearance. -->
+        <DataTemplate x:Key="PadKeyTemplate" DataType="vm:MacroPadKey">
+            <Button Classes="KeyPadKey"
+                    Classes.selected="{Binding IsSelected}"
+                    Content="{Binding Label}"
+                    Command="{Binding $parent[UserControl].((vm:MacroViewModel)DataContext).SelectPadKeyCommand}"
+                    CommandParameter="{Binding}" />
+        </DataTemplate>
+    </UserControl.Resources>
 
-    <ScrollViewer Classes="PageContainer">
-        <StackPanel Spacing="24">
-            <!-- Page Header -->
+    <Grid>
+        <ScrollViewer VerticalScrollBarVisibility="Auto">
+            <StackPanel Margin="0,0,16,12" Spacing="0">
+
+                <!-- Page heading, matching the WPF title and subtitle -->
+                <TextBlock Margin="0,16,0,8" FontSize="24" FontWeight="Medium" Text="Macro" />
+                <TextBlock Margin="0,0,0,24"
+                           Text="You can record series of key presses and invoke them using the number pad on your keyboard." />
+
+                <!-- Enable. Bound to MacroController.IsEnabled, written through SetEnabled. -->
+                <Border Classes="ContentCard" Margin="0,0,0,32">
+                    <StackPanel Spacing="8">
+                        <TextBlock Classes="Heading4" Text="Enable" />
+                        <TextBlock Classes="BodySmall" Text="LOQ Nova must be running for macros to work." />
+                        <ToggleSwitch IsChecked="{Binding IsEnabled, Mode=TwoWay}"
+                                      AutomationProperties.Name="Enable"
+                                      OnContent="Enabled"
+                                      OffContent="Disabled" />
+                    </StackPanel>
+                </Border>
+
+                <!-- Number pad on the left, sequence on the right, as in the WPF Grid -->
+                <Grid ColumnDefinitions="Auto,*">
+                    <Grid Grid.Column="0" RowDefinitions="Auto,Auto,Auto,Auto"
+                          ColumnDefinitions="Auto,Auto,Auto">
+                        <ContentControl Grid.Row="0" Grid.Column="0" Content="{Binding PadKeys[0]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+                        <ContentControl Grid.Row="0" Grid.Column="1" Content="{Binding PadKeys[1]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+                        <ContentControl Grid.Row="0" Grid.Column="2" Content="{Binding PadKeys[2]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+
+                        <ContentControl Grid.Row="1" Grid.Column="0" Content="{Binding PadKeys[3]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+                        <ContentControl Grid.Row="1" Grid.Column="1" Content="{Binding PadKeys[4]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+                        <ContentControl Grid.Row="1" Grid.Column="2" Content="{Binding PadKeys[5]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+
+                        <ContentControl Grid.Row="2" Grid.Column="0" Content="{Binding PadKeys[6]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+                        <ContentControl Grid.Row="2" Grid.Column="1" Content="{Binding PadKeys[7]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+                        <ContentControl Grid.Row="2" Grid.Column="2" Content="{Binding PadKeys[8]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+
+                        <ContentControl Grid.Row="3" Grid.Column="1" Content="{Binding PadKeys[10]}" ContentTemplate="{StaticResource PadKeyTemplate}" />
+                    </Grid>
+
+                    <StackPanel Grid.Column="1" Margin="32,0,0,0" Spacing="8">
+
+                        <!-- Repeat. WPF fills this from MacroController.AllowedRepeatCounts
+                             and labels 1 as "Don't repeat". -->
+                        <Border Classes="ContentCard" IsEnabled="{Binding HasEvents}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Classes="Heading4" Text="Repeat" />
+                                <ComboBox MinWidth="150"
+                                          HorizontalAlignment="Left"
+                                          ItemsSource="{Binding RepeatOptions}"
+                                          SelectedItem="{Binding RepeatCount, Mode=TwoWay}"
+                                          AutomationProperties.Name="Repeat" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Classes="ContentCard" IsEnabled="{Binding HasEvents}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Classes="Heading4" Text="Ignore delays" />
+                                <ToggleSwitch IsChecked="{Binding IgnoreDelays, Mode=TwoWay}"
+                                              OnContent="On" OffContent="Off"
+                                              AutomationProperties.Name="Ignore delays" />
+                            </StackPanel>
+                        </Border>
+
+                        <Border Classes="ContentCard" IsEnabled="{Binding HasEvents}">
+                            <StackPanel Spacing="8">
+                                <TextBlock Classes="Heading4" Text="Interrupt if another key was pressed" />
+                                <ToggleSwitch IsChecked="{Binding InterruptOnOtherKey, Mode=TwoWay}"
+                                              OnContent="On" OffContent="Off"
+                                              AutomationProperties.Name="Interrupt if another key was pressed" />
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Recording options. Read when Record is pressed, never on change. -->
+                        <Border Classes="ContentCard" Margin="0,0,0,8">
+                            <StackPanel Spacing="8">
+                                <TextBlock Classes="Heading4" Text="Recording options" />
+                                <ComboBox MinWidth="150"
+                                          HorizontalAlignment="Left"
+                                          ItemsSource="{Binding RecorderOptions}"
+                                          SelectedValue="{Binding RecorderSettings, Mode=TwoWay}"
+                                          SelectedValueBinding="{Binding Value}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate DataType="vm:MacroRecorderOption">
+                                            <TextBlock Text="{Binding Label}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+                            </StackPanel>
+                        </Border>
+
+                        <!-- Clear only exists while the sequence has events, as in WPF. -->
+                        <StackPanel Orientation="Horizontal"
+                                    HorizontalAlignment="Right"
+                                    Spacing="8"
+                                    IsVisible="{Binding HasEvents}">
+                            <Button Classes="IconButton"
+                                    ToolTip.Tip="Clear"
+                                    Command="{Binding ClearCommand}">
+                                <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z"
+                                          Width="20" Height="20" />
+                            </Button>
+
+                            <Button Classes="PrimaryButton"
+                                    MinWidth="150"
+                                    Content="Record"
+                                    Command="{Binding RecordCommand}"
+                                    IsEnabled="{Binding !IsRecording}" />
+                        </StackPanel>
+
+                        <!-- Read-only event cards. WPF has no event editing UI. -->
+                        <ItemsControl ItemsSource="{Binding EventCards}"
+                                      IsVisible="{Binding HasEvents}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:MacroEventCardViewModel">
+                                    <Border Classes="ContentCard" Margin="0,0,0,8">
+                                        <StackPanel Orientation="Horizontal" Spacing="12">
+                                            <TextBlock Text="{Binding Icon}"
+                                                       Classes="Heading4"
+                                                       VerticalAlignment="Center"
+                                                       Width="28"
+                                                       TextAlignment="Center" />
+                                            <StackPanel Spacing="2">
+                                                <TextBlock Text="{Binding Title}" Classes="Heading4" />
+                                                <TextBlock Text="{Binding Subtitle}" Classes="BodySmall" />
+                                            </StackPanel>
+                                        </StackPanel>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+                </Grid>
+            </StackPanel>
+        </ScrollViewer>
+
+        <!-- Avalonia equivalent of WPF's topmost MacroRecordingWindow: a small
+             always-visible card that does not steal focus, because the recorder hooks
+             swallow input while it runs. -->
+        <Border IsVisible="{Binding IsRecording}"
+                VerticalAlignment="Top"
+                HorizontalAlignment="Center"
+                Margin="0,24,0,0"
+                Padding="20,16"
+                CornerRadius="8"
+                Background="{StaticResource CardBackgroundBrush}"
+                BorderBrush="{StaticResource BorderBrush}"
+                BorderThickness="1"
+                IsHitTestVisible="False">
             <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Text="Macros" Classes="PageTitle" />
-                <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,8,0,0">
-                    <ToggleSwitch IsChecked="{Binding IsEnabled}" OnContent="Enabled" OffContent="Disabled" />
-                    <Button Classes="PrimaryButton" Content="Save" Command="{Binding SaveCommand}" />
+                <TextBlock Text="&#x23F8;" FontSize="32" VerticalAlignment="Center"
+                           IsVisible="{Binding IsPreparing}" />
+                <TextBlock Text="&#x25CF;" FontSize="32" VerticalAlignment="Center"
+                           Foreground="{StaticResource DangerBrush}"
+                           IsVisible="{Binding IsCapturing}" />
+                <StackPanel Spacing="4" VerticalAlignment="Center">
+                    <TextBlock Classes="Heading4"
+                               Text="Recording will start in 3 seconds..."
+                               IsVisible="{Binding IsPreparing}" />
+                    <TextBlock Classes="Heading4"
+                               Text="Recording..."
+                               IsVisible="{Binding IsCapturing}" />
+                    <TextBlock Classes="BodySmall"
+                               Text="Press ESC to stop."
+                               IsVisible="{Binding IsCapturing}" />
                 </StackPanel>
             </StackPanel>
-            
-            <!-- Number Pad -->
-            <Border Classes="ContentCard">
-                <StackPanel>
-                    <TextBlock Text="Select Key" Classes="SectionHeader" />
-                    
-                    <UniformGrid Rows="3" Columns="4" Margin="0,16,0,0">
-                        <Button Classes="SecondaryButton" Content="1" Command="{Binding SelectKeyCommand}" CommandParameter="1" 
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=1}" />
-                        <Button Classes="SecondaryButton" Content="2" Command="{Binding SelectKeyCommand}" CommandParameter="2"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=2}" />
-                        <Button Classes="SecondaryButton" Content="3" Command="{Binding SelectKeyCommand}" CommandParameter="3"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=3}" />
-                        <Button Classes="SecondaryButton" Content="4" Command="{Binding SelectKeyCommand}" CommandParameter="4"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=4}" />
-                        <Button Classes="SecondaryButton" Content="5" Command="{Binding SelectKeyCommand}" CommandParameter="5"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=5}" />
-                        <Button Classes="SecondaryButton" Content="6" Command="{Binding SelectKeyCommand}" CommandParameter="6"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=6}" />
-                        <Button Classes="SecondaryButton" Content="7" Command="{Binding SelectKeyCommand}" CommandParameter="7"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=7}" />
-                        <Button Classes="SecondaryButton" Content="8" Command="{Binding SelectKeyCommand}" CommandParameter="8"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=8}" />
-                        <Button Classes="SecondaryButton" Content="9" Command="{Binding SelectKeyCommand}" CommandParameter="9"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=9}" />
-                        <Button Classes="SecondaryButton" Content="0" Command="{Binding SelectKeyCommand}" CommandParameter="0"
-                                IsEnabled="{Binding SelectedKeyNumber, Converter={StaticResource IntNotEqualConverter}, ConverterParameter=0}" />
-                        <Button Classes="GhostButton" Content="Clear" />
-                        <Button Classes="GhostButton" Content="Back" />
-                    </UniformGrid>
-                </StackPanel>
-            </Border>
-            
-            <!-- Selected Key Editor -->
-            <Border Classes="ContentCard" IsVisible="{Binding SelectedKeyViewModel, Converter={StaticResource BoolToVisibilityConverter}}">
-                <StackPanel Spacing="16">
-<StackPanel Orientation="Horizontal" Spacing="16">
-                          <TextBlock Text="{Binding SelectedKeyViewModel.Name, StringFormat='Key {0}'}" Classes="Heading4" />
-                      </StackPanel>
-
-                      <!-- Playback options, backed by the backend sequence -->
-                      <StackPanel Orientation="Horizontal" Spacing="16">
-                          <StackPanel Orientation="Horizontal" Spacing="8">
-                              <TextBlock Text="Repeat:" Classes="BodySmall" VerticalAlignment="Center" />
-                              <NumericUpDown Value="{Binding SelectedKeyViewModel.RepeatCount, Mode=TwoWay}" Width="80" Minimum="1" Maximum="10" Increment="1" />
-                          </StackPanel>
-                          <CheckBox Content="Ignore delays" IsChecked="{Binding SelectedKeyViewModel.IgnoreDelays, Mode=TwoWay}" />
-                          <CheckBox Content="Interrupt on other key" IsChecked="{Binding SelectedKeyViewModel.InterruptOnOtherKey, Mode=TwoWay}" />
-                      </StackPanel>
-                    
-                    <!-- Macro Events -->
-                    <ItemsControl ItemsSource="{Binding SelectedKeyViewModel.Events}">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Border Margin="0,8,0,0" Padding="12" Background="{StaticResource SurfaceBrush}" CornerRadius="6">
-                                    <Grid ColumnDefinitions="Auto,*,Auto,Auto" Margin="0">
-                                        <!-- PathIcon for Key type -->
-                                        <PathIcon Grid.Column="0" Data="M15.41 7.41L14 6l-6 6 6 6 1.41-1.41L10.83 12z" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Key}" />
-                                        <!-- PathIcon for Mouse type -->
-                                        <PathIcon Grid.Column="0" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z" Width="20" Height="20" Foreground="{StaticResource PrimaryBrush}" VerticalAlignment="Center" IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Mouse}" />
-                                        
-                                        <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="12" VerticalAlignment="Center">
-                                            <StackPanel IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Key}">
-                                                <TextBlock Text="Key:" Classes="BodySmall" VerticalAlignment="Center" />
-                                                <ComboBox SelectedItem="{Binding Key}" Width="100" Margin="8,0,0,0"
-                                                          ItemsSource="{Binding AvailableKeys}"
-                                                          Background="{StaticResource SurfaceBrush}"
-                                                          BorderBrush="{StaticResource BorderBrush}"
-                                                          Foreground="{StaticResource TextPrimaryBrush}" />
-                                            </StackPanel>
-                                            
-                                            <StackPanel IsVisible="{Binding TypeName, Converter={StaticResource StringEqualityConverter}, ConverterParameter=Mouse}" Orientation="Horizontal" Spacing="8">
-                                                <TextBlock Text="X:" Classes="BodySmall" VerticalAlignment="Center" />
-                                                <NumericUpDown Value="{Binding X}" Width="80" Minimum="-9999" Maximum="9999" />
-                                                <TextBlock Text="Y:" Classes="BodySmall" VerticalAlignment="Center" Margin="16,0,0,0" />
-                                                <NumericUpDown Value="{Binding Y}" Width="80" Minimum="-9999" Maximum="9999" />
-                                                <TextBlock Text="Button:" Classes="BodySmall" VerticalAlignment="Center" Margin="16,0,0,0" />
-                                                <ComboBox SelectedItem="{Binding Button}" Width="100"
-                                                          ItemsSource="{Binding AvailableMouseButtons}"
-                                                          Background="{StaticResource SurfaceBrush}"
-                                                          BorderBrush="{StaticResource BorderBrush}"
-                                                          Foreground="{StaticResource TextPrimaryBrush}" />
-                                            </StackPanel>
-                                            
-                                            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,0,16,0">
-                                                <TextBlock Text="Press:" Classes="BodySmall" VerticalAlignment="Center" />
-                                                <ToggleSwitch IsChecked="{Binding IsPress}" OnContent="Down" OffContent="Up" />
-                                            </StackPanel>
-                                        </StackPanel>
-                                        
-                                        <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
-                                            <TextBlock Text="Delay:" Classes="BodySmall" VerticalAlignment="Center" />
-                                            <NumericUpDown Value="{Binding DelayMs}" Width="100" Minimum="0" Maximum="10000" Increment="10" />
-                                            <TextBlock Text="ms" Classes="Caption" VerticalAlignment="Center" />
-                                        </StackPanel>
-                                        
-                                        <Button Grid.Column="3" Classes="IconButton" ToolTip.Tip="Remove" Command="{Binding $parent[ItemsControl].DataContext.RemoveEventCommand}" CommandParameter="{Binding}">
-                                            <PathIcon Data="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 19 17.59 13.41 12z" Width="20" Height="20" Foreground="{StaticResource TextMutedBrush}" />
-                                        </Button>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                    
-<!-- Add Event Buttons -->
-                      <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
-                          <ComboBox SelectedItem="{Binding SelectedKeyViewModel.PendingKey, Mode=TwoWay}"
-                                    ItemsSource="{Binding SelectedKeyViewModel.AvailableKeys}"
-                                    Width="110" ToolTip.Tip="Key to add" />
-                          <Button Classes="SecondaryButton" Content="Add Key" Command="{Binding SelectedKeyViewModel.AddKeyEventCommand}" />
-
-                          <ComboBox SelectedItem="{Binding SelectedKeyViewModel.PendingMouseButton, Mode=TwoWay}"
-                                    ItemsSource="{Binding SelectedKeyViewModel.AvailableMouseButtons}"
-                                    Width="110" ToolTip.Tip="Mouse button to add" />
-                          <Button Classes="SecondaryButton" Content="Add Mouse" Command="{Binding SelectedKeyViewModel.AddMouseEventCommand}" />
-
-                          <Button Classes="GhostButton" Content="Clear All" Command="{Binding SelectedKeyViewModel.ClearEventsCommand}" />
-                      </StackPanel>
-                </StackPanel>
-            </Border>
-            
-            <!-- Recording Controls -->
-            <Border Classes="ContentCard" IsVisible="{Binding IsRecording}">
-                <StackPanel Spacing="16" HorizontalAlignment="Center">
-                    <TextBlock Text="Recording..." Classes="Heading3" Foreground="{StaticResource DangerBrush}" />
-                    <TextBlock Text="{Binding RecordingTime, StringFormat='{}{0:mm\\:ss\\.ff}'}" Classes="Heading2" FontFamily="Consolas" />
-                    <TextBlock Text="{Binding LastKey, StringFormat='Last: {0}'}" Classes="Body" />
-                    <TextBlock Text="{Binding EventCount, StringFormat='Events: {0}'}" Classes="Caption" />
-                    <Button Classes="DangerButton" Content="Stop Recording" Command="{Binding StopRecordingCommand}" />
-                </StackPanel>
-            </Border>
-        </StackPanel>
-    </ScrollViewer>
+        </Border>
+    </Grid>
 </UserControl>

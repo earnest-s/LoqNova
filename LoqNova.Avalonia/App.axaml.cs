@@ -164,7 +164,6 @@ public partial class App : Application
         builder.RegisterType<UnsupportedViewModel>().InstancePerDependency();
         builder.RegisterType<UpdateViewModel>().InstancePerDependency();
         builder.RegisterType<NotificationViewModel>().InstancePerDependency();
-        builder.RegisterType<MacroRecordingViewModel>().InstancePerDependency();
         builder.RegisterType<SpectrumEditEffectViewModel>().InstancePerDependency();
         
         Container = builder.Build();
@@ -271,6 +270,7 @@ public partial class App : Application
             if (Services.NavDiag.Enabled)
             {
                 _ = RunNavDiagnosticsAsync(navigation, shellWindow!, string.Empty);
+                _ = VerifyMacroBackendAsync();
             }
         }
         catch (Exception ex)
@@ -311,6 +311,76 @@ public partial class App : Application
         catch (Exception ex)
         {
             Services.NavDiag.LogException("NAV-DIAG-DRIVER", ex);
+        }
+    }
+
+    /// <summary>
+    /// TEMPORARY: exercises the real MacroController round trip that a user would
+    /// otherwise have to perform by hand, and restores the stored state afterwards.
+    /// </summary>
+    private static async Task VerifyMacroBackendAsync()
+    {
+        const string Tag = "MACRO-VERIFY";
+
+        try
+        {
+            var service = Container.Resolve<IMacroService>();
+            var viewModel = Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.MacroViewModel>();
+
+            await service.InitializeAsync();
+
+            var zero = new MacroIdentifier(MacroSource.Keyboard, 0x60);
+
+            // 1. Enable state must come from the controller, not a local bool.
+            Services.NavDiag.Log($"{Tag} enable-read", $"controller={service.IsEnabled} vm={viewModel.IsEnabled}");
+
+            // 2. Enable round trip.
+            service.SetEnabled(true);
+            Services.NavDiag.Log($"{Tag} enable-write", $"controller={service.IsEnabled}");
+
+            // 3. Sequence round trip with a real MacroEvent.
+            service.SetSequence(zero, new MacroSequence
+            {
+                RepeatCount = 4,
+                IgnoreDelays = true,
+                InterruptOnOtherKey = true,
+                Events =
+                [
+                    new MacroEvent
+                    {
+                        Source = MacroSource.Keyboard,
+                        Direction = MacroDirection.Down,
+                        Key = 0x41,
+                        Delay = TimeSpan.FromMilliseconds(120)
+                    },
+                    new MacroEvent
+                    {
+                        Source = MacroSource.Keyboard,
+                        Direction = MacroDirection.Up,
+                        Key = 0x41,
+                        Delay = TimeSpan.FromMilliseconds(30)
+                    }
+                ]
+            });
+
+            var readBack = service.GetSequence(zero);
+            Services.NavDiag.Log($"{Tag} sequence-read", $"repeat={readBack.RepeatCount} " +
+                $"ignoreDelays={readBack.IgnoreDelays} interrupt={readBack.InterruptOnOtherKey} " +
+                $"events={readBack.Events?.Length} storedKey={readBack.Events?[0].Key:X2}");
+
+            // 4. Emptying the sequence must make the backend drop it entirely,
+            //    which is what Clear does in WPF.
+            service.SetSequence(zero, new MacroSequence { RepeatCount = 1, Events = [] });
+            var cleared = service.GetSequence(zero);
+            Services.NavDiag.Log($"{Tag} after-clear", $"events={cleared.Events?.Length}");
+
+            // Restore the state this app started with.
+            service.SetEnabled(false);
+            Services.NavDiag.Log($"{Tag} restored", $"controller={service.IsEnabled}");
+        }
+        catch (Exception ex)
+        {
+            Services.NavDiag.LogException($"{Tag}-FAILED", ex);
         }
     }
 
