@@ -287,6 +287,10 @@ public partial class App : Application
             var navigation = Container.Resolve<INavigationService>();
             await navigation.InitializeAsync(shellWindow!);
 
+            if (Services.NavDiag.Enabled)
+            {
+                _ = NavDiag.RunNavigationCycleAsync(navigation, () => shellWindow, 3);
+            }
         }
         catch (Exception ex)
         {
