@@ -51,4 +51,21 @@ public interface IMacroService
 
     /// <summary>Raised when recording ends; the argument is the backend's Interrupted flag.</summary>
     event Action<bool>? RecorderStopped;
+
+    /// <summary>
+    /// Installs the controller's WH_KEYBOARD_LL hook so physical number-pad keys play
+    /// macros. This belongs to the application lifetime, not the page's: WPF calls
+    /// <c>InitMacroController()</c> once during startup, never when the Macro page opens.
+    /// Idempotent, so calling it more than once leaves a single hook.
+    /// </summary>
+    void StartHook();
+
+    /// <summary>
+    /// Removes the hook on shutdown. Disposes the controller, which unhooks and guards
+    /// against being run twice.
+    /// </summary>
+    void StopHook();
+
+    /// <summary>Whether the keyboard hook is currently installed.</summary>
+    bool IsHookInstalled { get; }
 }
