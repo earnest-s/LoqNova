@@ -276,6 +276,7 @@ public partial class App : Application
             if (Services.NavDiag.Enabled)
             {
                 _ = RunNavDiagnosticsAsync(navigation, shellWindow!, string.Empty);
+                _ = VerifyMacroParityAsync();
             }
         }
         catch (Exception ex)
@@ -319,7 +320,102 @@ public partial class App : Application
         }
     }
 
-private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+/// <summary>
+    /// TEMPORARY: drives the real MacroViewModel against the real MacroController and
+    /// logs what the WPF page does at each step, so the behaviour can be compared
+    /// without a human clicking. Does not modify WPF or the backend.
+    /// </summary>
+    private static async Task VerifyMacroParityAsync()
+    {
+        const string Tag = "PARITY";
+
+        try
+        {
+            var vm = Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.MacroViewModel>();
+            var service = Container.Resolve<IMacroService>();
+            var navigation = (INavigationAware)vm;
+
+            await navigation.OnNavigatedToAsync();
+
+            var zero = new MacroIdentifier(MacroSource.Keyboard, 0x60);
+
+            Services.NavDiag.Log($"{Tag} default-selection", $"selected={vm.SelectedPadKey?.Label} " +
+                $"vk=0x{(vm.SelectedPadKey?.VirtualKey ?? 0):X2} hasEvents={vm.HasEvents} " +
+                $"repeatOptions={vm.RepeatOptions.Count} firstRepeatLabel={vm.RepeatOptions.FirstOrDefault()?.Label}");
+
+            // 1. Select slots 0, 1, 2 and 9 and confirm each loads its own real sequence.
+            foreach (var label in new[] { "0", "1", "2", "9" })
+            {
+                var padKey = vm.PadKeys.First(k => k is not null && k.Label == label);
+                vm.SelectPadKeyCommand.Execute(padKey);
+
+                var seq = service.GetSequence(padKey.Identifier);
+                Services.NavDiag.Log($"{Tag} select-{label}", $"vk=0x{padKey.VirtualKey:X2} " +
+                    $"events={seq.Events?.Length} repeat={seq.RepeatCount} cards={vm.EventCards.Count} " +
+                    $"hasEvents={vm.HasEvents}");
+            }
+
+            // 2. Put a real sequence on key 0 so the option rules have something to act on.
+            service.SetSequence(zero, new MacroSequence
+            {
+                RepeatCount = 1,
+                IgnoreDelays = false,
+                InterruptOnOtherKey = false,
+                Events =
+                [
+                    new MacroEvent { Source = MacroSource.Keyboard, Direction = MacroDirection.Down, Key = 0x41, Delay = TimeSpan.FromMilliseconds(10) },
+                    new MacroEvent { Source = MacroSource.Keyboard, Direction = MacroDirection.Up, Key = 0x41, Delay = TimeSpan.FromMilliseconds(20) },
+                    // Three consecutive movements, which WPF folds into one card whose
+                    // displayed delay is their sum.
+                    new MacroEvent { Source = MacroSource.Mouse, Direction = MacroDirection.Move, Key = 0, Delay = TimeSpan.FromMilliseconds(5) },
+                    new MacroEvent { Source = MacroSource.Mouse, Direction = MacroDirection.Move, Key = 0, Delay = TimeSpan.FromMilliseconds(15) },
+                    new MacroEvent { Source = MacroSource.Mouse, Direction = MacroDirection.Move, Key = 0, Delay = TimeSpan.FromMilliseconds(25) },
+                    new MacroEvent { Source = MacroSource.Mouse, Direction = MacroDirection.Down, Key = 1, Delay = TimeSpan.FromMilliseconds(30) }
+                ]
+            });
+
+            vm.SelectPadKeyCommand.Execute(vm.PadKeys.First(k => k is not null && k.Label == "0"));
+
+            var merged = vm.EventCards.SingleOrDefault(c => c.IsMovement);
+            Services.NavDiag.Log($"{Tag} move-merge", $"cards={vm.EventCards.Count} " +
+                $"movementCards={vm.EventCards.Count(c => c.IsMovement)} " +
+                $"mergedHolds={merged?.Events.Count} mergedDelayMs={(int?)merged?.TotalDelay.TotalMilliseconds} " +
+                $"cardTitles={string.Join(" | ", vm.EventCards.Select(c => c.Title))}");
+
+            // 3. Each option must persist immediately, then survive leaving and returning.
+            vm.IgnoreDelays = true;
+            vm.InterruptOnOtherKey = true;
+            vm.RepeatCount = 7;
+
+            var afterOptions = service.GetSequence(zero);
+            Services.NavDiag.Log($"{Tag} option-persist", $"repeat={afterOptions.RepeatCount} " +
+                $"ignoreDelays={afterOptions.IgnoreDelays} interrupt={afterOptions.InterruptOnOtherKey}");
+
+            // Leaving the page re-runs the navigation hook, which reloads from the backend.
+            vm.SelectPadKeyCommand.Execute(vm.PadKeys.First(k => k is not null && k.Label == "1"));
+            await navigation.OnNavigatedToAsync();
+
+            var reloaded = service.GetSequence(zero);
+            Services.NavDiag.Log($"{Tag} after-leave-return", $"vmRepeat={vm.RepeatCount} " +
+                $"vmIgnoreDelays={vm.IgnoreDelays} vmInterrupt={vm.InterruptOnOtherKey} " +
+                $"backendRepeat={reloaded.RepeatCount} backendIgnoreDelays={reloaded.IgnoreDelays} " +
+                $"backendInterrupt={reloaded.InterruptOnOtherKey} events={reloaded.Events?.Length}");
+
+            // 4. Clear must empty the sequence and persist that.
+            vm.ClearCommand.Execute(null);
+            var cleared = service.GetSequence(zero);
+            Services.NavDiag.Log($"{Tag} after-clear", $"vmHasEvents={vm.HasEvents} cards={vm.EventCards.Count} " +
+                $"backendEvents={cleared.Events?.Length} backendRepeat={cleared.RepeatCount}");
+
+            service.SetEnabled(false);
+        }
+        catch (Exception ex)
+        {
+            Services.NavDiag.LogException($"{Tag}-FAILED", ex);
+        }
+    }
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
 
