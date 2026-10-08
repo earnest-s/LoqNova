@@ -246,25 +246,38 @@ public partial class MacroViewModel : ViewModelBase, INavigationAware
     }
 
     /// <summary>
-    /// Adds a card for one captured event. Consecutive Move events collapse into the
-    /// previous multi card, exactly as WPF's <c>CreateControl</c> does, and the card's
-    /// displayed delay is the sum of the events it holds.
+    /// Builds a display row from a raw event. Consecutive movements merge into one row
+    /// and a key release that closes an open press merges into that press row, so a
+    /// normal key press is shown once with its hold time. Rows keep every raw event they
+    /// represent, so saving still writes the sequence back unchanged.
     /// </summary>
     private void AddEventCard(MacroEvent macroEvent)
     {
         if (macroEvent.Direction == MacroDirection.Move)
         {
-            if (EventCards.LastOrDefault() is { IsMovement: true } movement)
+            if (EventCards.LastOrDefault() is { Kind: MacroRowKind.Movement } movement)
             {
                 movement.Add(macroEvent);
                 return;
             }
 
-            EventCards.Add(new MacroEventCardViewModel(macroEvent, isMovement: true));
+            EventCards.Add(new MacroEventCardViewModel(MacroRowKind.Movement, macroEvent));
             return;
         }
 
-        EventCards.Add(new MacroEventCardViewModel(macroEvent, isMovement: false));
+        if (macroEvent.Direction == MacroDirection.Up &&
+            EventCards.LastOrDefault() is { Kind: MacroRowKind.KeyPress } press &&
+            press.Closes(macroEvent))
+        {
+            press.Add(macroEvent);
+            return;
+        }
+
+        var kind = macroEvent.Direction == MacroDirection.Down
+            ? MacroRowKind.KeyPress
+            : MacroRowKind.Standalone;
+
+        EventCards.Add(new MacroEventCardViewModel(kind, macroEvent));
     }
 
     /// <summary>
