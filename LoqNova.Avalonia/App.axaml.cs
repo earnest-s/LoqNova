@@ -277,20 +277,10 @@ public partial class App : Application
             await macroService.InitializeAsync();
             macroService.StartHook();
 
-            // The hook must not outlive the process.
-            var lifetime = ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-            lifetime.ShutdownRequested += (_, _) => macroService.StopHook();
-            lifetime.Exit += (_, _) => macroService.StopHook();
-
             // First navigation happens only now: the shared container is up and every
             // adapter a page view model reads in its constructor has been hydrated.
             var navigation = Container.Resolve<INavigationService>();
             await navigation.InitializeAsync(shellWindow!);
-
-            if (Services.NavDiag.Enabled)
-            {
-                _ = NavDiag.RunNavigationCycleAsync(navigation, () => shellWindow, 3);
-            }
         }
         catch (Exception ex)
         {
@@ -344,5 +334,19 @@ private static void OnUnobservedTaskException(object? sender, UnobservedTaskExce
         {
             System.Diagnostics.Debug.WriteLine($"RGB shutdown failed: {ex}");
         }
+
+        // The macro keyboard hook must not outlive the process. WPF does the equivalent
+        // in its shutdown list with MacroController.Stop().
+        try
+        {
+            if (Container?.IsRegistered<IMacroService>() == true)
+                Container.Resolve<IMacroService>().StopHook();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Macro hook shutdown failed: {ex}");
+        }
+
+        // ShutdownRequested is the last callback Avalonia raises, so Exit is not needed.
     }
 }
