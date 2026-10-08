@@ -82,6 +82,9 @@ public sealed class RealMacroService : IMacroService
 
     public void StartRecording(MacroRecorderSettings settings)
     {
+        Services.NavDiag.Log("MACRO-START-RECORDING", $"settings={settings}\n" +
+            System.Environment.StackTrace);
+
         _controller?.StartRecording(settings);
         IsRecording = true;
     }
