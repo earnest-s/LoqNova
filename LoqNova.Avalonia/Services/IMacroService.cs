@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using LoqNova.Lib.Macro;
@@ -70,5 +71,5 @@ public interface IMacroService
     Task PlayMacroAsync(int keyNumber);
 
     /// <summary>Writes the edited slots back through the backend.</summary>
-    Task SaveAsync();
+    Task SaveAsync(IEnumerable<KeyValuePair<MacroIdentifier, MacroSequence>> sequences);
 }

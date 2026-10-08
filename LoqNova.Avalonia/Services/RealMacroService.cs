@@ -76,13 +76,22 @@ public sealed class RealMacroService : IMacroService
         {
             var identifier = SlotIdentifier(slot);
 
-            MacroKeys.Add(new MacroKey
+            var key = new MacroKey
             {
                 KeyNumber = slot,
                 Name = slot.ToString(),
-                Identifier = identifier,
-                Events = ToEvents(sequences.GetValueOrDefault(identifier))
-            });
+                Identifier = identifier
+            };
+
+            // Apply, not just the events, so RepeatCount/IgnoreDelays/InterruptOnOtherKey
+            // are seeded here too and survive an edit-and-save round trip.
+            Apply(key, sequences.GetValueOrDefault(identifier));
+
+            MacroKeys.Add(key);
+
+            // The page subscribes for slots arriving after it was constructed, which is
+            // the normal case because initialization is gated behind startup readiness.
+            MacroKeyChanged?.Invoke(key);
         }
 
         _controller.RecorderReceived += OnRecorderReceived;
@@ -125,12 +134,41 @@ public sealed class RealMacroService : IMacroService
     };
 
     /// <summary>The key names the UI may offer, derived from the real mapping.</summary>
-    public IReadOnlyList<string> AvailableKeys { get; } = [.. KeyCodes.Keys.OrderBy(k => k)];
+    public static IReadOnlyList<string> AvailableKeys { get; } = [.. KeyCodes.Keys.OrderBy(k => k)];
 
     /// <summary>The mouse buttons the UI may offer.</summary>
-    public IReadOnlyList<string> AvailableMouseButtons { get; } = [.. MouseButtons.Keys];
+    public static IReadOnlyList<string> AvailableMouseButtons { get; } = [.. MouseButtons.Keys];
+
+/// <summary>Reverse lookup so an existing event can display its key name.</summary>
+    public static string ResolveKeyName(uint code)
+    {
+        foreach (var pair in KeyCodes)
+        {
+            if (pair.Value == code)
+            {
+                return pair.Key;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    /// <summary>Reverse lookup for mouse button codes.</summary>
+    public static string ResolveMouseButtonName(uint code)
+    {
+        foreach (var pair in MouseButtons)
+        {
+            if (pair.Value == code)
+            {
+                return pair.Key;
+            }
+        }
+
+        return string.Empty;
+    }
 
     /// <summary>Resolves a key name to its virtual-key code, or 0 when unknown.</summary>
+
     public static uint ResolveKeyCode(string? keyName) =>
         keyName is not null && KeyCodes.TryGetValue(keyName, out var code) ? code : 0;
 
@@ -163,21 +201,21 @@ public sealed class RealMacroService : IMacroService
     /// <summary>
     /// Writes the edited slots back through the backend, which owns persistence.
     /// </summary>
-    public Task SaveAsync()
+    public Task SaveAsync(IEnumerable<KeyValuePair<MacroIdentifier, MacroSequence>> sequences)
     {
         if (_controller is null)
         {
             return Task.CompletedTask;
         }
 
-        var sequences = _controller.GetSequences();
+        var updated = _controller.GetSequences();
 
-        foreach (var key in MacroKeys)
+        foreach (var entry in sequences)
         {
-            sequences[key.Identifier] = FromEvents(key);
+            updated[entry.Key] = entry.Value;
         }
 
-        _controller.SetSequences(sequences);
+        _controller.SetSequences(updated);
 
         return Task.CompletedTask;
     }

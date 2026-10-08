@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Drawing;
 using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -30,6 +32,13 @@ public partial class MacroViewModel : ViewModelBase
         
         SubscribeToEvents();
         LoadMacroKeys();
+
+        // WPF's number pad initializes the last button it finds, which is slot 0,
+        // then calls Reload for it. Opening on slot 0 keeps the editor visible
+        // instead of leaving the page with no selection at all.
+        _selectedKeyNumber = 0;
+        _macroService.SelectedKeyNumber = 0;
+        SelectKey(0);
     }
     
     private void SubscribeToEvents()
@@ -43,7 +52,15 @@ public partial class MacroViewModel : ViewModelBase
             }
             else
             {
-                MacroKeys.Add(new MacroKeyViewModel(key));
+                existing = new MacroKeyViewModel(key);
+                MacroKeys.Add(existing);
+            }
+
+            // The backend loads slots lazily, so the default slot can arrive after
+            // construction. Keep the editor bound to whatever the user picked.
+            if (existing.KeyNumber == SelectedKeyNumber)
+            {
+                SelectedKeyViewModel = existing;
             }
         };
         
@@ -134,97 +151,161 @@ public partial class MacroViewModel : ViewModelBase
     [RelayCommand]
     private async Task SaveAsync()
     {
-        await _macroService.SaveAsync();
+        // The editor mutates view models, so the sequences have to be rebuilt from
+        // them. Saving straight from the service's models would write back the
+        // untouched backend lists and silently discard every edit.
+        var sequences = MacroKeys.Select(key => new KeyValuePair<MacroIdentifier, MacroSequence>(key.Identifier, key.ToSequence())).ToArray();
+
+        await _macroService.SaveAsync(sequences);
     }
 }
+
 
 public partial class MacroKeyViewModel : ViewModelBase
 {
     public int KeyNumber { get; private set; }
-    
+
+    public MacroIdentifier Identifier { get; private set; }
+
     [ObservableProperty]
     private string _name = "";
-    
+
     [ObservableProperty]
     private bool _enabled = true;
-    
+
+    // Playback options are owned by the backend sequence, but the user edits them
+    // here, so they are carried through to save instead of being reset.
+[ObservableProperty]
+    private int _repeatCount = 1;
+
+    [ObservableProperty]
+    private bool _ignoreDelays = false;
+
+    [ObservableProperty]
+    private bool _interruptOnOtherKey = false;
+
+    // The editor picks the key/button to append before pressing Add, the same way
+    // WPF asks for one before adding it to the sequence.
+    public IReadOnlyList<string> AvailableKeys => RealMacroService.AvailableKeys;
+
+    public IReadOnlyList<string> AvailableMouseButtons => RealMacroService.AvailableMouseButtons;
+
+    [ObservableProperty]
+    private string _pendingKey = "A";
+
+    [ObservableProperty]
+    private string _pendingMouseButton = "Left";
+
     public ObservableCollection<MacroEventViewModel> Events { get; } = new();
-    
+
     public MacroKeyViewModel(MacroKey model)
     {
+        Apply(model);
+    }
+
+    private void Apply(MacroKey model)
+    {
         KeyNumber = model.KeyNumber;
-        _name = model.Name;
-        _enabled = model.HasEvents;
-        
-        foreach (var evt in model.Events)
-        {
-            Events.Add(CreateEventViewModel(evt));
-        }
-    }
-    
-    private MacroEventViewModel CreateEventViewModel(MacroEvent model)
-    {
-        // The backend models keyboard and mouse events as one struct,
-        // distinguished by Source. There is no subclass to switch on.
-        return model.Source == MacroSource.Mouse
-            ? new MacroMouseEventViewModel(model)
-            : new MacroKeyEventViewModel(model);
-    }
-    
-    public void UpdateFromModel(MacroKey model)
-    {
+        Identifier = model.Identifier;
         Name = model.Name;
         Enabled = model.HasEvents;
+        RepeatCount = Math.Clamp(model.RepeatCount, 1, 10);
+        IgnoreDelays = model.IgnoreDelays;
+        InterruptOnOtherKey = model.InterruptOnOtherKey;
+
         Events.Clear();
         foreach (var evt in model.Events)
         {
             Events.Add(CreateEventViewModel(evt));
         }
     }
-    
-    [RelayCommand]
-    private void AddKeyEvent(string key)
+
+    public void UpdateFromModel(MacroKey model) => Apply(model);
+
+    private static MacroEventViewModel CreateEventViewModel(MacroEvent model) =>
+        // The backend models keyboard and mouse events as one struct,
+        // distinguished by Source. There is no subclass to switch on.
+        model.Source == MacroSource.Mouse
+            ? new MacroMouseEventViewModel(model)
+            : new MacroKeyEventViewModel(model);
+
+    /// <summary>Rebuilds the backend sequence from the edited events.</summary>
+    public MacroSequence ToSequence() => new()
     {
-        // Real backend event: keyboard source, Down direction, virtual-key code.
-        var evt = new MacroEvent
+        RepeatCount = Math.Clamp(RepeatCount, 1, 10),
+        IgnoreDelays = IgnoreDelays,
+        InterruptOnOtherKey = InterruptOnOtherKey,
+        Events = [.. Events.Select(e => e.ToModel())]
+    };
+
+[RelayCommand]
+    private void AddKeyEvent()
+    {
+        Events.Add(new MacroKeyEventViewModel(new MacroEvent
         {
             Source = MacroSource.Keyboard,
             Direction = MacroDirection.Down,
-            Key = RealMacroService.ResolveKeyCode(key),
+            Key = RealMacroService.ResolveKeyCode(PendingKey),
             Delay = TimeSpan.Zero
-        };
-        Events.Add(new MacroKeyEventViewModel(evt));
+        }));
     }
-    
+
     [RelayCommand]
-    private void AddMouseEvent(string button)
+    private void AddMouseEvent()
     {
         // Mouse events reuse Key for the button code, as the backend does.
-        var evt = new MacroEvent
+        Events.Add(new MacroMouseEventViewModel(new MacroEvent
         {
             Source = MacroSource.Mouse,
             Direction = MacroDirection.Down,
-            Key = RealMacroService.ResolveMouseButton(button),
+            Key = RealMacroService.ResolveMouseButton(PendingMouseButton),
+            Point = new Point(CursorX, CursorY),
             Delay = TimeSpan.Zero
-        };
-        Events.Add(new MacroMouseEventViewModel(evt));
+        }));
     }
-    
+
+    /// <summary>
+    /// Last cursor position observed by the recorder, so an appended mouse event
+    /// lands where the pointer actually is instead of at the origin.
+    /// </summary>
+    public int CursorX { get; private set; }
+
+    public int CursorY { get; private set; }
+
+    public void SetCursorPosition(int x, int y)
+    {
+        CursorX = x;
+        CursorY = y;
+    }
+
     [RelayCommand]
     private void RemoveEvent(MacroEventViewModel evt)
     {
-        if (evt != null)
+        if (evt is not null)
         {
             Events.Remove(evt);
         }
     }
+
+    [RelayCommand]
+    private void ClearEvents() => Events.Clear();
 }
 
 public abstract partial class MacroEventViewModel : ViewModelBase
 {
     public abstract string TypeName { get; }
+
     public abstract string DisplayText { get; }
-    
+
+    /// <summary>
+    /// MacroEvent is an immutable readonly struct, so each save rebuilds the backend
+    /// event from the current view state rather than mutating a cached instance.
+    /// </summary>
+    public abstract MacroEvent ToModel();
+
+    protected void ApplyDelay(double milliseconds) =>
+        DelayMs = milliseconds;
+
     [ObservableProperty]
     protected double _delayMs = 0;
 }
@@ -232,47 +313,67 @@ public abstract partial class MacroEventViewModel : ViewModelBase
 public partial class MacroKeyEventViewModel : MacroEventViewModel
 {
     public override string TypeName => "Key";
-    
-    [ObservableProperty]
-    private string _key = "";
-    
-    [ObservableProperty]
-    private bool _isPress = true;
-    
+
+    public IReadOnlyList<string> AvailableKeys => RealMacroService.AvailableKeys;
+
     public override string DisplayText => $"{Key} {(IsPress ? "Down" : "Up")}";
-    
+
     public MacroKeyEventViewModel(MacroEvent model)
     {
-        _key = model.Key.ToString();
+        _key = RealMacroService.ResolveKeyName(model.Key);
         _isPress = model.Direction == MacroDirection.Down;
         _delayMs = model.Delay.TotalMilliseconds;
     }
-}
 
+    [ObservableProperty]
+    private string _key = "";
+
+    [ObservableProperty]
+    private bool _isPress = true;
+
+    public override MacroEvent ToModel() => new()
+    {
+        Source = MacroSource.Keyboard,
+        Direction = IsPress ? MacroDirection.Down : MacroDirection.Up,
+        Key = RealMacroService.ResolveKeyCode(Key),
+        Delay = TimeSpan.FromMilliseconds(DelayMs)
+    };
+}
 public partial class MacroMouseEventViewModel : MacroEventViewModel
 {
     public override string TypeName => "Mouse";
-    
-    [ObservableProperty]
-    private int _x = 0;
-    
-    [ObservableProperty]
-    private int _y = 0;
-    
-    [ObservableProperty]
-    private string _button = "Left";
-    
-    [ObservableProperty]
-    private bool _isPress = true;
-    
+
+    public IReadOnlyList<string> AvailableMouseButtons => RealMacroService.AvailableMouseButtons;
+
     public override string DisplayText => $"Mouse {Button} {(IsPress ? "Down" : "Up")} at ({X}, {Y})";
-    
+
     public MacroMouseEventViewModel(MacroEvent model)
     {
         _x = model.Point.X;
         _y = model.Point.Y;
-        _button = model.Key.ToString();
+        _button = RealMacroService.ResolveMouseButtonName(model.Key);
         _isPress = model.Direction == MacroDirection.Down;
         _delayMs = model.Delay.TotalMilliseconds;
     }
+
+    [ObservableProperty]
+    private int _x = 0;
+
+    [ObservableProperty]
+    private int _y = 0;
+
+    [ObservableProperty]
+    private string _button = "Left";
+
+    [ObservableProperty]
+    private bool _isPress = true;
+
+    public override MacroEvent ToModel() => new()
+    {
+        Source = MacroSource.Mouse,
+        Direction = IsPress ? MacroDirection.Down : MacroDirection.Up,
+        Key = RealMacroService.ResolveMouseButton(Button),
+        Point = new Point(X, Y),
+        Delay = TimeSpan.FromMilliseconds(DelayMs)
+    };
 }

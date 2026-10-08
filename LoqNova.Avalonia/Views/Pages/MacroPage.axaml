@@ -54,10 +54,19 @@
             <!-- Selected Key Editor -->
             <Border Classes="ContentCard" IsVisible="{Binding SelectedKeyViewModel, Converter={StaticResource BoolToVisibilityConverter}}">
                 <StackPanel Spacing="16">
-                    <StackPanel Orientation="Horizontal" Spacing="16">
-                        <TextBlock Text="{Binding SelectedKeyViewModel.Name, StringFormat='Key {0}'}" Classes="Heading4" />
-                        <ToggleSwitch IsChecked="{Binding SelectedKeyViewModel.Enabled}" OnContent="Enabled" OffContent="Disabled" VerticalAlignment="Center" />
-                    </StackPanel>
+<StackPanel Orientation="Horizontal" Spacing="16">
+                          <TextBlock Text="{Binding SelectedKeyViewModel.Name, StringFormat='Key {0}'}" Classes="Heading4" />
+                      </StackPanel>
+
+                      <!-- Playback options, backed by the backend sequence -->
+                      <StackPanel Orientation="Horizontal" Spacing="16">
+                          <StackPanel Orientation="Horizontal" Spacing="8">
+                              <TextBlock Text="Repeat:" Classes="BodySmall" VerticalAlignment="Center" />
+                              <NumericUpDown Value="{Binding SelectedKeyViewModel.RepeatCount, Mode=TwoWay}" Width="80" Minimum="1" Maximum="10" Increment="1" />
+                          </StackPanel>
+                          <CheckBox Content="Ignore delays" IsChecked="{Binding SelectedKeyViewModel.IgnoreDelays, Mode=TwoWay}" />
+                          <CheckBox Content="Interrupt on other key" IsChecked="{Binding SelectedKeyViewModel.InterruptOnOtherKey, Mode=TwoWay}" />
+                      </StackPanel>
                     
                     <!-- Macro Events -->
                     <ItemsControl ItemsSource="{Binding SelectedKeyViewModel.Events}">
@@ -114,12 +123,20 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     
-                    <!-- Add Event Buttons -->
-                    <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
-                        <Button Classes="SecondaryButton" Content="Add Key" Command="{Binding SelectedKeyViewModel.AddKeyEventCommand}" CommandParameter="A" />
-                        <Button Classes="SecondaryButton" Content="Add Mouse" Command="{Binding SelectedKeyViewModel.AddMouseEventCommand}" CommandParameter="Left" />
-                        <Button Classes="GhostButton" Content="Clear All" Command="{Binding SelectedKeyViewModel.ClearEventsCommand}" />
-                    </StackPanel>
+<!-- Add Event Buttons -->
+                      <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,16,0,0">
+                          <ComboBox SelectedItem="{Binding SelectedKeyViewModel.PendingKey, Mode=TwoWay}"
+                                    ItemsSource="{Binding SelectedKeyViewModel.AvailableKeys}"
+                                    Width="110" ToolTip.Tip="Key to add" />
+                          <Button Classes="SecondaryButton" Content="Add Key" Command="{Binding SelectedKeyViewModel.AddKeyEventCommand}" />
+
+                          <ComboBox SelectedItem="{Binding SelectedKeyViewModel.PendingMouseButton, Mode=TwoWay}"
+                                    ItemsSource="{Binding SelectedKeyViewModel.AvailableMouseButtons}"
+                                    Width="110" ToolTip.Tip="Mouse button to add" />
+                          <Button Classes="SecondaryButton" Content="Add Mouse" Command="{Binding SelectedKeyViewModel.AddMouseEventCommand}" />
+
+                          <Button Classes="GhostButton" Content="Clear All" Command="{Binding SelectedKeyViewModel.ClearEventsCommand}" />
+                      </StackPanel>
                 </StackPanel>
             </Border>
             
