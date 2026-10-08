@@ -21,7 +21,7 @@ namespace LoqNova.Avalonia.ViewModels.Pages;
 /// concept: WPF exposes one global toggle and distinguishes automatic pipelines (they
 /// have a trigger) from quick actions (they do not).
 /// </summary>
-public partial class AutomationViewModel : ViewModelBase
+public partial class AutomationViewModel : ViewModelBase, INavigationAware
 {
     private readonly IAutomationService _automationService;
 
@@ -115,6 +115,12 @@ public partial class AutomationViewModel : ViewModelBase
             await step.RefreshAsync().ConfigureAwait(true);
         }
     }
+
+    /// <summary>
+    /// Navigation now loads a page before showing it. The service guards its own repeat
+    /// initialization, so calling this on every visit is safe.
+    /// </summary>
+    async Task INavigationAware.OnNavigatedToAsync() => await InitializeAsync();
 
     [RelayCommand]
     public async Task InitializeAsync()

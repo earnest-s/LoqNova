@@ -11,7 +11,7 @@ using LoqNova.Lib.Macro;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
-public partial class MacroViewModel : ViewModelBase
+public partial class MacroViewModel : ViewModelBase, INavigationAware
 {
     private readonly IMacroService _macroService;
     
@@ -41,6 +41,17 @@ public partial class MacroViewModel : ViewModelBase
         SelectKey("0");
     }
     
+    /// <summary>
+    /// Seeds the slots from the backend before the page is shown. The service ignores
+    /// repeat calls, so returning to the page does not reload the controller.
+    /// </summary>
+    async Task INavigationAware.OnNavigatedToAsync()
+    {
+        await _macroService.InitializeAsync();
+        LoadMacroKeys();
+        SelectKey(SelectedKeyNumber.ToString());
+    }
+
     private void SubscribeToEvents()
     {
         _macroService.MacroKeyChanged += key => 

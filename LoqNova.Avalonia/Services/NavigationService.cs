@@ -76,6 +76,31 @@ public class NavigationService : INavigationService
 
             view.DataContext = viewModel;
 
+            // Load the page before it is shown. Assigning content first painted an
+            // empty page until its asynchronous load finished, which on this theme
+            // looked like the window going black. A failure here must not leave a
+            // half-built page on screen, so it aborts the navigation instead.
+            if (viewModel is INavigationAware aware)
+            {
+                var initWatch = Stopwatch.StartNew();
+
+                try
+                {
+                    await aware.OnNavigatedToAsync();
+                    initWatch.Stop();
+                    NavDiag.Log("PAGE-INIT-COMPLETE", $"to={page} initMs={initWatch.ElapsedMilliseconds}");
+                }
+                catch (Exception ex)
+                {
+                    NavDiag.LogException($"PAGE-INIT-THREW to={page}", ex);
+                    throw;
+                }
+            }
+            else
+            {
+                NavDiag.Log("PAGE-INIT-SKIPPED", $"to={page} reason=not-INavigationAware");
+            }
+
             try
             {
                 _contentHost.Content = view;
