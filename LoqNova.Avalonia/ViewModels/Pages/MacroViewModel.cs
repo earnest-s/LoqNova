@@ -38,7 +38,7 @@ public partial class MacroViewModel : ViewModelBase
         // instead of leaving the page with no selection at all.
         _selectedKeyNumber = 0;
         _macroService.SelectedKeyNumber = 0;
-        SelectKey(0);
+        SelectKey("0");
     }
     
     private void SubscribeToEvents()
@@ -103,20 +103,30 @@ public partial class MacroViewModel : ViewModelBase
     /// Selects a number-pad slot and loads its real sequence from the backend. WPF
     /// does this in NumberPadButton_Click -> Reload, which builds
     /// <c>MacroIdentifier(MacroSource.Keyboard, key)</c> and reads GetSequences().
-    /// The page had no such command at all, so every number-pad button was inert.
+    /// <para>
+    /// The parameter is a string because Avalonia XAML compiles
+    /// <c>CommandParameter="1"</c> to a string. Declaring this as int made every
+    /// number-pad button throw ArgumentException the moment the view's bindings
+    /// activated, which aborted the navigation and left the page blank.
+    /// </para>
     /// </summary>
     [RelayCommand]
-    private void SelectKey(int keyNumber)
+    private void SelectKey(string keyNumber)
     {
-        SelectedKeyNumber = keyNumber;
+        if (!int.TryParse(keyNumber, out var slot))
+        {
+            return;
+        }
 
-        _macroService.LoadSlot(keyNumber);
+        SelectedKeyNumber = slot;
 
-        var model = _macroService.MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
+        _macroService.LoadSlot(slot);
+
+        var model = _macroService.MacroKeys.FirstOrDefault(k => k.KeyNumber == slot);
 
         if (model is not null)
         {
-            var view = MacroKeys.FirstOrDefault(k => k.KeyNumber == keyNumber);
+            var view = MacroKeys.FirstOrDefault(k => k.KeyNumber == slot);
 
             if (view is not null)
             {
@@ -166,9 +176,12 @@ public partial class MacroViewModel : ViewModelBase
     }
     
     [RelayCommand]
-    private async Task PlayMacroAsync(int keyNumber)
+    private async Task PlayMacroAsync(string keyNumber)
     {
-        await _macroService.PlayMacroAsync(keyNumber);
+        if (int.TryParse(keyNumber, out var slot))
+        {
+            await _macroService.PlayMacroAsync(slot);
+        }
     }
     
     [RelayCommand]
