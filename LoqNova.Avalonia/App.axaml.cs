@@ -288,3 +288,12 @@ public partial class App : Application
         }
     }
 
+
+    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
+
+        // AppDomain exceptions cannot be marked handled, but on .NET the process is
+        // not terminated from this handler, so logging is enough to see the cause.
+    }
+}
