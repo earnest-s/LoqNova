@@ -109,6 +109,9 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     [ObservableProperty]
     private bool _isResetBatterySinceEnabled;
 
+    [ObservableProperty]
+    private bool _syncBrightnessToAllPowerPlans;
+
     // Integrations
     [ObservableProperty]
     private bool _isHWiNFOEnabled;
@@ -255,6 +258,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
             AreLenovoHotkeysDisabled = fnKeysStatus == SoftwareStatus.Disabled;
 
             SmartFnLockFlags = store.SmartFnLockFlags;
+            SyncBrightnessToAllPowerPlans = store.SynchronizeBrightnessToAllPowerPlans;
             IsResetBatterySinceEnabled = store.ResetBatteryOnSinceTimerOnReboot;
 
             // The SmartKey, Notifications and ExcludeRefreshRates rows hang off the
@@ -460,6 +464,17 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         }
 
         _applicationSettings.Store.MinimizeOnClose = value;
+        _applicationSettings.SynchronizeStore();
+    }
+
+    partial void OnSyncBrightnessToAllPowerPlansChanged(bool value)
+    {
+        if (_isRefreshing || _applicationSettings is null)
+        {
+            return;
+        }
+
+        _applicationSettings.Store.SynchronizeBrightnessToAllPowerPlans = value;
         _applicationSettings.SynchronizeStore();
     }
 
@@ -757,6 +772,44 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     [RelayCommand]
     private void OpenWindowsPowerPlansControlPanel() =>
         Process.Start(new ProcessStartInfo("control", "/name Microsoft.PowerOptions"));
+
+    // WPF opens these six as separate Windows. Avalonia has a single-window shell with a
+    // dialog overlay, so they are presented through the same DialogService the dashboard
+    // dialogs already use. The parameter mirrors WPF's SelectSmartKeyPipelinesWindow
+    // isDoublePress flag.
+    [RelayCommand]
+    private Task OpenSmartKeyPipelines(string isDoublePress) =>
+        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+
+    [RelayCommand]
+    private Task OpenNotifications() =>
+        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+
+    [RelayCommand]
+    private Task OpenExcludeRefreshRates() =>
+        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+
+    [RelayCommand]
+    private Task OpenBootLogo() =>
+        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+
+    [RelayCommand]
+    private Task OpenWindowsPowerModes() =>
+        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+
+    [RelayCommand]
+    private Task OpenWindowsPowerPlans() =>
+        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+
+    private async Task ShowDialogAsync<T>() where T : ViewModelBase
+    {
+        if (_isRefreshing)
+        {
+            return;
+        }
+
+        await _dialogService.ShowAsync(_dialogService.Resolve<T>());
+    }
 
     private static AppTheme MapTheme(LoqNova.Lib.Theme theme) => theme switch
     {
