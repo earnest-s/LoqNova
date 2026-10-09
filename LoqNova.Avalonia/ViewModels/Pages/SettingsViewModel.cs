@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using LoqNova.Avalonia.Localization;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib;
 using LoqNova.Lib.Extensions;
@@ -173,26 +174,42 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
     private void BuildOptions()
     {
-        Themes.AddRange(Enum.GetValues<Theme>().Select(v => new ThemeOption(v, v.GetDisplayName())));
-        TemperatureUnits.AddRange(Enum.GetValues<TemperatureUnit>()
-            .Where(v => v is TemperatureUnit.C or TemperatureUnit.F)
-            .Select(v => new TemperatureUnitOption(v, v == TemperatureUnit.C ? "°C" : "°F")));
-        AccentColorSources.AddRange(Enum.GetValues<AccentColorSource>()
-            .Select(v => new AccentColorSourceOption(v, v.GetDisplayName())));
-        AutorunStates.AddRange(Enum.GetValues<AutorunState>()
-            .Select(v => new AutorunStateOption(v, v.GetDisplayName())));
+        foreach (var value in Enum.GetValues<Theme>())
+        {
+            Themes.Add(new ThemeOption(value, value.GetDisplayName()));
+        }
+
+        foreach (var value in Enum.GetValues<TemperatureUnit>())
+        {
+            if (value is TemperatureUnit.C or TemperatureUnit.F)
+            {
+                TemperatureUnits.Add(new TemperatureUnitOption(value, value == TemperatureUnit.C ? "°C" : "°F"));
+            }
+        }
+
+        foreach (var value in Enum.GetValues<AccentColorSource>())
+        {
+            AccentColorSources.Add(new AccentColorSourceOption(value, value.GetDisplayName()));
+        }
+
+        foreach (var value in Enum.GetValues<AutorunState>())
+        {
+            AutorunStates.Add(new AutorunStateOption(value, value.GetDisplayName()));
+        }
 
         // WPF offers exactly these three, in this order.
         SmartFnLockOptions.Add(new ModifierKeyOption(ModifierKey.None, "Off"));
-        SmartFnLockOptions.Add(new ModifierKeyOption(ModifierKey.Alt, ModifierKey.Alt.GetFlagsDisplayName(ModifierKey.None)));
+        SmartFnLockOptions.Add(new ModifierKeyOption(
+            ModifierKey.Alt, ModifierKey.Alt.GetFlagsDisplayName(ModifierKey.None)));
         SmartFnLockOptions.Add(new ModifierKeyOption(
             ModifierKey.Alt | ModifierKey.Ctrl | ModifierKey.Shift,
             (ModifierKey.Alt | ModifierKey.Ctrl | ModifierKey.Shift).GetFlagsDisplayName(ModifierKey.None)));
 
-        PowerModeMappingOptions.AddRange(Enum.GetValues<PowerModeMappingMode>()
-            .Select(v => new PowerModeMappingOption(v, v.GetDisplayName())));
+        foreach (var value in Enum.GetValues<PowerModeMappingMode>())
+        {
+            PowerModeMappingOptions.Add(new PowerModeMappingOption(value, value.GetDisplayName()));
+        }
     }
-
     /// <summary>WPF reloads every control whenever the page becomes visible.</summary>
     async Task INavigationAware.OnNavigatedToAsync() => await RefreshAsync();
 
@@ -315,6 +332,9 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     public bool ShowWindowsPowerPlans =>
         _isPowerModeFeatureSupported && PowerModeMappingMode == PowerModeMappingMode.WindowsPowerPlan;
 
+    /// <summary>WPF hides the whole power-mode mapping card when the feature is unsupported.</summary>
+    public bool IsPowerModeMappingSupported => _isPowerModeFeatureSupported;
+
     partial void OnPowerModeMappingModeChanged(PowerModeMappingMode value)
     {
         if (_isRefreshing)
@@ -330,6 +350,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
         OnPropertyChanged(nameof(ShowPowerModes));
         OnPropertyChanged(nameof(ShowWindowsPowerPlans));
+        OnPropertyChanged(nameof(IsPowerModeMappingSupported));
     }
 
     partial void OnLanguageChanged(LanguageOption? value)
@@ -492,7 +513,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         catch
         {
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Error,
+                Services.NotificationType.Error,
                 disable ? "Failed to disable Lenovo Hotkeys" : "Failed to enable Lenovo Hotkeys",
                 "An error occurred while trying to manage Lenovo Hotkeys.")).ConfigureAwait(false);
 
@@ -503,7 +524,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
             IsLenovoHotkeysBusy = false;
         }
 
-        IsLenovoHotkeysDisabled = disable;
+        AreLenovoHotkeysDisabled = disable;
 
         // WPF shows the SmartKey, Notifications and ExcludeRefreshRates rows only while
         // the hotkeys are disabled.
@@ -570,7 +591,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         catch
         {
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Error,
+                Services.NotificationType.Error,
                 disable ? "Failed to disable Lenovo Vantage" : "Failed to enable Lenovo Vantage",
                 "An error occurred while trying to manage Lenovo Vantage.")).ConfigureAwait(false);
 
@@ -640,7 +661,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         catch
         {
             await _notificationService.ShowAsync(new NotificationMessage(
-                NotificationType.Error,
+                Services.NotificationType.Error,
                 disable ? "Failed to disable Lenovo Legion Zone" : "Failed to enable Lenovo Legion Zone",
                 "An error occurred while trying to manage Lenovo Legion Zone.")).ConfigureAwait(false);
 
@@ -735,20 +756,20 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
     [RelayCommand]
     private void OpenWindowsPowerPlansControlPanel() =>
-        Process.Start("control", "/name", "Microsoft.PowerOptions");
+        Process.Start(new ProcessStartInfo("control", "/name Microsoft.PowerOptions"));
 
-    private static AppTheme MapTheme(Theme theme) => theme switch
+    private static AppTheme MapTheme(LoqNova.Lib.Theme theme) => theme switch
     {
-        Theme.Light => AppTheme.Light,
-        Theme.Dark => AppTheme.Dark,
+        LoqNova.Lib.Theme.Light => AppTheme.Light,
+        LoqNova.Lib.Theme.Dark => AppTheme.Dark,
         _ => AppTheme.System
     };
 
-    private static Theme MapLibTheme(AppTheme theme) => theme switch
+    private static LoqNova.Lib.Theme MapLibTheme(AppTheme theme) => theme switch
     {
-        AppTheme.Light => Theme.Light,
-        AppTheme.Dark => Theme.Dark,
-        _ => Theme.System
+        AppTheme.Light => LoqNova.Lib.Theme.Light,
+        AppTheme.Dark => LoqNova.Lib.Theme.Dark,
+        _ => LoqNova.Lib.Theme.System
     };
 }
 
