@@ -297,3 +297,34 @@ public partial class App : Application
         // not terminated from this handler, so logging is enough to see the cause.
     }
 }
+
+    private static void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+    {
+        System.Diagnostics.Debug.WriteLine($"Domain unhandled exception: {e.ExceptionObject}");
+    }
+
+    private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
+    {
+        try
+        {
+            if (Container?.IsRegistered<IRgbService>() == true)
+                await Container.Resolve<IRgbService>().ShutdownAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"RGB shutdown failed: {ex}");
+        }
+
+        // The macro keyboard hook must not outlive the process. WPF does the equivalent
+        // in its shutdown list with MacroController.Stop().
+        try
+        {
+            if (Container?.IsRegistered<IMacroService>() == true)
+                Container.Resolve<IMacroService>().StopHook();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Macro hook shutdown failed: {ex}");
+        }
+    }
+}
