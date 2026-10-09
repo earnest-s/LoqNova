@@ -279,9 +279,13 @@ public partial class App : Application
 
             // First navigation happens only now: the shared container is up and every
             // adapter a page view model reads in its constructor has been hydrated.
-            var navigation = Container.Resolve<INavigationService>();
+var navigation = Container.Resolve<INavigationService>();
             await navigation.InitializeAsync(shellWindow!);
 
+            if (Services.NavDiag.Enabled)
+            {
+                _ = VerifySettingsAsync();
+            }
         }
         catch (Exception ex)
         {
