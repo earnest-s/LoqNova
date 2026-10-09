@@ -774,42 +774,32 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         Process.Start(new ProcessStartInfo("control", "/name Microsoft.PowerOptions"));
 
     // WPF opens these six as separate Windows. Avalonia has a single-window shell with a
-    // dialog overlay, so they are presented through the same DialogService the dashboard
-    // dialogs already use. The parameter mirrors WPF's SelectSmartKeyPipelinesWindow
-    // isDoublePress flag.
-    [RelayCommand]
-    private Task OpenSmartKeyPipelines(string isDoublePress) =>
-        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+// dialog overlay, so each needs its own Avalonia dialog before it can be presented
+// through DialogService. Until then the rows are shown with their real WPF visibility
+// rules but report honestly instead of opening the wrong dialog.
+[RelayCommand]
+    private Task OpenSmartKeyPipelines(string isDoublePress) => ReportPendingDialogAsync("Smart Key Action");
 
     [RelayCommand]
-    private Task OpenNotifications() =>
-        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+    private Task OpenNotifications() => ReportPendingDialogAsync("Notifications");
 
     [RelayCommand]
-    private Task OpenExcludeRefreshRates() =>
-        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+    private Task OpenExcludeRefreshRates() => ReportPendingDialogAsync("Exclude Refresh Rates");
 
     [RelayCommand]
-    private Task OpenBootLogo() =>
-        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+    private Task OpenBootLogo() => ReportPendingDialogAsync("Boot Logo");
 
     [RelayCommand]
-    private Task OpenWindowsPowerModes() =>
-        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+    private Task OpenWindowsPowerModes() => ReportPendingDialogAsync("Windows Power Modes");
 
     [RelayCommand]
-    private Task OpenWindowsPowerPlans() =>
-        ShowDialogAsync<Dialogs.NotificationsSettingsViewModel>();
+    private Task OpenWindowsPowerPlans() => ReportPendingDialogAsync("Windows Power Plans");
 
-    private async Task ShowDialogAsync<T>() where T : ViewModelBase
-    {
-        if (_isRefreshing)
-        {
-            return;
-        }
-
-        await _dialogService.ShowAsync(_dialogService.Resolve<T>());
-    }
+    private Task ReportPendingDialogAsync(string title) =>
+        _notificationService.ShowAsync(new NotificationMessage(
+            Services.NotificationType.Warning,
+            title,
+            "This dialog has not been migrated to Avalonia yet."));
 
     private static AppTheme MapTheme(LoqNova.Lib.Theme theme) => theme switch
     {
