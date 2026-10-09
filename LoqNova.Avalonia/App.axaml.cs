@@ -293,10 +293,9 @@ public partial class App : Application
     {
         System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
 
-        // AppDomain exceptions cannot be marked handled, but on .NET the process is
+// AppDomain exceptions cannot be marked handled, but on .NET the process is
         // not terminated from this handler, so logging is enough to see the cause.
     }
-}
 
     private static void OnDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
     {
