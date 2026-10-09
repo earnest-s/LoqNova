@@ -293,7 +293,47 @@ var navigation = Container.Resolve<INavigationService>();
         }
     }
 
-    private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+    /// <summary>TEMPORARY: logs the resolved Settings page state for parity comparison.</summary>
+private static async Task VerifySettingsAsync()
+{
+    const string Tag = "SETTINGS";
+
+    try
+    {
+        var vm = Container.Resolve<LoqNova.Avalonia.ViewModels.Pages.SettingsViewModel>();
+
+        await ((INavigationAware)vm).OnNavigatedToAsync();
+
+        Services.NavDiag.Log($"{Tag} options", $"themes={vm.Themes.Count} tempUnits={vm.TemperatureUnits.Count} " +
+            $"accentSources={vm.AccentColorSources.Count} autorun={vm.AutorunStates.Count} " +
+            $"fnLock={vm.SmartFnLockOptions.Count} powerMapping={vm.PowerModeMappingOptions.Count} " +
+            $"languages={vm.Languages.Count}");
+
+        Services.NavDiag.Log($"{Tag} labels", $"theme0={vm.Themes[0].Label} temp0={vm.TemperatureUnits[0].Label} " +
+            $"fnLock0={vm.SmartFnLockOptions[0].Label} fnLock1={vm.SmartFnLockOptions[1].Label} " +
+            $"fnLock2={vm.SmartFnLockOptions[2].Label} lang0={vm.Languages[0].Label}");
+
+        Services.NavDiag.Log($"{Tag} visibility", $"language={vm.IsLanguageSupported} vantage={vm.IsVantageSupported} " +
+            $"legionZone={vm.IsLegionZoneSupported} hotkeys={vm.IsLenovoHotkeysSupported} " +
+            $"smartKeyRows={vm.AreSmartKeyFeaturesVisible} bootLogo={vm.IsBootLogoSupported} " +
+            $"godMode={vm.IsGodModeFnQSupported} powerMapping={vm.IsPowerModeMappingSupported} " +
+            $"powerModes={vm.ShowPowerModes} powerPlans={vm.ShowWindowsPowerPlans} " +
+            $"accentPicker={vm.IsAccentColorPickerVisible}");
+
+        Services.NavDiag.Log($"{Tag} values", $"theme={vm.Theme} temp={vm.TemperatureUnit} autorun={vm.AutorunState} " +
+            $"minimizeToTray={vm.MinimizeToTray} minimizeOnClose={vm.MinimizeOnClose} " +
+            $"fnLock={vm.SmartFnLockFlags} syncBrightness={vm.SyncBrightnessToAllPowerPlans} " +
+            $"resetBattery={vm.IsResetBatterySinceEnabled} hwinfo={vm.IsHWiNFOEnabled} cli={vm.IsCliEnabled} " +
+            $"cliPath={vm.IsCliPathEnabled} powerMappingMode={vm.PowerModeMappingMode} " +
+            $"language={vm.Language?.Value}");
+    }
+    catch (Exception ex)
+    {
+        Services.NavDiag.LogException($"{Tag}-FAILED", ex);
+    }
+}
+
+private static void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
     {
         System.Diagnostics.Debug.WriteLine($"Unobserved task exception: {e.Exception}");
 
