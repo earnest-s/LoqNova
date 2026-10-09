@@ -739,7 +739,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     /// the real setting but cannot host the server.
     /// </summary>
     [RelayCommand]
-    private void SetCliAsync(bool enabled)
+    private void SetCli(bool enabled)
     {
         if (_isRefreshing || _integrationsSettings is null)
         {
