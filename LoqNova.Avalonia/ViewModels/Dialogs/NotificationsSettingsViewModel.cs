@@ -202,7 +202,7 @@ public partial class NotificationsSettingsViewModel : DialogViewModelBase
     partial void OnRefreshRateChanged(bool value) =>
         Persist(store => store.Notifications.RefreshRate = value);
 
-    partial void OnACAdapterChanged(bool value) =>
+    partial void OnAcAdapterChanged(bool value) =>
         Persist(store => store.Notifications.ACAdapter = value);
 }
 

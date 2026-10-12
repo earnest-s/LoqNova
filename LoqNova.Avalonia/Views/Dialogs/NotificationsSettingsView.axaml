@@ -156,7 +156,7 @@
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBlock Grid.Column="0" Classes="CardTitle" Text="AC Adapter" VerticalAlignment="Center" />
                             <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
-                                          IsChecked="{Binding ACAdapter, Mode=TwoWay}" />
+                                          IsChecked="{Binding AcAdapter, Mode=TwoWay}" />
                         </Grid>
                     </StackPanel>
 

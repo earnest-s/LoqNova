@@ -13,6 +13,7 @@ using LoqNova.Lib.Extensions;
 using LoqNova.Lib.Features;
 using LoqNova.Lib.Settings;
 using LoqNova.Lib.Utils;
+using IMainThreadDispatcher = LoqNova.Avalonia.Services.IMainThreadDispatcher;
 
 namespace LoqNova.Avalonia.ViewModels.Dialogs;
 

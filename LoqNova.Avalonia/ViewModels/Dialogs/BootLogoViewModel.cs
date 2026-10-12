@@ -7,6 +7,7 @@ using LoqNova.Avalonia.Localization;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib.System;
 using LoqNova.Lib.Utils;
+using IMainThreadDispatcher = LoqNova.Avalonia.Services.IMainThreadDispatcher;
 
 namespace LoqNova.Avalonia.ViewModels.Dialogs;
 
