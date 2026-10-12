@@ -41,17 +41,17 @@ public partial class BootLogoViewModel : DialogViewModelBase
     [ObservableProperty]
     private bool _isBusy;
 
-    public string Title => Resource.BootLogoWindow_Title;
+    public string Title => L("BootLogoWindow_Title");
 
-    public string StatusText => Resource.BootLogoWindow_Status;
+    public string StatusText => L("BootLogoWindow_Status");
 
-    public string DefaultLogoSetText => Resource.BootLogoWindow_DefaultLogoSet;
+    public string DefaultLogoSetText => L("BootLogoWindow_DefaultLogoSet");
 
-    public string CustomLogoSetText => Resource.BootLogoWindow_CustomLogoSet;
+    public string CustomLogoSetText => L("BootLogoWindow_CustomLogoSet");
 
-    public string CustomizeText => Resource.BootLogoWindow_Customize;
+    public string CustomizeText => L("BootLogoWindow_Customize");
 
-    public string RevertToDefaultText => Resource.RevertToDefault;
+    public string RevertToDefaultText => L("RevertToDefault");
 
     public BootLogoViewModel(IMainThreadDispatcher dispatcher, IFileDialogService fileDialogService, IDialogService dialogs)
         : base(dialogs)
@@ -77,7 +77,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
             _filters = filters;
 
             var description = string.Format(
-                Resource.BootLogoWindow_Description,
+                L("BootLogoWindow_Description"),
                 resolution.DisplayName,
                 string.Join(", ", formats.Select(format => format.ToString().ToUpperInvariant())));
 
@@ -108,7 +108,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
 
             var filter = $"Images|{string.Join(";", _filters)}";
             var file = await _fileDialogService
-                .ShowOpenFileDialogAsync(Resource.BootLogoWindow_Customize, filter)
+                .ShowOpenFileDialogAsync(L("BootLogoWindow_Customize"), filter)
                 .ConfigureAwait(false);
 
             if (string.IsNullOrEmpty(file))
@@ -118,7 +118,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
 
             await BootLogo.EnableAsync(file).ConfigureAwait(false);
 
-            await SetResultAsync(Resource.BootLogoWindow_SetCustomSuccess, true).ConfigureAwait(false);
+            await SetResultAsync(L("BootLogoWindow_SetCustomSuccess"), true).ConfigureAwait(false);
 
             await RefreshAsync().ConfigureAwait(false);
         }
@@ -130,7 +130,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
             }
 
             await SetResultAsync(
-                string.Format(Resource.BootLogoWindow_SetCustomFailed, GetDescription(ex)),
+                string.Format(L("BootLogoWindow_SetCustomFailed"), GetDescription(ex)),
                 false).ConfigureAwait(false);
         }
         finally
@@ -153,7 +153,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
 
             await BootLogo.DisableAsync().ConfigureAwait(false);
 
-            await SetResultAsync(Resource.BootLogoWindow_SetDefaultSuccess, true).ConfigureAwait(false);
+            await SetResultAsync(L("BootLogoWindow_SetDefaultSuccess"), true).ConfigureAwait(false);
 
             await RefreshAsync().ConfigureAwait(false);
         }
@@ -165,7 +165,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
             }
 
             await SetResultAsync(
-                string.Format(Resource.BootLogoWindow_SetDefaultFailed, GetDescription(ex)),
+                string.Format(L("BootLogoWindow_SetDefaultFailed"), GetDescription(ex)),
                 false).ConfigureAwait(false);
         }
         finally
@@ -183,11 +183,13 @@ public partial class BootLogoViewModel : DialogViewModelBase
 
     private static string GetDescription(Exception exception) => exception switch
     {
-        CantSetUEFIPrivilegeException => Resource.BootLogoWindow_SetError_Cannot_Set_UEFI_Privilege,
-        CantMountUEFIPartitionException => Resource.BootLogoWindow_SetError_Cannot_Mount_EFI_Partition,
-        NotEnoughSpaceOnUEFIPartitionException => Resource.BootLogoWindow_SetError_Not_Enough_Free_Space_On_EFI_Partition,
-        InvalidBootLogoImageSizeException => Resource.BootLogoWindow_SetError_Invalid_Image_Size,
-        InvalidBootLogoImageFormatException => Resource.BootLogoWindow_SetError_Invalid_Image_Format,
+        CantSetUEFIPrivilegeException => L("BootLogoWindow_SetError_Cannot_Set_UEFI_Privilege"),
+        CantMountUEFIPartitionException => L("BootLogoWindow_SetError_Cannot_Mount_EFI_Partition"),
+        NotEnoughSpaceOnUEFIPartitionException => L("BootLogoWindow_SetError_Not_Enough_Free_Space_On_EFI_Partition"),
+        InvalidBootLogoImageSizeException => L("BootLogoWindow_SetError_Invalid_Image_Size"),
+        InvalidBootLogoImageFormatException => L("BootLogoWindow_SetError_Invalid_Image_Format"),
         _ => exception.Message
     };
+
+    private static string L(string key) => LocalizationHelper.GetString(key);
 }
