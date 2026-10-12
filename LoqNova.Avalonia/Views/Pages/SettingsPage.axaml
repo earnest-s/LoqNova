@@ -75,7 +75,7 @@
             </Border>
 
             <!-- Accent color. WPF only reveals the picker when the source is Custom. -->
-            <Border Classes="ContentCard" Margin="0,0,0,8">
+            <Border Classes="ContentCard" Margin="0,0,0,24">
                 <StackPanel Spacing="8">
                     <TextBlock Classes="CardTitle" Text="Accent color" />
                     <TextBlock Classes="CardSubtitle" Text="Change the accent color of the app." />
@@ -314,7 +314,7 @@
                 </Button>
             </Border>
 
-            <Border Classes="ContentCard" Margin="0,0,0,8">
+            <Border Classes="ContentCard" Margin="0,16,0,8">
                 <StackPanel Spacing="8">
                     <TextBlock Classes="CardTitle" Text="Reset &quot;On battery since&quot; at startup" />
                     <TextBlock Classes="CardSubtitle" Text="Resets the counter for &quot;On battery since&quot; in the battery section when the system reboots." />

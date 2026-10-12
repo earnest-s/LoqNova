@@ -19,6 +19,7 @@ using LoqNova.Lib.SoftwareDisabler;
 using LoqNova.Lib.System;
 using LoqNova.Lib.System.Management;
 using LoqNova.Lib.Utils;
+using IMainThreadDispatcher = LoqNova.Avalonia.Services.IMainThreadDispatcher;
 
 namespace LoqNova.Avalonia.ViewModels.Pages;
 
@@ -35,6 +36,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     private readonly INotificationService _notificationService;
     private readonly IDialogService _dialogService;
     private readonly IThemeService _themeService;
+    private readonly IMainThreadDispatcher _dispatcher;
     private readonly MainWindowViewModel _mainWindowViewModel;
 
     private ApplicationSettings? _applicationSettings;
@@ -169,11 +171,13 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         INotificationService notificationService,
         IDialogService dialogService,
         IThemeService themeService,
+        IMainThreadDispatcher dispatcher,
         MainWindowViewModel mainWindowViewModel)
     {
         _notificationService = notificationService;
         _dialogService = dialogService;
         _themeService = themeService;
+        _dispatcher = dispatcher;
         _mainWindowViewModel = mainWindowViewModel;
 
         BuildOptions();
@@ -238,47 +242,78 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
             var store = _applicationSettings.Store;
 
-            await LoadLanguagesAsync();
+            // Resolving the controllers above and reading their status can query WMI, so
+            // the reads are gathered off the UI thread first and every bound property is
+            // only assigned on the UI thread afterwards, the same way the dashboard does.
+            var temperatureUnit = store.TemperatureUnit;
+            var theme = MapTheme(store.Theme);
+            var accentSource = store.AccentColorSource;
+            var accentColor = ParseAccentColor(_themeService.CurrentAccentColor);
 
-            TemperatureUnit = store.TemperatureUnit;
-            Theme = MapTheme(store.Theme);
-            AccentColorSource = store.AccentColorSource;
-            SelectedAccentColor = ParseAccentColor(_themeService.CurrentAccentColor);
-
-            AutorunState = Autorun.State;
-            MinimizeToTray = store.MinimizeToTray;
-            MinimizeOnClose = store.MinimizeOnClose;
+            var autorunState = Autorun.State;
+            var minimizeToTray = store.MinimizeToTray;
+            var minimizeOnClose = store.MinimizeOnClose;
 
             var vantageStatus = await _vantageDisabler.GetStatusAsync().ConfigureAwait(false);
-            IsVantageSupported = vantageStatus != SoftwareStatus.NotFound;
-            IsVantageDisabled = vantageStatus == SoftwareStatus.Disabled;
-
             var legionZoneStatus = await _legionZoneDisabler.GetStatusAsync().ConfigureAwait(false);
-            IsLegionZoneSupported = legionZoneStatus != SoftwareStatus.NotFound;
-            IsLegionZoneDisabled = legionZoneStatus == SoftwareStatus.Disabled;
-
             var fnKeysStatus = await _fnKeysDisabler.GetStatusAsync().ConfigureAwait(false);
-            IsLenovoHotkeysSupported = fnKeysStatus != SoftwareStatus.NotFound;
-            AreLenovoHotkeysDisabled = fnKeysStatus == SoftwareStatus.Disabled;
 
-            SmartFnLockFlags = store.SmartFnLockFlags;
-            SyncBrightnessToAllPowerPlans = store.SynchronizeBrightnessToAllPowerPlans;
-            IsResetBatterySinceEnabled = store.ResetBatteryOnSinceTimerOnReboot;
+            var smartFnLockFlags = store.SmartFnLockFlags;
+            var syncBrightness = store.SynchronizeBrightnessToAllPowerPlans;
+            var resetBatterySince = store.ResetBatteryOnSinceTimerOnReboot;
+            var bootLogoSupported = await BootLogo.IsSupportedAsync().ConfigureAwait(false);
+            var godMode = await ReadGodModeFnQAsync().ConfigureAwait(false);
+            var powerModeMappingMode = store.PowerModeMappingMode;
+            var powerModeSupported = await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false);
+            var hwinfo = _integrationsSettings.Store.HWiNFO;
+            var cli = _integrationsSettings.Store.CLI;
+            var cliPath = SystemPath.HasCLI();
 
-            // The SmartKey, Notifications and ExcludeRefreshRates rows hang off the
-            // Lenovo hotkey state, exactly as in WPF.
-            AreSmartKeyFeaturesVisible = fnKeysStatus != SoftwareStatus.Enabled;
+            await _dispatcher.InvokeAsync(() =>
+            {
+                LoadLanguages();
+                TemperatureUnit = temperatureUnit;
+                Theme = theme;
+                AccentColorSource = accentSource;
+                SelectedAccentColor = accentColor;
 
-            IsBootLogoSupported = await BootLogo.IsSupportedAsync().ConfigureAwait(false);
+                AutorunState = autorunState;
+                MinimizeToTray = minimizeToTray;
+                MinimizeOnClose = minimizeOnClose;
 
-            await LoadGodModeFnQAsync();
+                IsVantageSupported = vantageStatus != SoftwareStatus.NotFound;
+                IsVantageDisabled = vantageStatus == SoftwareStatus.Disabled;
 
-            PowerModeMappingMode = store.PowerModeMappingMode;
-            _isPowerModeFeatureSupported = await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false);
+                IsLegionZoneSupported = legionZoneStatus != SoftwareStatus.NotFound;
+                IsLegionZoneDisabled = legionZoneStatus == SoftwareStatus.Disabled;
 
-            IsHWiNFOEnabled = _integrationsSettings.Store.HWiNFO;
-            IsCliEnabled = _integrationsSettings.Store.CLI;
-            IsCliPathEnabled = SystemPath.HasCLI();
+                IsLenovoHotkeysSupported = fnKeysStatus != SoftwareStatus.NotFound;
+                AreLenovoHotkeysDisabled = fnKeysStatus == SoftwareStatus.Disabled;
+
+                SmartFnLockFlags = smartFnLockFlags;
+                SyncBrightnessToAllPowerPlans = syncBrightness;
+                IsResetBatterySinceEnabled = resetBatterySince;
+
+                // The SmartKey, Notifications and ExcludeRefreshRates rows hang off the
+                // Lenovo hotkey state, exactly as in WPF.
+                AreSmartKeyFeaturesVisible = fnKeysStatus != SoftwareStatus.Enabled;
+
+                IsBootLogoSupported = bootLogoSupported;
+
+                IsGodModeFnQSupported = godMode.Supported;
+                IsGodModeFnQEnabled = godMode.Enabled;
+
+                PowerModeMappingMode = powerModeMappingMode;
+                _isPowerModeFeatureSupported = powerModeSupported;
+
+                IsHWiNFOEnabled = hwinfo;
+                IsCliEnabled = cli;
+                IsCliPathEnabled = cliPath;
+
+                OnPropertyChanged(nameof(ShowPowerModes));
+                OnPropertyChanged(nameof(ShowWindowsPowerPlans));
+                OnPropertyChanged(nameof(IsPowerModeMappingSupported));
+            }).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -288,19 +323,17 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         {
             _isRefreshing = false;
         }
-
-        OnPropertyChanged(nameof(ShowPowerModes));
-        OnPropertyChanged(nameof(ShowWindowsPowerPlans));
     }
 
-    private async Task LoadLanguagesAsync()
+    private void LoadLanguages()
     {
         var languages = LocalizationHelper.SupportedLanguages;
         var current = LocalizationHelper.CurrentLanguageCode;
 
         Languages.Clear();
 
-        foreach (var code in languages)
+        // WPF orders the list by display name using the invariant comparer.
+        foreach (var code in languages.OrderBy(LocalizationHelper.LanguageDisplayName, StringComparer.InvariantCultureIgnoreCase))
         {
             Languages.Add(new LanguageOption(code, LocalizationHelper.LanguageDisplayName(code)));
         }
@@ -310,7 +343,12 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
                    ?? Languages.FirstOrDefault();
     }
 
-    private async Task LoadGodModeFnQAsync()
+    /// <summary>
+    /// Reads the GodModeFnQ capability off the UI thread and returns it, so the caller can
+    /// assign the bound properties on the UI thread. WPF reads the same capability and
+    /// hides the card when the firmware does not report it.
+    /// </summary>
+    private static async Task<(bool Supported, bool Enabled)> ReadGodModeFnQAsync()
     {
         try
         {
@@ -318,18 +356,16 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
             if (!mi.Features[CapabilityID.GodModeFnQSwitchable])
             {
-                IsGodModeFnQSupported = false;
-                return;
+                return (false, false);
             }
 
-            IsGodModeFnQSupported = true;
-            IsGodModeFnQEnabled =
-                await WMI.LenovoOtherMethod.GetFeatureValueAsync(CapabilityID.GodModeFnQSwitchable).ConfigureAwait(false) == 1;
+            var enabled = await WMI.LenovoOtherMethod.GetFeatureValueAsync(CapabilityID.GodModeFnQSwitchable).ConfigureAwait(false) == 1;
+            return (true, enabled);
         }
         catch (Exception ex)
         {
-            IsGodModeFnQSupported = false;
             System.Diagnostics.Debug.WriteLine($"Failed to read GodModeFnQSwitchable: {ex}");
+            return (false, false);
         }
     }
 
@@ -517,6 +553,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         }
 
         IsLenovoHotkeysBusy = true;
+        var applied = false;
 
         try
         {
@@ -528,26 +565,34 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
             {
                 await _fnKeysDisabler.EnableAsync().ConfigureAwait(false);
             }
+
+            applied = true;
         }
         catch
         {
             await _notificationService.ShowAsync(new NotificationMessage(
                 Services.NotificationType.Error,
-                disable ? "Failed to disable Lenovo Hotkeys" : "Failed to enable Lenovo Hotkeys",
-                "An error occurred while trying to manage Lenovo Hotkeys.")).ConfigureAwait(false);
-
-            return;
+                disable
+                    ? LocalizationHelper.GetString("SettingsPage_DisableLenovoHotkeys_Error_Title")
+                    : LocalizationHelper.GetString("SettingsPage_EnableLenovoHotkeys_Error_Title"),
+                disable
+                    ? LocalizationHelper.GetString("SettingsPage_DisableLenovoHotkeys_Error_Message")
+                    : LocalizationHelper.GetString("SettingsPage_EnableLenovoHotkeys_Error_Message"))).ConfigureAwait(false);
         }
-        finally
+
+        await _dispatcher.InvokeAsync(() =>
         {
             IsLenovoHotkeysBusy = false;
-        }
 
-        AreLenovoHotkeysDisabled = disable;
+            if (applied)
+            {
+                AreLenovoHotkeysDisabled = disable;
 
-        // WPF shows the SmartKey, Notifications and ExcludeRefreshRates rows only while
-        // the hotkeys are disabled.
-        AreSmartKeyFeaturesVisible = disable;
+                // WPF shows the SmartKey, Notifications and ExcludeRefreshRates rows only
+                // while the hotkeys are disabled.
+                AreSmartKeyFeaturesVisible = disable;
+            }
+        }).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -563,6 +608,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         }
 
         IsVantageBusy = true;
+        var applied = false;
 
         try
         {
@@ -606,22 +652,30 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
                 await _vantageDisabler.EnableAsync().ConfigureAwait(false);
             }
+
+            applied = true;
         }
         catch
         {
             await _notificationService.ShowAsync(new NotificationMessage(
                 Services.NotificationType.Error,
-                disable ? "Failed to disable Lenovo Vantage" : "Failed to enable Lenovo Vantage",
-                "An error occurred while trying to manage Lenovo Vantage.")).ConfigureAwait(false);
-
-            return;
+                disable
+                    ? LocalizationHelper.GetString("SettingsPage_DisableVantage_Error_Title")
+                    : LocalizationHelper.GetString("SettingsPage_EnableVantage_Error_Title"),
+                disable
+                    ? LocalizationHelper.GetString("SettingsPage_DisableVantage_Error_Message")
+                    : LocalizationHelper.GetString("SettingsPage_EnableVantage_Error_Message"))).ConfigureAwait(false);
         }
-        finally
+
+        await _dispatcher.InvokeAsync(() =>
         {
             IsVantageBusy = false;
-        }
 
-        IsVantageDisabled = disable;
+            if (applied)
+            {
+                IsVantageDisabled = disable;
+            }
+        }).ConfigureAwait(false);
     }
 
     private static async Task StartAuroraIfNeededAsync()
@@ -665,6 +719,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         }
 
         IsLegionZoneBusy = true;
+        var applied = false;
 
         try
         {
@@ -676,22 +731,30 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
             {
                 await _legionZoneDisabler.EnableAsync().ConfigureAwait(false);
             }
+
+            applied = true;
         }
         catch
         {
             await _notificationService.ShowAsync(new NotificationMessage(
                 Services.NotificationType.Error,
-                disable ? "Failed to disable Lenovo Legion Zone" : "Failed to enable Lenovo Legion Zone",
-                "An error occurred while trying to manage Lenovo Legion Zone.")).ConfigureAwait(false);
-
-            return;
+                disable
+                    ? LocalizationHelper.GetString("SettingsPage_DisableLegionZone_Error_Title")
+                    : LocalizationHelper.GetString("SettingsPage_EnableLegionZone_Error_Title"),
+                disable
+                    ? LocalizationHelper.GetString("SettingsPage_DisableLegionZone_Error_Message")
+                    : LocalizationHelper.GetString("SettingsPage_EnableLegionZone_Error_Message"))).ConfigureAwait(false);
         }
-        finally
+
+        await _dispatcher.InvokeAsync(() =>
         {
             IsLegionZoneBusy = false;
-        }
 
-        IsLegionZoneDisabled = disable;
+            if (applied)
+            {
+                IsLegionZoneDisabled = disable;
+            }
+        }).ConfigureAwait(false);
     }
 
     /// <summary>Fn+Q is switched at the firmware level, so it writes straight to the WMI feature.</summary>
@@ -704,6 +767,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         }
 
         IsGodModeBusy = true;
+        var applied = false;
 
         try
         {
@@ -711,16 +775,22 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
                 .SetFeatureValueAsync(CapabilityID.GodModeFnQSwitchable, enabled ? 1 : 0)
                 .ConfigureAwait(false);
 
-            IsGodModeFnQEnabled = enabled;
+            applied = true;
         }
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Failed to set GodModeFnQSwitchable: {ex}");
         }
-        finally
+
+        await _dispatcher.InvokeAsync(() =>
         {
             IsGodModeBusy = false;
-        }
+
+            if (applied)
+            {
+                IsGodModeFnQEnabled = enabled;
+            }
+        }).ConfigureAwait(false);
     }
 
     [RelayCommand]
