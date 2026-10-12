@@ -75,7 +75,7 @@
             </Border>
 
             <!-- Accent color. WPF only reveals the picker when the source is Custom. -->
-            <Border Classes="ContentCard" Margin="0,0,0,24">
+            <Border Classes="ContentCard" Margin="0,0,0,8">
                 <StackPanel Spacing="8">
                     <TextBlock Classes="CardTitle" Text="Accent color" />
                     <TextBlock Classes="CardSubtitle" Text="Change the accent color of the app." />
@@ -90,9 +90,10 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
-                        <TextBox MinWidth="120" IsVisible="{Binding IsAccentColorPickerVisible}"
-                                 Text="{Binding AccentColor, Mode=TwoWay}"
-                                 ToolTip.Tip="Hex accent color, e.g. #1E9EFF" />
+                        <ColorPicker IsVisible="{Binding IsAccentColorPickerVisible}"
+                                     Color="{Binding SelectedAccentColor, Mode=TwoWay}"
+                                     Width="64" Height="32"
+                                     VerticalAlignment="Center" />
                     </StackPanel>
                 </StackPanel>
             </Border>
