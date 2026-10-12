@@ -102,7 +102,7 @@ public partial class SelectSmartKeyPipelinesViewModel : DialogViewModelBase
                 Pipelines.Clear();
                 foreach (var pipeline in pipelines)
                 {
-                    Pipelines.Add(new SmartKeyPipelineItem(pipeline.Id, pipeline.Name)
+                    Pipelines.Add(new SmartKeyPipelineItem(pipeline.Id, pipeline.Name ?? string.Empty)
                     {
                         IsChecked = selectedList.Exists(x => x == pipeline.Id) || pipeline.Id == selectedGuid
                     });

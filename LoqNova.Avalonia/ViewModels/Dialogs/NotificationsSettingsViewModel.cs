@@ -2,6 +2,7 @@ using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
+using LoqNova.Avalonia.Localization;
 using LoqNova.Avalonia.Services;
 using LoqNova.Lib;
 using LoqNova.Lib.Extensions;
@@ -79,6 +80,8 @@ public partial class NotificationsSettingsViewModel : DialogViewModelBase
     public ObservableCollection<NotificationPositionOption> NotificationPositions { get; } = new();
 
     public ObservableCollection<NotificationDurationOption> NotificationDurations { get; } = new();
+
+    public string Title => Resource.NotificationsSettingsWindow_Title;
 
     public NotificationsSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
         : base(dialogs)
