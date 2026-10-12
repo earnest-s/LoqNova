@@ -246,6 +246,12 @@ public partial class MainWindowViewModel : ViewModelBase
         Dialogs.BalanceModeSettingsViewModel balance => balance.InitializeAsync(),
         Dialogs.CustomModeSettingsViewModel custom => custom.InitializeAsync(),
         Dialogs.OverclockGpuSettingsViewModel overclock => overclock.InitializeAsync(),
+        Dialogs.NotificationsSettingsViewModel notifications => notifications.InitializeAsync(),
+        Dialogs.SelectSmartKeyPipelinesViewModel smartKey => smartKey.InitializeAsync(),
+        Dialogs.ExcludeRefreshRatesViewModel refreshRates => refreshRates.InitializeAsync(),
+        Dialogs.BootLogoViewModel bootLogo => bootLogo.InitializeAsync(),
+        Dialogs.WindowsPowerModesViewModel windowsPowerModes => windowsPowerModes.InitializeAsync(),
+        Dialogs.WindowsPowerPlansViewModel windowsPowerPlans => windowsPowerPlans.InitializeAsync(),
         _ => Task.CompletedTask
     };
 }

@@ -131,6 +131,18 @@ public sealed class DialogService : IDialogService
             new Views.Dialogs.CustomModeSettingsView(),
         ViewModels.Dialogs.OverclockGpuSettingsViewModel =>
             new Views.Dialogs.OverclockGpuSettingsView(),
+        ViewModels.Dialogs.NotificationsSettingsViewModel =>
+            new Views.Dialogs.NotificationsSettingsView(),
+        ViewModels.Dialogs.SelectSmartKeyPipelinesViewModel =>
+            new Views.Dialogs.SelectSmartKeyPipelinesView(),
+        ViewModels.Dialogs.ExcludeRefreshRatesViewModel =>
+            new Views.Dialogs.ExcludeRefreshRatesView(),
+        ViewModels.Dialogs.BootLogoViewModel =>
+            new Views.Dialogs.BootLogoView(),
+        ViewModels.Dialogs.WindowsPowerModesViewModel =>
+            new Views.Dialogs.WindowsPowerModesView(),
+        ViewModels.Dialogs.WindowsPowerPlansViewModel =>
+            new Views.Dialogs.WindowsPowerPlansView(),
         _ => null
     };
 }

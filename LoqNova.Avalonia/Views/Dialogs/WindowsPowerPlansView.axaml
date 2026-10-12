@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dialogs="clr-namespace:LoqNova.Avalonia.ViewModels.Dialogs"
+             x:Class="LoqNova.Avalonia.Views.Dialogs.WindowsPowerPlansView"
+             x:DataType="dialogs:WindowsPowerPlansViewModel">
+
+    <!-- Windows Power Plans mapping, reproducing WPF's WindowsPowerPlansWindow. Each row
+         applies immediately; the Modern Standby warning is shown when the machine reports it. -->
+    <Border Classes="ContentCard" Width="600">
+        <StackPanel Spacing="0">
+
+            <TextBlock Text="{Binding Title}" Classes="SectionHeader" Margin="0,0,0,16" />
+
+            <Border Classes="InsetPanel" Margin="0,0,0,16" IsVisible="{Binding IsAoAcWarningVisible}">
+                <StackPanel Spacing="4">
+                    <TextBlock Classes="CardTitle" Text="{Binding AoAcWarningTitle}" />
+                    <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="{Binding AoAcWarningMessage}" />
+                </StackPanel>
+            </Border>
+
+            <ItemsControl ItemsSource="{Binding Rows}">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="dialogs:MappingRow">
+                        <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12" IsVisible="{Binding IsVisible}">
+                            <TextBlock Grid.Column="0" Classes="CardTitle"
+                                       Text="{Binding Title}" VerticalAlignment="Center" Margin="0,0,12,0" />
+                            <ComboBox Grid.Column="1" MinWidth="220"
+                                      ItemsSource="{Binding Options}"
+                                      SelectedItem="{Binding Selected, Mode=TwoWay}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="dialogs:MappingOption">
+                                        <TextBlock Text="{Binding Label}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+                <Button Classes="GhostButton" Content="Close" Command="{Binding CloseCommand}" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</UserControl>
