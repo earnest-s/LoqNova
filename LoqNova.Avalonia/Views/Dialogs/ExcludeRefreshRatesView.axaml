@@ -1,0 +1,68 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dialogs="clr-namespace:LoqNova.Avalonia.ViewModels.Dialogs"
+             x:Class="LoqNova.Avalonia.Views.Dialogs.ExcludeRefreshRatesView"
+             x:DataType="dialogs:ExcludeRefreshRatesViewModel">
+
+    <!-- Excluded refresh rates, reproducing WPF's ExcludeRefreshRatesWindow. WPF shows
+         a modal message box when the display reports no rates; Avalonia has no modal
+         message box, so the same text and choices are shown inside the dialog. -->
+    <Border Classes="ContentCard" Width="400" MaxHeight="520">
+        <DockPanel LastChildFill="True">
+
+            <TextBlock DockPanel.Dock="Top"
+                       Text="{Binding Title}"
+                       Classes="SectionHeader"
+                       Margin="0,0,0,12" />
+
+            <StackPanel DockPanel.Dock="Bottom" Margin="0,16,0,0">
+
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right"
+                            IsVisible="{Binding !HasNoRefreshRates}">
+                    <Button Classes="GhostButton" Content="Cancel"
+                            IsEnabled="{Binding !IsBusy}"
+                            Command="{Binding CloseCommand}" />
+                    <Button Classes="PrimaryButton" Content="Save"
+                            IsEnabled="{Binding !IsBusy}"
+                            Command="{Binding SaveCommand}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right"
+                            IsVisible="{Binding HasNoRefreshRates}">
+                    <Button Classes="GhostButton" Content="Cancel" Command="{Binding CloseCommand}" />
+                    <Button Classes="PrimaryButton" Content="{Binding TryAgainText}"
+                            Command="{Binding RetryCommand}" />
+                </StackPanel>
+            </StackPanel>
+
+            <Grid RowDefinitions="Auto,Auto,*">
+
+                <Border Grid.Row="0" Classes="InsetPanel" Margin="0,0,0,12">
+                    <TextBlock Text="{Binding Description}" TextWrapping="Wrap" Classes="CardSubtitle" />
+                </Border>
+
+                <TextBlock Grid.Row="1" Classes="CardSubtitle" IsVisible="{Binding IsBusy}" Text="Loading..." Margin="0,0,0,8" />
+
+                <!-- No rates found: WPF's message box content. -->
+                <StackPanel Grid.Row="2" Spacing="6" IsVisible="{Binding HasNoRefreshRates}">
+                    <TextBlock Classes="CardTitle" Text="{Binding NoRefreshRatesTitle}" />
+                    <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="{Binding NoRefreshRatesMessage}" />
+                </StackPanel>
+
+                <Border Grid.Row="2" Classes="InsetPanel" IsVisible="{Binding !HasNoRefreshRates}">
+                    <ScrollViewer VerticalScrollBarVisibility="Auto">
+                        <ItemsControl ItemsSource="{Binding RefreshRates}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="dialogs:RefreshRateItem">
+                                    <CheckBox Margin="0,0,0,8"
+                                              Content="{Binding DisplayName}"
+                                              IsChecked="{Binding IsIncluded, Mode=TwoWay}" />
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Border>
+            </Grid>
+        </DockPanel>
+    </Border>
+</UserControl>
