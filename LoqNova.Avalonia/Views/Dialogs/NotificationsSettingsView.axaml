@@ -4,8 +4,9 @@
              x:Class="LoqNova.Avalonia.Views.Dialogs.NotificationsSettingsView"
              x:DataType="dialogs:NotificationsSettingsViewModel">
 
-    <!-- Notifications settings, reproducing WPF's NotificationsSettingsWindow. Every
-         switch applies immediately (there is no Save button); the detail rows are
+    <!-- Notifications settings, reproducing WPF's NotificationsSettingsWindow: the two
+         master switches first, then the placement controls, then the per-event switches.
+         Every switch applies immediately (there is no Save button); the detail rows are
          disabled while "Don't show notifications" is on. -->
     <Border Classes="ContentCard" Width="500" MaxHeight="620">
         <DockPanel LastChildFill="True">
@@ -13,12 +14,7 @@
             <TextBlock DockPanel.Dock="Top"
                        Text="{Binding Title}"
                        Classes="SectionHeader"
-                       Margin="0,0,0,4" />
-
-            <TextBlock DockPanel.Dock="Top"
-                       Classes="CardSubtitle"
-                       Margin="0,0,0,12"
-                       Text="Changes are applied immediately." />
+                       Margin="0,0,0,12" />
 
             <StackPanel DockPanel.Dock="Bottom"
                         Orientation="Horizontal"
@@ -29,12 +25,39 @@
             </StackPanel>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Spacing="14">
+                <StackPanel Spacing="16">
 
-                    <!-- Position / duration / per-event switches are hidden behind
-                         "Don't show notifications" exactly as in WPF. -->
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0">
+                            <TextBlock Classes="CardTitle" Text="Don't show notifications" />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap"
+                                       Text="Disables notification for Fn keys actions like microphone mute.&#10;Enable this option if you have conflicts with full screen applications." />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="On" OffContent="Off"
+                                      IsChecked="{Binding DontShowNotifications, Mode=TwoWay}" />
+                    </Grid>
 
-                    <StackPanel Spacing="14" IsEnabled="{Binding AreDetailsEnabled}">
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0">
+                            <TextBlock Classes="CardTitle" Text="Notification always on top" />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap"
+                                       Text="Always put notification at the top.&#10;It won't affect other full screen windows, but you will not be able to click on the notifications." />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="On" OffContent="Off"
+                                      IsChecked="{Binding NotificationAlwaysOnTop, Mode=TwoWay}" />
+                    </Grid>
+
+                    <Grid ColumnDefinitions="*,Auto">
+                        <StackPanel Grid.Column="0" Spacing="2" Margin="0,0,12,0">
+                            <TextBlock Classes="CardTitle" Text="Notification on all screens" />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap"
+                                       Text="Show notification on all screens connected to your device." />
+                        </StackPanel>
+                        <ToggleSwitch Grid.Column="1" VerticalAlignment="Center" OnContent="On" OffContent="Off"
+                                      IsChecked="{Binding NotificationOnAllScreens, Mode=TwoWay}" />
+                    </Grid>
+
+                    <StackPanel Spacing="16" IsEnabled="{Binding AreDetailsEnabled}">
 
                         <Grid ColumnDefinitions="*,Auto">
                             <TextBlock Grid.Column="0" Classes="CardTitle" Text="Position" Margin="0,0,12,0" VerticalAlignment="Center" />
@@ -136,10 +159,6 @@
                                           IsChecked="{Binding ACAdapter, Mode=TwoWay}" />
                         </Grid>
                     </StackPanel>
-
-                    <!-- The three master switches sit below the detail rows in the
-                         visual stack; WPF puts them first, so they are moved above in
-                         the template and the detail block is grouped after them. -->
 
                 </StackPanel>
             </ScrollViewer>
