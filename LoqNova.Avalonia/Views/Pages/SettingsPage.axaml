@@ -60,7 +60,7 @@
             <Border Classes="ContentCard" Margin="0,0,0,8">
                 <StackPanel Spacing="8">
                     <TextBlock Classes="CardTitle" Text="Theme" />
-                    <TextBlock Classes="CardSubtitle" Text="Set light theme, dark theme or follow system setting." />
+                    <TextBlock Classes="CardSubtitle" Text="Set light theme, dark theme or follow system settings." />
                     <ComboBox MinWidth="160" HorizontalAlignment="Stretch"
                               ItemsSource="{Binding Themes}"
                               SelectedValue="{Binding Theme, Mode=TwoWay}"
@@ -136,8 +136,8 @@
             <!-- Software disablers. WPF hides each card when the software is not found. -->
             <Border Classes="ContentCard" Margin="0,0,0,8" IsVisible="{Binding IsVantageSupported}">
                 <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Disable Lenovo Vantage" />
-                    <TextBlock Classes="CardSubtitle" Text="Disable Lenovo Vantage and its service without uninstalling it. Restart is recommended after changing this option." />
+                    <TextBlock Classes="CardTitle" Text="Disable Lenovo Vantage and ImController" />
+                    <TextBlock Classes="CardSubtitle" Text="Disable Lenovo Vantage and ImController without uninstalling them.&#10;Restart is recommended after changing this option." />
                     <ToggleSwitch IsChecked="{Binding IsVantageDisabled, Mode=TwoWay}"
                                   IsEnabled="{Binding !IsVantageBusy}"
                                   Command="{Binding SetVantageCommand}"
@@ -148,8 +148,8 @@
 
             <Border Classes="ContentCard" Margin="0,0,0,8" IsVisible="{Binding IsLegionZoneSupported}">
                 <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Disable Lenovo Legion Zone" />
-                    <TextBlock Classes="CardSubtitle" Text="Disable Lenovo Legion Zone and its service without uninstalling it." />
+                    <TextBlock Classes="CardTitle" Text="Disable Legion Zone" />
+                    <TextBlock Classes="CardSubtitle" Text="Disable Legion Zone and its service without uninstalling it.&#10;Restart is recommended after changing this option." />
                     <ToggleSwitch IsChecked="{Binding IsLegionZoneDisabled, Mode=TwoWay}"
                                   IsEnabled="{Binding !IsLegionZoneBusy}"
                                   Command="{Binding SetLegionZoneCommand}"
@@ -161,7 +161,7 @@
             <Border Classes="ContentCard" Margin="0,0,0,24" IsVisible="{Binding IsLenovoHotkeysSupported}">
                 <StackPanel Spacing="8">
                     <TextBlock Classes="CardTitle" Text="Disable Lenovo Hotkeys" />
-                    <TextBlock Classes="CardSubtitle" Text="Disable Lenovo Hotkeys and its service without uninstalling it. If disabled, this app will handle Fn shortcuts. Restart is recommended after changing this option." />
+                    <TextBlock Classes="CardSubtitle" Text="Disable Lenovo Hotkeys and its service without uninstalling it.&#10;If disabled, this app will handle Fn shortcuts.&#10;Restart is recommended after changing this option." />
                     <ToggleSwitch IsChecked="{Binding AreLenovoHotkeysDisabled, Mode=TwoWay}"
                                   IsEnabled="{Binding !IsLenovoHotkeysBusy}"
                                   Command="{Binding SetLenovoHotkeysCommand}"
@@ -173,7 +173,7 @@
             <Border Classes="ContentCard" Margin="0,0,0,8">
                 <StackPanel Spacing="8">
                     <TextBlock Classes="CardTitle" Text="Smart Fn Lock" />
-                    <TextBlock Classes="CardSubtitle" Text="Fn Lock will be temporarily disabled when the chosen key is depressed." />
+                    <TextBlock Classes="CardSubtitle" Text="Fn Lock will be temporarily disabled when Alt, Ctrl or Shift key is depressed." />
                     <ComboBox MinWidth="150" HorizontalAlignment="Stretch"
                               ItemsSource="{Binding SmartFnLockOptions}"
                               SelectedValue="{Binding SmartFnLockFlags, Mode=TwoWay}"
@@ -202,7 +202,7 @@
             <Border Classes="NavCard" IsVisible="{Binding AreSmartKeyFeaturesVisible}">
                 <Button Classes="CardActionButton" Command="{Binding OpenSmartKeyPipelinesCommand}" CommandParameter="True">
                     <StackPanel Spacing="2">
-                        <TextBlock Classes="CardTitle" Text="Smart Key Action" />
+                        <TextBlock Classes="CardTitle" Text="Smart Key Secondary Action" />
                         <TextBlock Classes="CardSubtitle" Text="Assign Quick Action to Fn+F9 double press." />
                     </StackPanel>
                 </Button>
@@ -298,7 +298,7 @@
                 <Button Classes="CardActionButton" Command="{Binding OpenWindowsPowerPlansCommand}">
                     <StackPanel Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Windows Power Plans" />
-                        <TextBlock Classes="CardSubtitle" Text="Select Windows Power Plan to apply when Power Mode changes." />
+                        <TextBlock Classes="CardSubtitle" Text="Select Windows Power Plans to apply when Power Mode changes." />
                     </StackPanel>
                 </Button>
             </Border>
@@ -306,10 +306,8 @@
             <Border Classes="NavCard" IsVisible="{Binding ShowWindowsPowerPlans}">
                 <Button Classes="CardActionButton" Command="{Binding OpenWindowsPowerPlansControlPanelCommand}">
                     <Grid ColumnDefinitions="*,Auto">
-                        <StackPanel Grid.Column="0" Spacing="2">
-                            <TextBlock Classes="CardTitle" Text="Windows Power Plans" />
-                            <TextBlock Classes="CardSubtitle" Text="Open the Windows power plans control panel." />
-                        </StackPanel>
+                        <TextBlock Grid.Column="0" Classes="CardTitle" Text="Power Plan options in Windows Control Panel"
+                                   VerticalAlignment="Center" />
                         <PathIcon Grid.Column="1" Width="20" Height="20"
                                   Data="M14,3v2h3.59l-9.83,9.83 1.41,1.41L19,6.41V10h2V3z" />
                     </Grid>
