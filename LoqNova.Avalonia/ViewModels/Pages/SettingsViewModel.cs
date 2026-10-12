@@ -34,6 +34,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     private readonly INotificationService _notificationService;
     private readonly IDialogService _dialogService;
     private readonly IThemeService _themeService;
+    private readonly MainWindowViewModel _mainWindowViewModel;
 
     private ApplicationSettings? _applicationSettings;
     private IntegrationsSettings? _integrationsSettings;
