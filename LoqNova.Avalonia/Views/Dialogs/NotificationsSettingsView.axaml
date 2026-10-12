@@ -1,0 +1,148 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:dialogs="clr-namespace:LoqNova.Avalonia.ViewModels.Dialogs"
+             x:Class="LoqNova.Avalonia.Views.Dialogs.NotificationsSettingsView"
+             x:DataType="dialogs:NotificationsSettingsViewModel">
+
+    <!-- Notifications settings, reproducing WPF's NotificationsSettingsWindow. Every
+         switch applies immediately (there is no Save button); the detail rows are
+         disabled while "Don't show notifications" is on. -->
+    <Border Classes="ContentCard" Width="500" MaxHeight="620">
+        <DockPanel LastChildFill="True">
+
+            <TextBlock DockPanel.Dock="Top"
+                       Text="{Binding Title}"
+                       Classes="SectionHeader"
+                       Margin="0,0,0,4" />
+
+            <TextBlock DockPanel.Dock="Top"
+                       Classes="CardSubtitle"
+                       Margin="0,0,0,12"
+                       Text="Changes are applied immediately." />
+
+            <StackPanel DockPanel.Dock="Bottom"
+                        Orientation="Horizontal"
+                        Spacing="8"
+                        HorizontalAlignment="Right"
+                        Margin="0,16,0,0">
+                <Button Classes="GhostButton" Content="Close" Command="{Binding CloseCommand}" />
+            </StackPanel>
+
+            <ScrollViewer VerticalScrollBarVisibility="Auto">
+                <StackPanel Spacing="14">
+
+                    <!-- Position / duration / per-event switches are hidden behind
+                         "Don't show notifications" exactly as in WPF. -->
+
+                    <StackPanel Spacing="14" IsEnabled="{Binding AreDetailsEnabled}">
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Position" Margin="0,0,12,0" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" MinWidth="180"
+                                      ItemsSource="{Binding NotificationPositions}"
+                                      SelectedValue="{Binding NotificationPosition, Mode=TwoWay}"
+                                      SelectedValueBinding="{Binding Value}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="dialogs:NotificationPositionOption">
+                                        <TextBlock Text="{Binding Label}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Duration" Margin="0,0,12,0" VerticalAlignment="Center" />
+                            <ComboBox Grid.Column="1" MinWidth="180"
+                                      ItemsSource="{Binding NotificationDurations}"
+                                      SelectedValue="{Binding NotificationDuration, Mode=TwoWay}"
+                                      SelectedValueBinding="{Binding Value}">
+                                <ComboBox.ItemTemplate>
+                                    <DataTemplate DataType="dialogs:NotificationDurationOption">
+                                        <TextBlock Text="{Binding Label}" />
+                                    </DataTemplate>
+                                </ComboBox.ItemTemplate>
+                            </ComboBox>
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Updates" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding UpdateAvailable, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Actions" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding AutomationNotification, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Caps Lock and Num Lock" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding CapsNumLock, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Fn Lock" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding FnLock, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Touchpad Lock" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding TouchpadLock, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Smart Key" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding SmartKey, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Keyboard Backlight" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding KeyboardBacklight, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Camera" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding CameraLock, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Microphone" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding Microphone, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Power Mode" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding PowerMode, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="Refresh Rate" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding RefreshRate, Mode=TwoWay}" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="*,Auto">
+                            <TextBlock Grid.Column="0" Classes="CardTitle" Text="AC Adapter" VerticalAlignment="Center" />
+                            <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                                          IsChecked="{Binding ACAdapter, Mode=TwoWay}" />
+                        </Grid>
+                    </StackPanel>
+
+                    <!-- The three master switches sit below the detail rows in the
+                         visual stack; WPF puts them first, so they are moved above in
+                         the template and the detail block is grouped after them. -->
+
+                </StackPanel>
+            </ScrollViewer>
+        </DockPanel>
+    </Border>
+</UserControl>
