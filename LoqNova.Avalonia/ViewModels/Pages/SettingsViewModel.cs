@@ -57,7 +57,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     private AccentColorSource _accentColorSource;
 
     [ObservableProperty]
-    private string _accentColor = "#0078D4";
+    private Color _selectedAccentColor = Color.Parse("#0078D4");
 
     [ObservableProperty]
     private TemperatureUnit _temperatureUnit;
@@ -242,7 +242,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
             TemperatureUnit = store.TemperatureUnit;
             Theme = MapTheme(store.Theme);
             AccentColorSource = store.AccentColorSource;
-            AccentColor = store.AccentColor is { } rgb ? $"#{rgb.R:X2}{rgb.G:X2}{rgb.B:X2}" : "#0078D4";
+            SelectedAccentColor = ParseAccentColor(_themeService.CurrentAccentColor);
 
             AutorunState = Autorun.State;
             MinimizeToTray = store.MinimizeToTray;
@@ -416,7 +416,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
     public bool IsAccentColorPickerVisible => AccentColorSource == AccentColorSource.Custom;
 
-    partial void OnAccentColorChanged(string value)
+    partial void OnSelectedAccentColorChanged(Color value)
     {
         if (_isRefreshing || _applicationSettings is null)
         {
@@ -429,14 +429,14 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
             return;
         }
 
-        if (System.Drawing.ColorTranslator.FromHtml(value) is { } color)
-        {
-            _applicationSettings.Store.AccentColor = new RGBColor(color.R, color.G, color.B);
-            _applicationSettings.SynchronizeStore();
-        }
+        _applicationSettings.Store.AccentColor = new RGBColor(value.R, value.G, value.B);
+        _applicationSettings.SynchronizeStore();
 
         _ = _themeService.ApplyAccentAsync();
     }
+
+    private static Color ParseAccentColor(string value) =>
+        Color.TryParse(value, out var color) ? color : Color.Parse("#0078D4");
 
     partial void OnAutorunStateChanged(AutorunState value)
     {
