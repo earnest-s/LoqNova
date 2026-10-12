@@ -167,11 +167,13 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     public SettingsViewModel(
         INotificationService notificationService,
         IDialogService dialogService,
-        IThemeService themeService)
+        IThemeService themeService,
+        MainWindowViewModel mainWindowViewModel)
     {
         _notificationService = notificationService;
         _dialogService = dialogService;
         _themeService = themeService;
+        _mainWindowViewModel = mainWindowViewModel;
 
         BuildOptions();
     }
@@ -774,33 +776,51 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     private void OpenWindowsPowerPlansControlPanel() =>
         Process.Start(new ProcessStartInfo("control", "/name Microsoft.PowerOptions"));
 
-    // WPF opens these six as separate Windows. Avalonia has a single-window shell with a
-// dialog overlay, so each needs its own Avalonia dialog before it can be presented
-// through DialogService. Until then the rows are shown with their real WPF visibility
-// rules but report honestly instead of opening the wrong dialog.
-[RelayCommand]
-    private Task OpenSmartKeyPipelines(string isDoublePress) => ReportPendingDialogAsync("Smart Key Action");
+    // WPF opens these six as separate Windows. Avalonia presents them as overlay dialogs
+    // through the shared DialogService, resolving a fresh dialog each time so a previous
+    // session's state never leaks into the next opening.
+    [RelayCommand]
+    private async Task OpenSmartKeyPipelines(string isDoublePress)
+    {
+        var dialog = _dialogService.Resolve<Dialogs.SelectSmartKeyPipelinesViewModel>();
+        dialog.IsDoublePress = bool.TryParse(isDoublePress, out var doublePress) && doublePress;
+        await _mainWindowViewModel.ShowDialogAsync(dialog);
+    }
 
     [RelayCommand]
-    private Task OpenNotifications() => ReportPendingDialogAsync("Notifications");
+    private async Task OpenNotifications()
+    {
+        var dialog = _dialogService.Resolve<Dialogs.NotificationsSettingsViewModel>();
+        await _mainWindowViewModel.ShowDialogAsync(dialog);
+    }
 
     [RelayCommand]
-    private Task OpenExcludeRefreshRates() => ReportPendingDialogAsync("Exclude Refresh Rates");
+    private async Task OpenExcludeRefreshRates()
+    {
+        var dialog = _dialogService.Resolve<Dialogs.ExcludeRefreshRatesViewModel>();
+        await _mainWindowViewModel.ShowDialogAsync(dialog);
+    }
 
     [RelayCommand]
-    private Task OpenBootLogo() => ReportPendingDialogAsync("Boot Logo");
+    private async Task OpenBootLogo()
+    {
+        var dialog = _dialogService.Resolve<Dialogs.BootLogoViewModel>();
+        await _mainWindowViewModel.ShowDialogAsync(dialog);
+    }
 
     [RelayCommand]
-    private Task OpenWindowsPowerModes() => ReportPendingDialogAsync("Windows Power Modes");
+    private async Task OpenWindowsPowerModes()
+    {
+        var dialog = _dialogService.Resolve<Dialogs.WindowsPowerModesViewModel>();
+        await _mainWindowViewModel.ShowDialogAsync(dialog);
+    }
 
     [RelayCommand]
-    private Task OpenWindowsPowerPlans() => ReportPendingDialogAsync("Windows Power Plans");
-
-    private Task ReportPendingDialogAsync(string title) =>
-        _notificationService.ShowAsync(new NotificationMessage(
-            Services.NotificationType.Warning,
-            title,
-            "This dialog has not been migrated to Avalonia yet."));
+    private async Task OpenWindowsPowerPlans()
+    {
+        var dialog = _dialogService.Resolve<Dialogs.WindowsPowerPlansViewModel>();
+        await _mainWindowViewModel.ShowDialogAsync(dialog);
+    }
 
     private static AppTheme MapTheme(LoqNova.Lib.Theme theme) => theme switch
     {
