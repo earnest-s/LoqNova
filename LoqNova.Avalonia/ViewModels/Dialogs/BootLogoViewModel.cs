@@ -126,7 +126,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
         {
             if (Log.Instance.IsTraceEnabled)
             {
-                Log.Instance.Trace("Custom logo could not be set.", ex);
+                Log.Instance.Trace($"Custom logo could not be set.", ex);
             }
 
             await SetResultAsync(
@@ -161,7 +161,7 @@ public partial class BootLogoViewModel : DialogViewModelBase
         {
             if (Log.Instance.IsTraceEnabled)
             {
-                Log.Instance.Trace("Default logo could not be set.", ex);
+                Log.Instance.Trace($"Default logo could not be set.", ex);
             }
 
             await SetResultAsync(
