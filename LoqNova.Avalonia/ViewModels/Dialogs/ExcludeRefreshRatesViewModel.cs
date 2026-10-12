@@ -42,15 +42,15 @@ public partial class ExcludeRefreshRatesViewModel : DialogViewModelBase
     [ObservableProperty]
     private bool _hasNoRefreshRates;
 
-    public string Title => Resource.ExcludeRefreshRatesWindow_Title;
+    public string Title => LocalizationHelper.GetString("ExcludeRefreshRatesWindow_Title");
 
-    public string Description => Resource.ExcludeRefreshRatesWindow_Description;
+    public string Description => LocalizationHelper.GetString("ExcludeRefreshRatesWindow_Description");
 
-    public string NoRefreshRatesTitle => Resource.ExcludeRefreshRatesWindow_NoRefreshRatesFound_Title;
+    public string NoRefreshRatesTitle => LocalizationHelper.GetString("ExcludeRefreshRatesWindow_NoRefreshRatesFound_Title");
 
-    public string NoRefreshRatesMessage => Resource.ExcludeRefreshRatesWindow_NoRefreshRatesFound_Message;
+    public string NoRefreshRatesMessage => LocalizationHelper.GetString("ExcludeRefreshRatesWindow_NoRefreshRatesFound_Message");
 
-    public string TryAgainText => Resource.TryAgain;
+    public string TryAgainText => LocalizationHelper.GetString("TryAgain");
 
     public ExcludeRefreshRatesViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
         : base(dialogs)

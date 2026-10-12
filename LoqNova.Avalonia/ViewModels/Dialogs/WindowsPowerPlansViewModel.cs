@@ -26,7 +26,7 @@ namespace LoqNova.Avalonia.ViewModels.Dialogs;
 public partial class WindowsPowerPlansViewModel : DialogViewModelBase
 {
     private static readonly WindowsPowerPlan DefaultValue =
-        new(Guid.Empty, Resource.WindowsPowerPlansWindow_DefaultPowerPlan, false);
+        new(Guid.Empty, LocalizationHelper.GetString("WindowsPowerPlansWindow_DefaultPowerPlan"), false);
 
     private readonly IMainThreadDispatcher _dispatcher;
 
@@ -40,11 +40,11 @@ public partial class WindowsPowerPlansViewModel : DialogViewModelBase
     [ObservableProperty]
     private bool _isAoAcWarningVisible;
 
-    public string Title => Resource.WindowsPowerPlansWindow_Title;
+    public string Title => LocalizationHelper.GetString("WindowsPowerPlansWindow_Title");
 
-    public string AoAcWarningTitle => Resource.PowerPlansWindow_AoAcWarning_Title;
+    public string AoAcWarningTitle => LocalizationHelper.GetString("PowerPlansWindow_AoAcWarning_Title");
 
-    public string AoAcWarningMessage => Resource.PowerPlansWindow_AoAcWarning_Message;
+    public string AoAcWarningMessage => LocalizationHelper.GetString("PowerPlansWindow_AoAcWarning_Message");
 
     public WindowsPowerPlansViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
         : base(dialogs)

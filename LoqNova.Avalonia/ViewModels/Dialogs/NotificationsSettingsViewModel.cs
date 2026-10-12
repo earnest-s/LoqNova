@@ -81,7 +81,7 @@ public partial class NotificationsSettingsViewModel : DialogViewModelBase
 
     public ObservableCollection<NotificationDurationOption> NotificationDurations { get; } = new();
 
-    public string Title => Resource.NotificationsSettingsWindow_Title;
+    public string Title => LocalizationHelper.GetString("NotificationsSettingsWindow_Title");
 
     public NotificationsSettingsViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
         : base(dialogs)

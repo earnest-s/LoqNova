@@ -31,7 +31,7 @@ public partial class WindowsPowerModesViewModel : DialogViewModelBase
 
     public ObservableCollection<MappingRow> Rows { get; } = new();
 
-    public string Title => Resource.WindowsPowerModesWindow_Title;
+    public string Title => LocalizationHelper.GetString("WindowsPowerModesWindow_Title");
 
     public WindowsPowerModesViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
         : base(dialogs)

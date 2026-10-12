@@ -44,15 +44,15 @@ public partial class SelectSmartKeyPipelinesViewModel : DialogViewModelBase
     [ObservableProperty]
     private bool _hasPipelines;
 
-    public string EmptyMessage => Resource.SelectSmartKeyPipelinesWindow_List_Empty;
+    public string EmptyMessage => LocalizationHelper.GetString("SelectSmartKeyPipelinesWindow_List_Empty");
 
-    public string ListDescription => Resource.SelectSmartKeyPipelinesWindow_List_Description;
+    public string ListDescription => LocalizationHelper.GetString("SelectSmartKeyPipelinesWindow_List_Description");
 
-    public string ShowThisAppTitle => Resource.SelectSmartKeyPipelinesWindow_ShowThisApp;
+    public string ShowThisAppTitle => LocalizationHelper.GetString("SelectSmartKeyPipelinesWindow_ShowThisApp");
 
     public string Title => IsDoublePress
-        ? Resource.SettingsPage_SmartKeyDoublePressAction_Title
-        : Resource.SettingsPage_SmartKeySinglePressAction_Title;
+        ? LocalizationHelper.GetString("SettingsPage_SmartKeyDoublePressAction_Title")
+        : LocalizationHelper.GetString("SettingsPage_SmartKeySinglePressAction_Title");
 
     public SelectSmartKeyPipelinesViewModel(IMainThreadDispatcher dispatcher, IDialogService dialogs)
         : base(dialogs)
