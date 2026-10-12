@@ -131,7 +131,7 @@ public partial class NotificationsSettingsViewModel : DialogViewModelBase
                 Microphone = store.Notifications.Microphone;
                 PowerMode = store.Notifications.PowerMode;
                 RefreshRate = store.Notifications.RefreshRate;
-                ACAdapter = store.Notifications.ACAdapter;
+                AcAdapter = store.Notifications.ACAdapter;
             }
             finally
             {
