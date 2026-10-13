@@ -183,22 +183,36 @@
     </Style>
 
 
-    <!-- ============================ Card actions ============================ -->
+    <!-- ============================ Card actions ============================
+         WPF's Wpf.Ui CardAction: the entire card is a button that opens a
+         dialog or a link, with a trailing chevron as the affordance. -->
 
     <Style Selector="Button.CardActionButton">
-        <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
-        <Setter Property="Padding" Value="8" />
-        <Setter Property="CornerRadius" Value="5" />
-        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
-        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Background" Value="{StaticResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="Padding" Value="16" />
+        <Setter Property="HorizontalAlignment" Value="Stretch" />
+        <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Center" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
     <Style Selector="Button.CardActionButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-        <Setter Property="TextBlock.Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="{StaticResource CardElevatedBrush}" />
+        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+    </Style>
+
+    <Style Selector="Button.CardActionButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+    </Style>
+
+    <Style Selector="PathIcon.ActionChevron">
+        <Setter Property="Width" Value="16" />
+        <Setter Property="Height" Value="16" />
+        <Setter Property="Margin" Value="16,0,0,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
     </Style>
 </Styles>
