@@ -80,12 +80,13 @@
 
             <!-- Accent color. WPF only reveals the picker when the source is Custom. -->
             <Border Classes="ContentCard" Margin="0,0,0,24">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <PathIcon Grid.Column="0" Classes="CardIcon" Data="{x:Static icons:IconGeometries.Color}" />
+                    <StackPanel Grid.Column="1" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Accent color" />
                         <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Change the accent color of the app." />
                     </StackPanel>
-                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
                         <ColorPicker IsVisible="{Binding IsAccentColorPickerVisible}"
                                      Color="{Binding SelectedAccentColor, Mode=TwoWay}"
                                      Width="64" Height="32"
