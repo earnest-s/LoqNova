@@ -20,12 +20,13 @@
 
             <!-- Language. WPF collapses the card when only one language ships. -->
             <Border Classes="ContentCard" Margin="0,0,0,8" IsVisible="{Binding IsLanguageSupported}">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <PathIcon Grid.Column="0" Classes="CardIcon" Data="{x:Static icons:IconGeometries.Language}" />
+                    <StackPanel Grid.Column="1" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Language" />
                         <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Select language." />
                     </StackPanel>
-                    <ComboBox Grid.Column="1" MinWidth="160" VerticalAlignment="Center"
+                    <ComboBox Grid.Column="2" MinWidth="160" VerticalAlignment="Center"
                               ItemsSource="{Binding Languages}"
                               SelectedItem="{Binding Language, Mode=TwoWay}">
                         <ComboBox.ItemTemplate>
