@@ -54,6 +54,15 @@ public static class IconGeometries
     public static Geometry ChevronRight { get; } = P("M9.3 5 L10.9 5 L16.7 12 L10.9 19 L9.3 19 L15.1 12 Z");
     public static Geometry OpenExternal { get; } = P("M14 3 L21 3 L21 10 L19 10 L19 6.41 L11.41 14 L10 12.59 L17.59 5 L14 5 Z M5 5 L13 5 L13 7 L7 7 L7 19 L19 19 L19 13 L21 13 L21 21 L5 21 Z");
 
+    // ---- Settings card icons ----
+    // WPF's Settings cards carry a leading Fluent icon on four cards only
+    // (Language / Temperature / Theme / Accent colour). Temperature reuses the
+    // existing Thermometer; these are the remaining three, drawn as simple
+    // area-filling approximations in the same style as the widget glyphs.
+    public static Geometry Language { get; } = P("M12 2 C6.5 2 2 6.5 2 12 C2 17.5 6.5 22 12 22 C17.5 22 22 17.5 22 12 C22 6.5 17.5 2 12 2 Z M12 4.5 C16.14 4.5 19.5 7.86 19.5 12 C19.5 16.14 16.14 19.5 12 19.5 C7.86 19.5 4.5 16.14 4.5 12 C4.5 7.86 7.86 4.5 12 4.5 Z M5 11 L19 11 L19 13 L5 13 Z M11 5 L13 5 L13 19 L11 19 Z");
+    public static Geometry Theme { get; } = P("M12 3 C6 3 3 7 3 12 C3 17 6 21 12 21 C9 21 8 17 8 12 C8 7 9 3 12 3 Z");
+    public static Geometry Color { get; } = P("M12 2 C12 2 5 10 5 15 C5 18.9 8.1 22 12 22 C15.9 22 19 18.9 19 15 C19 10 12 2 12 2 Z");
+
     /// <summary>Name based lookup used by <c>IconNameToGeometryConverter</c>.</summary>
     public static IReadOnlyDictionary<string, Geometry> ByName { get; } =
         new Dictionary<string, Geometry>(StringComparer.OrdinalIgnoreCase)
@@ -86,7 +95,10 @@ public static class IconGeometries
             ["UsbC"] = UsbC,
             ["SpeedHigh"] = SpeedHigh,
             ["ChevronRight"] = ChevronRight,
-            ["OpenExternal"] = OpenExternal
+            ["OpenExternal"] = OpenExternal,
+            ["Language"] = Language,
+            ["Theme"] = Theme,
+            ["Color"] = Color
         };
 
     private static Geometry P(string data) => StreamGeometry.Parse(data);
