@@ -1,21 +1,18 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:icons="clr-namespace:LoqNova.Avalonia.Styles"
              x:Class="LoqNova.Avalonia.Views.Pages.SettingsPage"
              x:DataType="vm:SettingsViewModel"
              x:CompileBindings="True">
 
-    <UserControl.Styles>
-        <!-- WPF's CardAction rows: a header-only card that opens something on click. -->
-        <Style Selector="Border.NavCard">
-            <Setter Property="Background" Value="Transparent" />
-            <Setter Property="Padding" Value="16" />
-            <Setter Property="CornerRadius" Value="8" />
-            <Setter Property="Margin" Value="0,0,0,8" />
-            <Setter Property="Cursor" Value="Hand" />
-        </Style>
-    </UserControl.Styles>
-
+    <!--
+        Layout mirrors WPF's Wpf.Ui CardControl/CardAction: every setting is a
+        single card whose header (title + subtitle) sits on the left and whose
+        control sits on the right. WPF's "CardAction" rows (Smart Key Action,
+        Notifications, Boot Logo, power plans, ...) are whole-card buttons with
+        a trailing chevron.
+    -->
     <ScrollViewer VerticalScrollBarVisibility="Auto">
         <StackPanel Margin="24,16,24,12">
 
@@ -23,28 +20,30 @@
 
             <!-- Language. WPF collapses the card when only one language ships. -->
             <Border Classes="ContentCard" Margin="0,0,0,8" IsVisible="{Binding IsLanguageSupported}">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Language" />
-                    <TextBlock Classes="CardSubtitle" Text="Select language." />
-                    <ComboBox MinWidth="160" HorizontalAlignment="Stretch"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Language" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Select language." />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1" MinWidth="160" VerticalAlignment="Center"
                               ItemsSource="{Binding Languages}"
-                              SelectedItem="{Binding Language, Mode=TwoWay}"
-                              SelectedValue="{Binding Language.Value, Mode=OneWay}"
-                              SelectedValueBinding="{Binding Value}">
+                              SelectedItem="{Binding Language, Mode=TwoWay}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate DataType="vm:LanguageOption">
                                 <TextBlock Text="{Binding Label}" />
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Temperature" />
-                    <TextBlock Classes="CardSubtitle" Text="Select units for temperature sensors." />
-                    <ComboBox MinWidth="160" HorizontalAlignment="Stretch"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Temperature" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Select units for temperature sensors." />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1" MinWidth="160" VerticalAlignment="Center"
                               ItemsSource="{Binding TemperatureUnits}"
                               SelectedValue="{Binding TemperatureUnit, Mode=TwoWay}"
                               SelectedValueBinding="{Binding Value}">
@@ -54,14 +53,16 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Theme" />
-                    <TextBlock Classes="CardSubtitle" Text="Set light theme, dark theme or follow system settings." />
-                    <ComboBox MinWidth="160" HorizontalAlignment="Stretch"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Theme" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Set light theme, dark theme or follow system settings." />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1" MinWidth="160" VerticalAlignment="Center"
                               ItemsSource="{Binding Themes}"
                               SelectedValue="{Binding Theme, Mode=TwoWay}"
                               SelectedValueBinding="{Binding Value}">
@@ -71,16 +72,22 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Accent color. WPF only reveals the picker when the source is Custom. -->
             <Border Classes="ContentCard" Margin="0,0,0,24">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Accent color" />
-                    <TextBlock Classes="CardSubtitle" Text="Change the accent color of the app." />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
-                        <ComboBox MinWidth="160"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Accent color" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Change the accent color of the app." />
+                    </StackPanel>
+                    <StackPanel Grid.Column="1" Orientation="Horizontal" VerticalAlignment="Center">
+                        <ColorPicker IsVisible="{Binding IsAccentColorPickerVisible}"
+                                     Color="{Binding SelectedAccentColor, Mode=TwoWay}"
+                                     Width="64" Height="32"
+                                     VerticalAlignment="Center" />
+                        <ComboBox MinWidth="160" Margin="8,0,0,0"
                                   ItemsSource="{Binding AccentColorSources}"
                                   SelectedValue="{Binding AccentColorSource, Mode=TwoWay}"
                                   SelectedValueBinding="{Binding Value}">
@@ -90,19 +97,17 @@
                                 </DataTemplate>
                             </ComboBox.ItemTemplate>
                         </ComboBox>
-                        <ColorPicker IsVisible="{Binding IsAccentColorPickerVisible}"
-                                     Color="{Binding SelectedAccentColor, Mode=TwoWay}"
-                                     Width="64" Height="32"
-                                     VerticalAlignment="Center" />
                     </StackPanel>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Autorun" />
-                    <TextBlock Classes="CardSubtitle" Text="Start minimized to tray when you log in to Windows." />
-                    <ComboBox MinWidth="160" HorizontalAlignment="Stretch"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Autorun" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Start minimized to tray when you log in to Windows." />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1" MinWidth="160" VerticalAlignment="Center"
                               ItemsSource="{Binding AutorunStates}"
                               SelectedValue="{Binding AutorunState, Mode=TwoWay}"
                               SelectedValueBinding="{Binding Value}">
@@ -112,69 +117,86 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Minimize to tray" />
-                    <TextBlock Classes="CardSubtitle" Text="Always minimize to tray instead of taskbar." />
-                    <ToggleSwitch IsChecked="{Binding MinimizeToTray, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Minimize to tray" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Always minimize to tray instead of taskbar." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding MinimizeToTray, Mode=TwoWay}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,24">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Minimize on close" />
-                    <TextBlock Classes="CardSubtitle" Text="Always minimize to tray. Close with right click on tray icon." />
-                    <ToggleSwitch IsChecked="{Binding MinimizeOnClose, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Minimize on close" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Always minimize to tray. Close with right click on tray icon." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding MinimizeOnClose, Mode=TwoWay}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <!-- Software disablers. WPF hides each card when the software is not found. -->
             <Border Classes="ContentCard" Margin="0,0,0,8" IsVisible="{Binding IsVantageSupported}">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Disable Lenovo Vantage and ImController" />
-                    <TextBlock Classes="CardSubtitle" Text="Disable Lenovo Vantage and ImController without uninstalling them.&#10;Restart is recommended after changing this option." />
-                    <ToggleSwitch IsChecked="{Binding IsVantageDisabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Disable Lenovo Vantage and ImController" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Disable Lenovo Vantage and ImController without uninstalling them.&#10;Restart is recommended after changing this option." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsVantageDisabled, Mode=TwoWay}"
                                   IsEnabled="{Binding !IsVantageBusy}"
                                   Command="{Binding SetVantageCommand}"
                                   CommandParameter="{Binding IsVantageDisabled}"
                                   OnContent="Disabled" OffContent="Enabled" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8" IsVisible="{Binding IsLegionZoneSupported}">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Disable Legion Zone" />
-                    <TextBlock Classes="CardSubtitle" Text="Disable Legion Zone and its service without uninstalling it.&#10;Restart is recommended after changing this option." />
-                    <ToggleSwitch IsChecked="{Binding IsLegionZoneDisabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Disable Legion Zone" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Disable Legion Zone and its service without uninstalling it.&#10;Restart is recommended after changing this option." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsLegionZoneDisabled, Mode=TwoWay}"
                                   IsEnabled="{Binding !IsLegionZoneBusy}"
                                   Command="{Binding SetLegionZoneCommand}"
                                   CommandParameter="{Binding IsLegionZoneDisabled}"
                                   OnContent="Disabled" OffContent="Enabled" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,24" IsVisible="{Binding IsLenovoHotkeysSupported}">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Disable Lenovo Hotkeys" />
-                    <TextBlock Classes="CardSubtitle" Text="Disable Lenovo Hotkeys and its service without uninstalling it.&#10;If disabled, this app will handle Fn shortcuts.&#10;Restart is recommended after changing this option." />
-                    <ToggleSwitch IsChecked="{Binding AreLenovoHotkeysDisabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Disable Lenovo Hotkeys" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Disable Lenovo Hotkeys and its service without uninstalling it.&#10;If disabled, this app will handle Fn shortcuts.&#10;Restart is recommended after changing this option." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding AreLenovoHotkeysDisabled, Mode=TwoWay}"
                                   IsEnabled="{Binding !IsLenovoHotkeysBusy}"
                                   Command="{Binding SetLenovoHotkeysCommand}"
                                   CommandParameter="{Binding AreLenovoHotkeysDisabled}"
                                   OnContent="Disabled" OffContent="Enabled" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Smart Fn Lock" />
-                    <TextBlock Classes="CardSubtitle" Text="Fn Lock will be temporarily disabled when Alt, Ctrl or Shift key is depressed." />
-                    <ComboBox MinWidth="150" HorizontalAlignment="Stretch"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Smart Fn Lock" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Fn Lock will be temporarily disabled when Alt, Ctrl or Shift key is depressed." />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1" MinWidth="150" VerticalAlignment="Center"
                               ItemsSource="{Binding SmartFnLockOptions}"
                               SelectedValue="{Binding SmartFnLockFlags, Mode=TwoWay}"
                               SelectedValueBinding="{Binding Value}">
@@ -184,95 +206,121 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                </StackPanel>
+                </Grid>
             </Border>
 
             <!-- WPF shows the SmartKey, Notifications and ExcludeRefreshRates rows only
                  while the Lenovo hotkeys are disabled, because those features are what
                  the hotkeys drive. -->
-            <Border Classes="NavCard" IsVisible="{Binding AreSmartKeyFeaturesVisible}">
-                <Button Classes="CardActionButton" Command="{Binding OpenSmartKeyPipelinesCommand}" CommandParameter="False">
-                    <StackPanel Spacing="2">
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding AreSmartKeyFeaturesVisible}"
+                    Command="{Binding OpenSmartKeyPipelinesCommand}"
+                    CommandParameter="False">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Smart Key Action" />
-                        <TextBlock Classes="CardSubtitle" Text="Assign Quick Action to Fn+F9 single press." />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Assign Quick Action to Fn+F9 single press." />
                     </StackPanel>
-                </Button>
-            </Border>
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
+                </Grid>
+            </Button>
 
-            <Border Classes="NavCard" IsVisible="{Binding AreSmartKeyFeaturesVisible}">
-                <Button Classes="CardActionButton" Command="{Binding OpenSmartKeyPipelinesCommand}" CommandParameter="True">
-                    <StackPanel Spacing="2">
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding AreSmartKeyFeaturesVisible}"
+                    Command="{Binding OpenSmartKeyPipelinesCommand}"
+                    CommandParameter="True">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Smart Key Secondary Action" />
-                        <TextBlock Classes="CardSubtitle" Text="Assign Quick Action to Fn+F9 double press." />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Assign Quick Action to Fn+F9 double press." />
                     </StackPanel>
-                </Button>
-            </Border>
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
+                </Grid>
+            </Button>
 
-            <Border Classes="NavCard" IsVisible="{Binding AreSmartKeyFeaturesVisible}">
-                <Button Classes="CardActionButton" Command="{Binding OpenNotificationsCommand}">
-                    <StackPanel Spacing="2">
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding AreSmartKeyFeaturesVisible}"
+                    Command="{Binding OpenNotificationsCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Notifications" />
-                        <TextBlock Classes="CardSubtitle" Text="Configure which notifications are shown." />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Configure which notifications are shown." />
                     </StackPanel>
-                </Button>
-            </Border>
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
+                </Grid>
+            </Button>
 
-            <Border Classes="NavCard" IsVisible="{Binding AreSmartKeyFeaturesVisible}">
-                <Button Classes="CardActionButton" Command="{Binding OpenExcludeRefreshRatesCommand}">
-                    <StackPanel Spacing="2">
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding AreSmartKeyFeaturesVisible}"
+                    Command="{Binding OpenExcludeRefreshRatesCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Exclude Refresh Rates" />
-                        <TextBlock Classes="CardSubtitle" Text="You can exclude refresh rates, to make Fn+R shortcut more useful." />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="You can exclude refresh rates, to make Fn+R shortcut more useful." />
                     </StackPanel>
-                </Button>
-            </Border>
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
+                </Grid>
+            </Button>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Single Display Brightness" />
-                    <TextBlock Classes="CardSubtitle" Text="When on, same brightness level will be applied to all Windows power plans whenever you change it." />
-                    <ToggleSwitch IsChecked="{Binding SyncBrightnessToAllPowerPlans, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Single Display Brightness" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="When on, same brightness level will be applied to all Windows power plans whenever you change it." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding SyncBrightnessToAllPowerPlans, Mode=TwoWay}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
-            <Border Classes="NavCard" IsVisible="{Binding IsBootLogoSupported}">
-                <Button Classes="CardActionButton" Command="{Binding OpenBootLogoCommand}">
-                    <StackPanel Spacing="2">
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding IsBootLogoSupported}"
+                    Command="{Binding OpenBootLogoCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Boot Logo" />
-                        <TextBlock Classes="CardSubtitle" Text="Customize Boot Logo image, visible during system startup." />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Customize Boot Logo image, visible during system startup." />
                     </StackPanel>
-                </Button>
-            </Border>
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
+                </Grid>
+            </Button>
 
             <TextBlock Margin="0,16,0,24" FontSize="24" FontWeight="Medium" Text="Update" />
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Check for updates" />
-                    <Button Classes="SecondaryButton" MinWidth="160" HorizontalAlignment="Stretch"
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center"
+                               Classes="CardTitle" Text="Check for updates" />
+                    <Button Grid.Column="1" Classes="SecondaryButton" MinWidth="160" VerticalAlignment="Center"
                             Content="Check" Command="{Binding CheckForUpdatesCommand}" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <TextBlock Margin="0,16,0,24" FontSize="24" FontWeight="Medium" Text="Power" />
 
             <Border Classes="ContentCard" Margin="0,0,0,24" IsVisible="{Binding IsGodModeFnQSupported}">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Switch to Custom Mode with Fn+Q" />
-                    <TextBlock Classes="CardSubtitle" Text="Allow quick switching to Custom Mode with Fn+Q." />
-                    <ToggleSwitch IsChecked="{Binding IsGodModeFnQEnabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Switch to Custom Mode with Fn+Q" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Allow quick switching to Custom Mode with Fn+Q." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsGodModeFnQEnabled, Mode=TwoWay}"
                                   IsEnabled="{Binding !IsGodModeBusy}"
                                   Command="{Binding SetGodModeFnQCommand}"
                                   CommandParameter="{Binding IsGodModeFnQEnabled}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8" IsVisible="{Binding IsPowerModeMappingSupported}">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Power Mode Synchronization" />
-                    <TextBlock Classes="CardSubtitle" Text="Automatically change Windows Power Plan or Windows Power Mode when changing Power Modes." />
-                    <ComboBox MinWidth="160" HorizontalAlignment="Stretch"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Power Mode Synchronization" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Automatically change Windows Power Plan or Windows Power Mode when changing Power Modes." />
+                    </StackPanel>
+                    <ComboBox Grid.Column="1" MinWidth="160" VerticalAlignment="Center"
                               ItemsSource="{Binding PowerModeMappingOptions}"
                               SelectedValue="{Binding PowerModeMappingMode, Mode=TwoWay}"
                               SelectedValueBinding="{Binding Value}">
@@ -282,80 +330,97 @@
                             </DataTemplate>
                         </ComboBox.ItemTemplate>
                     </ComboBox>
-                </StackPanel>
+                </Grid>
             </Border>
 
-            <Border Classes="NavCard" IsVisible="{Binding ShowPowerModes}">
-                <Button Classes="CardActionButton" Command="{Binding OpenWindowsPowerModesCommand}">
-                    <StackPanel Spacing="2">
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding ShowPowerModes}"
+                    Command="{Binding OpenWindowsPowerModesCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Windows Power Modes" />
-                        <TextBlock Classes="CardSubtitle" Text="Select Windows Power Mode to apply when Power Mode changes." />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Select Windows Power Mode to apply when Power Mode changes." />
                     </StackPanel>
-                </Button>
-            </Border>
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
+                </Grid>
+            </Button>
 
-            <Border Classes="NavCard" IsVisible="{Binding ShowWindowsPowerPlans}">
-                <Button Classes="CardActionButton" Command="{Binding OpenWindowsPowerPlansCommand}">
-                    <StackPanel Spacing="2">
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding ShowWindowsPowerPlans}"
+                    Command="{Binding OpenWindowsPowerPlansCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Windows Power Plans" />
-                        <TextBlock Classes="CardSubtitle" Text="Select Windows Power Plans to apply when Power Mode changes." />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Select Windows Power Plans to apply when Power Mode changes." />
                     </StackPanel>
-                </Button>
-            </Border>
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
+                </Grid>
+            </Button>
 
-            <Border Classes="NavCard" IsVisible="{Binding ShowWindowsPowerPlans}">
-                <Button Classes="CardActionButton" Command="{Binding OpenWindowsPowerPlansControlPanelCommand}">
-                    <Grid ColumnDefinitions="*,Auto">
-                        <TextBlock Grid.Column="0" Classes="CardTitle" Text="Power Plan options in Windows Control Panel"
-                                   VerticalAlignment="Center" />
-                        <PathIcon Grid.Column="1" Width="20" Height="20"
-                                  Data="M14,3v2h3.59l-9.83,9.83 1.41,1.41L19,6.41V10h2V3z" />
-                    </Grid>
-                </Button>
-            </Border>
+            <Button Classes="CardActionButton" Margin="0,0,0,8"
+                    IsVisible="{Binding ShowWindowsPowerPlans}"
+                    Command="{Binding OpenWindowsPowerPlansControlPanelCommand}">
+                <Grid ColumnDefinitions="*,Auto">
+                    <TextBlock Grid.Column="0" VerticalAlignment="Center"
+                               Classes="CardTitle" Text="Power Plan options in Windows Control Panel" />
+                    <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.OpenExternal}" />
+                </Grid>
+            </Button>
 
             <Border Classes="ContentCard" Margin="0,16,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Reset &quot;On battery since&quot; at startup" />
-                    <TextBlock Classes="CardSubtitle" Text="Resets the counter for &quot;On battery since&quot; in the battery section when the system reboots." />
-                    <ToggleSwitch IsChecked="{Binding IsResetBatterySinceEnabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Reset &quot;On battery since&quot; at startup" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Resets the counter for &quot;On battery since&quot; in the battery section when the system reboots." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsResetBatterySinceEnabled, Mode=TwoWay}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <TextBlock Margin="0,16,0,24" FontSize="24" FontWeight="Medium" Text="Integrations" />
 
             <Border Classes="ContentCard" Margin="0,0,0,16">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="HWiNFO64" />
-                    <TextBlock Classes="CardSubtitle" Text="Share fan speed, battery temperature etc. with HWiNFO64. You may need to restart HWiNFO64 after changing this option." />
-                    <ToggleSwitch IsChecked="{Binding IsHWiNFOEnabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="HWiNFO64" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Share fan speed, battery temperature etc. with HWiNFO64. You may need to restart HWiNFO64 after changing this option." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsHWiNFOEnabled, Mode=TwoWay}"
                                   Command="{Binding SetHWiNFOCommand}"
                                   CommandParameter="{Binding IsHWiNFOEnabled}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="CLI" />
-                    <TextBlock Classes="CardSubtitle" Text="Enable Command Line Interface that allows control from command line." />
-                    <ToggleSwitch IsChecked="{Binding IsCliEnabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="CLI" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Enable Command Line Interface that allows control from command line." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsCliEnabled, Mode=TwoWay}"
                                   Command="{Binding SetCliCommand}"
                                   CommandParameter="{Binding IsCliEnabled}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <StackPanel Spacing="8">
-                    <TextBlock Classes="CardTitle" Text="Add CLI to PATH" />
-                    <TextBlock Classes="CardSubtitle" Text="Add CLI to user's PATH environment variable." />
-                    <ToggleSwitch IsChecked="{Binding IsCliPathEnabled, Mode=TwoWay}"
+                <Grid ColumnDefinitions="*,Auto">
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                        <TextBlock Classes="CardTitle" Text="Add CLI to PATH" />
+                        <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Add CLI to user's PATH environment variable." />
+                    </StackPanel>
+                    <ToggleSwitch Grid.Column="1" VerticalAlignment="Center"
+                                  IsChecked="{Binding IsCliPathEnabled, Mode=TwoWay}"
                                   Command="{Binding SetCliPathCommand}"
                                   CommandParameter="{Binding IsCliPathEnabled}"
                                   OnContent="On" OffContent="Off" />
-                </StackPanel>
+                </Grid>
             </Border>
 
         </StackPanel>
