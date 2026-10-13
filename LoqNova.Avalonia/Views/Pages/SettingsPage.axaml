@@ -59,12 +59,13 @@
             </Border>
 
             <Border Classes="ContentCard" Margin="0,0,0,8">
-                <Grid ColumnDefinitions="*,Auto">
-                    <StackPanel Grid.Column="0" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
+                <Grid ColumnDefinitions="Auto,*,Auto">
+                    <PathIcon Grid.Column="0" Classes="CardIcon" Data="{x:Static icons:IconGeometries.Theme}" />
+                    <StackPanel Grid.Column="1" Margin="0,0,16,0" VerticalAlignment="Center" Spacing="2">
                         <TextBlock Classes="CardTitle" Text="Theme" />
                         <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Set light theme, dark theme or follow system settings." />
                     </StackPanel>
-                    <ComboBox Grid.Column="1" MinWidth="160" VerticalAlignment="Center"
+                    <ComboBox Grid.Column="2" MinWidth="160" VerticalAlignment="Center"
                               ItemsSource="{Binding Themes}"
                               SelectedValue="{Binding Theme, Mode=TwoWay}"
                               SelectedValueBinding="{Binding Value}">
