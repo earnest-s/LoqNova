@@ -47,6 +47,13 @@ public static class IconGeometries
     public static Geometry Maximize { get; } = P("M4.5 4.5h15v15h-15z");
     public static Geometry Close { get; } = P("M6.4 5 L12 10.6 L17.6 5 L19 6.4 L13.4 12 L19 17.6 L17.6 19 L12 13.4 L6.4 19 L5 17.6 L10.6 12 L5 6.4 Z");
 
+    // ---- Card actions ----
+    // Trailing affordances for the clickable "CardAction" rows, mirroring WPF's
+    // Wpf.Ui CardAction (a heading plus a chevron) and the Control Panel card's
+    // "Open24" symbol.
+    public static Geometry ChevronRight { get; } = P("M9.3 5 L10.9 5 L16.7 12 L10.9 19 L9.3 19 L15.1 12 Z");
+    public static Geometry OpenExternal { get; } = P("M14 3 L21 3 L21 10 L19 10 L19 6.41 L11.41 14 L10 12.59 L17.59 5 L14 5 Z M5 5 L13 5 L13 7 L7 7 L7 19 L19 19 L19 13 L21 13 L21 21 L5 21 Z");
+
     /// <summary>Name based lookup used by <c>IconNameToGeometryConverter</c>.</summary>
     public static IReadOnlyDictionary<string, Geometry> ByName { get; } =
         new Dictionary<string, Geometry>(StringComparer.OrdinalIgnoreCase)
@@ -77,7 +84,9 @@ public static class IconGeometries
             ["Flash"] = Flash,
             ["Badge"] = Badge,
             ["UsbC"] = UsbC,
-            ["SpeedHigh"] = SpeedHigh
+            ["SpeedHigh"] = SpeedHigh,
+            ["ChevronRight"] = ChevronRight,
+            ["OpenExternal"] = OpenExternal
         };
 
     private static Geometry P(string data) => StreamGeometry.Parse(data);
