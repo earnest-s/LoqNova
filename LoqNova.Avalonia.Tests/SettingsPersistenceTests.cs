@@ -60,6 +60,22 @@ public class SettingsPersistenceTests
             ?? throw new InvalidOperationException("_applicationSettings field not found on SettingsViewModel.");
         field.SetValue(vm, settings);
 
+        // Mirror what RefreshAsync does on navigation: push the store values into the bound
+        // properties while the refresh guard is set. Without this the view model would still
+        // be at its C# field defaults (e.g. MinimizeToTray == false while the store says
+        // true), and a first "edit" to a value equal to the field default would be a no-op.
+        var refreshing = typeof(SettingsViewModel)
+            .GetField("_isRefreshing", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        refreshing.SetValue(vm, true);
+        vm.TemperatureUnit = settings.Store.TemperatureUnit;
+        vm.MinimizeToTray = settings.Store.MinimizeToTray;
+        vm.MinimizeOnClose = settings.Store.MinimizeOnClose;
+        vm.SyncBrightnessToAllPowerPlans = settings.Store.SynchronizeBrightnessToAllPowerPlans;
+        vm.SmartFnLockFlags = settings.Store.SmartFnLockFlags;
+        vm.IsResetBatterySinceEnabled = settings.Store.ResetBatteryOnSinceTimerOnReboot;
+        vm.PowerModeMappingMode = settings.Store.PowerModeMappingMode;
+        refreshing.SetValue(vm, false);
+
         return (vm, settings, path);
     }
 
