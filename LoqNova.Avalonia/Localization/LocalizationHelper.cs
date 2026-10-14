@@ -97,21 +97,30 @@ public static class LocalizationHelper
     /// Applies the persisted language, if any. If the file is missing or holds an
     /// unknown culture the default is used, which matches WPF writing the default back
     /// on first run rather than leaving the language unset.
+    ///
+    /// Deliberately synchronous: Avalonia's classic desktop lifetime only shows a
+    /// <c>MainWindow</c> that was assigned before its main loop started, so the startup
+    /// path must not await between building the container and assigning the window. The
+    /// file holds a single culture name, so the read is trivially cheap — WPF reads it
+    /// the same way at startup.
     /// </summary>
-    public static async Task LoadLanguageAsync()
+    public static void LoadLanguage()
     {
-        var culture = await GetLanguageFromFileAsync() ?? DefaultLanguage;
-        SetLanguageInternal(culture);
+        SetLanguageInternal(GetLanguageFromFile() ?? DefaultLanguage);
     }
 
-    private static async Task<CultureInfo?> GetLanguageFromFileAsync()
+    private static CultureInfo? GetLanguageFromFile()
     {
         try
         {
             if (!File.Exists(LanguagePath))
                 return null;
 
-            var name = await File.ReadAllTextAsync(LanguagePath);
+            var name = File.ReadAllText(LanguagePath).Trim();
+
+            if (string.IsNullOrEmpty(name))
+                return null;
+
             var culture = new CultureInfo(name);
 
             // Only accept a culture the app actually offers, the same validation WPF

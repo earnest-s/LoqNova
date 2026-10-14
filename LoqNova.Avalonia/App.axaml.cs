@@ -181,7 +181,13 @@ public partial class App : Application
         // Apply the persisted language before any dialog or resource lookup happens.
         // WPF does the same: the culture is loaded from the shared "lang" file at
         // startup, falling back to English when the file is missing or unknown.
-        await LocalizationHelper.LoadLanguageAsync();
+        //
+        // Synchronous on purpose. Avalonia's classic desktop lifetime only shows a
+        // MainWindow that was assigned before its main loop started, so awaiting here
+        // would return from OnFrameworkInitializationCompleted before the window
+        // existed and the process would come up with no visible UI at all. See
+        // LocalizationHelper.LoadLanguage for why the read is not asynchronous.
+        LocalizationHelper.LoadLanguage();
         
         // The theme is applied after the shared library container is ready, because
         // reading the persisted theme goes through ISettingsService, which resolves
@@ -277,10 +283,29 @@ public partial class App : Application
             // up the HWiNFO shared-memory integration and the command-line IPC server
             // when their persisted switches are on. The automation engine is already
             // initialised above, which the IPC server depends on.
-            await LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Integrations.HWiNFOIntegration>()
-                .StartStopIfNeededAsync();
-            await LoqNova.Lib.IoCContainer.Resolve<CLI.IpcServer>()
-                .StartStopIfNeededAsync();
+            //
+            // Each is guarded on its own. Unlike WPF, the shell window already exists at
+            // this point, so a native/pipe failure here must not abort the rest of the
+            // startup (macro hook, first navigation) and leave an empty window.
+            try
+            {
+                await LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Integrations.HWiNFOIntegration>()
+                    .StartStopIfNeededAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"HWiNFO integration start failed: {ex}");
+            }
+
+            try
+            {
+                await LoqNova.Lib.IoCContainer.Resolve<CLI.IpcServer>()
+                    .StartStopIfNeededAsync();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"IPC server start failed: {ex}");
+            }
 
             // The macro keyboard hook, once for the application lifetime. WPF does this
             // in App.xaml.cs InitMacroController, which resolves the controller and
