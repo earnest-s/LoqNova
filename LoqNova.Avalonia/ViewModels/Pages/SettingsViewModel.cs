@@ -185,9 +185,12 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
     private void BuildOptions()
     {
-        foreach (var value in Enum.GetValues<Theme>())
+        // The combo box binds SelectedValue to the page's AppTheme property, so the
+        // option values must be AppTheme too (the labels still come from Lib's Theme
+        // display names, so they match WPF exactly).
+        foreach (var value in Enum.GetValues<AppTheme>())
         {
-            Themes.Add(new ThemeOption(value, value.GetDisplayName()));
+            Themes.Add(new ThemeOption(value, MapLibTheme(value).GetDisplayName()));
         }
 
         foreach (var value in Enum.GetValues<TemperatureUnit>())
@@ -908,7 +911,7 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     };
 }
 
-public sealed record ThemeOption(Theme Value, string Label);
+public sealed record ThemeOption(AppTheme Value, string Label);
 
 public sealed record TemperatureUnitOption(TemperatureUnit Value, string Label);
 
