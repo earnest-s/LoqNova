@@ -811,12 +811,12 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
     }
 
     /// <summary>
-    /// WPF also starts or stops its CLI IPC server here. That server is a WPF-only type
-    /// (<c>LoqNova.WPF.CLI.IpcServer</c>) with no Avalonia counterpart, so this persists
-    /// the real setting but cannot host the server.
+    /// Starts or stops the command-line IPC server, exactly as WPF's
+    /// <c>CLIInterfaceToggle_Click</c> does. The server lives in the shared container,
+    /// so the instance started at launch is the same one toggled here.
     /// </summary>
     [RelayCommand]
-    private void SetCli(bool enabled)
+    private async Task SetCliAsync(bool enabled)
     {
         if (_isRefreshing || _integrationsSettings is null)
         {
@@ -825,6 +825,11 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
 
         _integrationsSettings.Store.CLI = enabled;
         _integrationsSettings.SynchronizeStore();
+
+        if (IoCContainer.TryResolve<LoqNova.Avalonia.CLI.IpcServer>() is { } ipcServer)
+        {
+            await ipcServer.StartStopIfNeededAsync().ConfigureAwait(false);
+        }
     }
 
     [RelayCommand]

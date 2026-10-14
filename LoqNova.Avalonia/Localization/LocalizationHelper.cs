@@ -2,20 +2,31 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Globalization;
+using System.IO;
 using System.Resources;
+using System.Threading;
 using System.Threading.Tasks;
+using LoqNova.Lib.Utils;
 
 namespace LoqNova.Avalonia.Localization;
 
 public static class LocalizationHelper
 {
     private static ResourceManager? _resourceManager;
-    private static CultureInfo _currentCulture = CultureInfo.GetCultureInfo("en-US");
-    
+
+    /// <summary>
+    /// WPF keeps the chosen UI culture in a small <c>lang</c> file under the app-data
+    /// folder and applies it on every launch. The same file is reused here so the two
+    /// front ends share one persisted language and neither resets the other's choice.
+    /// </summary>
+    private static readonly string LanguagePath = Path.Combine(Folders.AppData, "lang");
+
+    private static CultureInfo _currentCulture = CultureInfo.GetCultureInfo("en");
+
     public static CultureInfo CurrentCulture => _currentCulture;
 
     /// <summary>The culture the app falls back to.</summary>
-    private static readonly CultureInfo DefaultLanguage = CultureInfo.GetCultureInfo("en-US");
+    private static readonly CultureInfo DefaultLanguage = CultureInfo.GetCultureInfo("en");
 
     /// <summary>
     /// The languages the Settings page offers. Mirrors the list in WPF's
@@ -76,17 +87,94 @@ public static class LocalizationHelper
             ? "Karakalpak"
             : CultureInfo.InvariantCulture.TextInfo.ToTitleCase(name);
     }
-    
+
     public static void Initialize()
     {
         _resourceManager = new ResourceManager("LoqNova.Avalonia.Localization.Resource", typeof(LocalizationHelper).Assembly);
     }
-    
+
+    /// <summary>
+    /// Applies the persisted language, if any. If the file is missing or holds an
+    /// unknown culture the default is used, which matches WPF writing the default back
+    /// on first run rather than leaving the language unset.
+    /// </summary>
+    public static async Task LoadLanguageAsync()
+    {
+        var culture = await GetLanguageFromFileAsync() ?? DefaultLanguage;
+        SetLanguageInternal(culture);
+    }
+
+    private static async Task<CultureInfo?> GetLanguageFromFileAsync()
+    {
+        try
+        {
+            if (!File.Exists(LanguagePath))
+                return null;
+
+            var name = await File.ReadAllTextAsync(LanguagePath);
+            var culture = new CultureInfo(name);
+
+            // Only accept a culture the app actually offers, the same validation WPF
+            // performs; anything else falls back to the default.
+            return Languages.Contains(culture) ? culture : null;
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    /// <summary>
+    /// Persists and applies a language, mirroring WPF's
+    /// <c>LocalizationHelper.SetLanguageAsync(CultureInfo)</c>: the culture name is
+    /// written to the shared <c>lang</c> file and then applied to the process.
+    /// </summary>
+    public static async Task SetLanguageAsync(string languageCode)
+    {
+        CultureInfo culture;
+
+        try
+        {
+            culture = CultureInfo.GetCultureInfo(languageCode);
+        }
+        catch
+        {
+            culture = DefaultLanguage;
+        }
+
+        SetLanguageInternal(culture);
+
+        try
+        {
+            await File.WriteAllTextAsync(LanguagePath, culture.Name);
+        }
+        catch
+        {
+            // A failed write must not leave the in-memory language unapplied; the
+            // change simply is not persisted, which the caller cannot recover from.
+        }
+    }
+
+    private static void SetLanguageInternal(CultureInfo culture)
+    {
+        _currentCulture = culture;
+
+        // WPF keeps formatting English and only switches the UI culture, so dates and
+        // numbers stay stable while the resource lookups follow the chosen language.
+        var formatting = CultureInfo.GetCultureInfo("en");
+        CultureInfo.DefaultThreadCurrentCulture = formatting;
+        CultureInfo.DefaultThreadCurrentUICulture = culture;
+
+        var thread = Thread.CurrentThread;
+        thread.CurrentCulture = formatting;
+        thread.CurrentUICulture = culture;
+    }
+
     public static string GetString(string key)
     {
         if (_resourceManager == null)
             return key;
-        
+
         try
         {
             var value = _resourceManager.GetString(key, _currentCulture);
@@ -97,19 +185,6 @@ public static class LocalizationHelper
             return key;
         }
     }
-    
-    public static Task SetLanguageAsync(string languageCode)
-    {
-        try
-        {
-            _currentCulture = CultureInfo.GetCultureInfo(languageCode);
-        }
-        catch
-        {
-            _currentCulture = CultureInfo.GetCultureInfo("en-US");
-        }
-        return Task.CompletedTask;
-    }
-    
+
     public static string T(string key) => GetString(key);
 }

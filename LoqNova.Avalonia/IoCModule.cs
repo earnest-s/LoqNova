@@ -19,5 +19,11 @@ public class IoCModule : Module
         builder.RegisterType<ScreenCapture>()
                .As<LoqNova.Lib.Controllers.SpectrumKeyboardBacklightController.IScreenCapture>()
                .SingleInstance();
+
+        // The command-line IPC server is registered in the shared container, exactly
+        // as WPF registers its own in LoqNova.WPF/IoCModule.cs. It depends on library
+        // singletons (the automation processor and the two keyboard controllers), so
+        // it belongs here rather than in the Avalonia-only container.
+        builder.Register<CLI.IpcServer>();
     }
 }

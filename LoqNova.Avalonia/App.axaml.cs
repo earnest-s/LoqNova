@@ -177,6 +177,11 @@ public partial class App : Application
         
         // Initialize localization
         LocalizationHelper.Initialize();
+
+        // Apply the persisted language before any dialog or resource lookup happens.
+        // WPF does the same: the culture is loaded from the shared "lang" file at
+        // startup, falling back to English when the file is missing or unknown.
+        await LocalizationHelper.LoadLanguageAsync();
         
         // The theme is applied after the shared library container is ready, because
         // reading the persisted theme goes through ISettingsService, which resolves
@@ -268,6 +273,15 @@ public partial class App : Application
             LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Automation.AutomationProcessor>()
                 .RunOnStartup();
 
+            // Matches WPF's App startup (InitHWiNFOIntegrationAsync / IpcServer): bring
+            // up the HWiNFO shared-memory integration and the command-line IPC server
+            // when their persisted switches are on. The automation engine is already
+            // initialised above, which the IPC server depends on.
+            await LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Integrations.HWiNFOIntegration>()
+                .StartStopIfNeededAsync();
+            await LoqNova.Lib.IoCContainer.Resolve<CLI.IpcServer>()
+                .StartStopIfNeededAsync();
+
             // The macro keyboard hook, once for the application lifetime. WPF does this
             // in App.xaml.cs InitMacroController, which resolves the controller and
             // calls Start(); without it WH_KEYBOARD_LL is never installed and physical
@@ -324,6 +338,29 @@ public partial class App : Application
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Macro hook shutdown failed: {ex}");
+        }
+
+        // WPF stops the command-line IPC server and the HWiNFO integration in its
+        // shutdown list. The server holds a named pipe and a background loop, so it
+        // must not outlive the process.
+        try
+        {
+            if (LoqNova.Lib.IoCContainer.TryResolve<CLI.IpcServer>() is { } ipcServer)
+                await ipcServer.StopAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"IPC server shutdown failed: {ex}");
+        }
+
+        try
+        {
+            if (LoqNova.Lib.IoCContainer.TryResolve<LoqNova.Lib.Integrations.HWiNFOIntegration>() is { } hwinfo)
+                await hwinfo.StopAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"HWiNFO integration shutdown failed: {ex}");
         }
     }
 }
