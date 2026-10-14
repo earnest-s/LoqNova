@@ -253,24 +253,30 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
             var accentSource = store.AccentColorSource;
             var accentColor = ParseAccentColor(_themeService.CurrentAccentColor);
 
-            var autorunState = Autorun.State;
+            // WPF assigns the file-backed settings before it touches any hardware/OS probe,
+            // so a failing probe can never stop the user's own settings from being shown.
+            // Keep that guarantee: every probe below is fault-tolerant and falls back to a
+            // safe value, otherwise a single WMI/software-disabler failure would leave the
+            // whole page at its view-model defaults (so the page would disagree with the
+            // store and later writes could become no-ops).
+            var autorunState = TryRead(() => Autorun.State, AutorunState.Disabled, "Autorun state");
             var minimizeToTray = store.MinimizeToTray;
             var minimizeOnClose = store.MinimizeOnClose;
 
-            var vantageStatus = await _vantageDisabler.GetStatusAsync().ConfigureAwait(false);
-            var legionZoneStatus = await _legionZoneDisabler.GetStatusAsync().ConfigureAwait(false);
-            var fnKeysStatus = await _fnKeysDisabler.GetStatusAsync().ConfigureAwait(false);
+            var vantageStatus = await TryReadAsync(_vantageDisabler.GetStatusAsync, SoftwareStatus.NotFound, "Vantage status").ConfigureAwait(false);
+            var legionZoneStatus = await TryReadAsync(_legionZoneDisabler.GetStatusAsync, SoftwareStatus.NotFound, "Legion Zone status").ConfigureAwait(false);
+            var fnKeysStatus = await TryReadAsync(_fnKeysDisabler.GetStatusAsync, SoftwareStatus.NotFound, "Lenovo hotkeys status").ConfigureAwait(false);
 
             var smartFnLockFlags = store.SmartFnLockFlags;
             var syncBrightness = store.SynchronizeBrightnessToAllPowerPlans;
             var resetBatterySince = store.ResetBatteryOnSinceTimerOnReboot;
-            var bootLogoSupported = await BootLogo.IsSupportedAsync().ConfigureAwait(false);
-            var godMode = await ReadGodModeFnQAsync().ConfigureAwait(false);
+            var bootLogoSupported = await TryReadAsync(BootLogo.IsSupportedAsync, false, "Boot logo support").ConfigureAwait(false);
+            var godMode = await TryReadAsync(ReadGodModeFnQAsync, (Supported: false, Enabled: false), "GodMode Fn+Q status").ConfigureAwait(false);
             var powerModeMappingMode = store.PowerModeMappingMode;
-            var powerModeSupported = await _powerModeFeature.IsSupportedAsync().ConfigureAwait(false);
+            var powerModeSupported = await TryReadAsync(_powerModeFeature.IsSupportedAsync, false, "Power mode support").ConfigureAwait(false);
             var hwinfo = _integrationsSettings.Store.HWiNFO;
             var cli = _integrationsSettings.Store.CLI;
-            var cliPath = SystemPath.HasCLI();
+            var cliPath = TryRead(() => SystemPath.HasCLI(), false, "CLI PATH check");
 
             await _dispatcher.InvokeAsync(() =>
             {
@@ -325,6 +331,37 @@ public partial class SettingsViewModel : ViewModelBase, INavigationAware
         finally
         {
             _isRefreshing = false;
+        }
+    }
+
+    /// <summary>
+    /// Runs a hardware/OS probe that is allowed to fail. WPF reads these same values and
+    /// lets an exception escape (breaking the whole refresh); Avalonia traps each one so a
+    /// missing device or unavailable service only hides its own card instead of the page.
+    /// </summary>
+    private static async Task<T> TryReadAsync<T>(Func<Task<T>> read, T fallback, string what)
+    {
+        try
+        {
+            return await read().ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"{what} could not be read: {ex}");
+            return fallback;
+        }
+    }
+
+    private static T TryRead<T>(Func<T> read, T fallback, string what)
+    {
+        try
+        {
+            return read();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"{what} could not be read: {ex}");
+            return fallback;
         }
     }
 
