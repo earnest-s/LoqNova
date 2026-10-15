@@ -216,7 +216,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Smart Fn Lock" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="When on, same brightness level will be applied to all Windows power plans whenever you change it." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Fn Lock will be temporarily disabled when Alt, Ctrl or Shift key is depressed." />
                         </StackPanel>
                         <ComboBox Grid.Column="1" Classes="Control SettingControl"
                                   ItemsSource="{Binding SmartFnLockOptions}"
