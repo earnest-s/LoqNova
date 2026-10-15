@@ -130,6 +130,33 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private double _gpuMemoryClockRatio;
     [ObservableProperty] private double _gpuFanSpeedRatio;
 
+    /// <summary>
+    /// Restrained qualitative state for the CPU fan, derived only from the value
+    /// and maximum the machine reports - the same ratio the analog dial draws.
+    /// It is empty when the channel is unreported, so the view hides the label
+    /// instead of showing a state that was never measured.
+    /// </summary>
+    public string CpuFanStateText => FanStateText(CpuFanSpeed, CpuMaxFanSpeed);
+
+    /// <summary>Restrained qualitative state for the GPU fan, same rules as the CPU fan.</summary>
+    public string GpuFanStateText => FanStateText(GpuFanSpeed, GpuMaxFanSpeed);
+
+    private static string FanStateText(int value, int maximum)
+    {
+        if (value < 0 || maximum <= 0)
+        {
+            return string.Empty;
+        }
+
+        return Math.Clamp((double)value / maximum, 0d, 1d) switch
+        {
+            <= 0d => "Idle",
+            < 0.45d => "Low",
+            < 0.8d => "Medium",
+            _ => "High"
+        };
+    }
+
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuUtilizationMetric = New("CPU", "%", "SensorCpuBrush", "Cpu");
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuCoreClockMetric = New("CPU CLOCK", "MHz", "SensorCpuBrush", "Cpu");
     private readonly LoqNova.Avalonia.ViewModels.Controls.SensorMetricViewModel _cpuTemperatureMetric = New("CPU TEMP", "°C", "SensorTempBrush", "Thermometer");
