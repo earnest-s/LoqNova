@@ -146,8 +146,9 @@ public class AnalogFanControl : AnimatedGauge
 
         context.DrawGeometry(null, new Pen(strongBrush, 1.4), _ticksMajor);
 
-        // Speed scale, drawn only from what the machine reports: with no reported
-        // maximum there is no scale to place the reading on and no arc is drawn.
+        // Speed scale track, with the reported-speed arc drawn on top of it. The
+        // track is the dial's own scale; the arc exists only where the machine
+        // reports a speed and a maximum to place it on.
         context.DrawGeometry(null, new Pen(trackBrush, _arcThickness, null, PenLineCap.Round), _trackArc);
 
         var ratio = VisualRatio();
