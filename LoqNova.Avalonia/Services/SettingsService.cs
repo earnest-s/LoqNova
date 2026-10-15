@@ -51,7 +51,6 @@ public class SettingsService : ISettingsService
         }
     }
 
-    public string Language { get; set; } = "en";
     public bool TemperatureUnitFahrenheit
     {
         get => Settings.Store.TemperatureUnit == LoqNova.Lib.TemperatureUnit.F;
@@ -63,7 +62,6 @@ public class SettingsService : ISettingsService
         }
     }
 
-    public bool AutorunEnabled { get; set; } = false;
     public bool MinimizeToTray
     {
         get => Settings.Store.MinimizeToTray;
@@ -86,14 +84,6 @@ public class SettingsService : ISettingsService
         }
     }
 
-    public bool VantageDisabled { get; set; } = false;
-    public bool LegionZoneDisabled { get; set; } = false;
-    public bool FnKeysDisabled { get; set; } = false;
-    public bool SmartFnLockEnabled { get; set; } = false;
-    public int SmartFnLockModifierKey { get; set; } = 0;
-    public string SmartKeySinglePressAction { get; set; } = "";
-    public string SmartKeyDoublePressAction { get; set; } = "";
-    public bool GodModeFnQSwitchable { get; set; } = false;
     public bool NotificationsEnabled 
     { 
         get => !Settings.Store.DontShowNotifications;
@@ -105,9 +95,6 @@ public class SettingsService : ISettingsService
         }
     }
     
-    public bool CliEnabled { get; set; } = false;
-    public bool HwInfoEnabled { get; set; } = false;
-    public string HwInfoSharedMemoryPath { get; set; } = "";
     public bool SyncBrightnessToAllPowerPlans
     {
         get => Settings.Store.SynchronizeBrightnessToAllPowerPlans;
