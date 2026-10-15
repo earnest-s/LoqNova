@@ -189,6 +189,15 @@ public class ClusterGauge : AnimatedGauge
 
         context.DrawGeometry(null, new Pen(strongBrush, 1.4), _ticksMajor);
 
+        // Redline: the top of the scale, drawn on the scale itself rather than
+        // over the accent arc, so the needle and the reported-reading arc keep
+        // the channel colour while the red zone stays unmistakable. The band sits
+        // flush under the tick run and the red ticks are the same geometry as the
+        // grey ones, so the zone stays aligned to the scale and its tick marks.
+        context.DrawGeometry(null, new Pen(dangerBrush, _redlineThickness), _redlineArc);
+        context.DrawGeometry(null, new Pen(dangerBrush, 1), _redlineTicksMinor);
+        context.DrawGeometry(null, new Pen(dangerBrush, 1.4), _redlineTicksMajor);
+
         // Graduated arc: a muted scale track carrying the reported reading.
         context.DrawGeometry(null, new Pen(trackBrush, _arcThickness, null, PenLineCap.Round), _trackArc);
 
