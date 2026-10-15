@@ -328,7 +328,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Switch to Custom Mode with Fn+Q" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Switch straight to Custom Mode when Fn+Q is pressed." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Allow quick switching to Custom Mode with Fn+Q." />
                         </StackPanel>
                         <ToggleSwitch Grid.Column="1" Classes="Control SettingControl"
                                       IsChecked="{Binding IsGodModeFnQEnabled, Mode=TwoWay}"
@@ -345,7 +345,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Power Mode Synchronization" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Keep the Windows power mode or power plan in step with the LOQ Nova power mode." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Automatically change Windows Power Plan or Windows Power Mode when changing Power Modes." />
                         </StackPanel>
                         <ComboBox Grid.Column="1" Classes="Control SettingControl"
                                   ItemsSource="{Binding PowerModeMappingOptions}"
@@ -366,7 +366,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Windows Power Modes" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Choose the Windows power mode applied for each LOQ Nova power mode." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Select Windows Power Mode to apply when Power Mode changes." />
                         </StackPanel>
                         <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
                     </Grid>
@@ -378,7 +378,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Windows Power Plans" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Choose the Windows power plan applied for each LOQ Nova power mode." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Select Windows Power Plans to apply when Power Mode changes." />
                         </StackPanel>
                         <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
                     </Grid>
@@ -401,7 +401,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Reset &quot;On battery since&quot; at startup" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Start the battery timer again every time the app launches." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Resets the counter for &quot;On battery since&quot; in the battery section when the system reboots." />
                         </StackPanel>
                         <ToggleSwitch Grid.Column="1" Classes="Control SettingControl"
                                       IsChecked="{Binding IsResetBatterySinceEnabled, Mode=TwoWay}"
@@ -418,7 +418,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="HWiNFO64" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Publish fan speed, battery temperature and other readings to HWiNFO64." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Share fan speed, battery temperature etc. with HWiNFO64. You may need to restart HWiNFO64 after changing this option." />
                         </StackPanel>
                         <ToggleSwitch Grid.Column="1" Classes="Control SettingControl"
                                       IsChecked="{Binding IsHWiNFOEnabled, Mode=TwoWay}"
