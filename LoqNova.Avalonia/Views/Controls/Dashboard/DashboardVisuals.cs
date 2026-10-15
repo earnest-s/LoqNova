@@ -180,6 +180,33 @@ internal static class DashboardVisuals
     }
 
     /// <summary>
+    /// Text drawn with the application typeface at an exact size, for callers
+    /// that already know the text fits - including the eased count-up, which uses
+    /// it so its digits carry the very metrics of the reading they are counting
+    /// up to.
+    /// </summary>
+    public static FormattedText Text(string text, Typeface typeface, double size, IBrush brush)
+        => new(text, CultureInfo.CurrentCulture, FlowDirection.LeftToRight, typeface, size, brush);
+
+    /// <summary>
+    /// The size <see cref="FittedText"/> settles on for a text: the preferred
+    /// size, scaled down until the text fits the allowed width. Exposed so a
+    /// caller can draw a different string at exactly the same size.
+    /// </summary>
+    public static double FittedSize(
+        string text, Typeface typeface, double preferredSize, double minimumSize, double maxWidth)
+    {
+        var size = Math.Max(minimumSize, preferredSize);
+        var measured = Text(text, typeface, size, Brushes.Transparent);
+        if (measured.Width <= maxWidth || measured.Width <= 0)
+        {
+            return size;
+        }
+
+        return Math.Max(minimumSize, preferredSize * (maxWidth / measured.Width));
+    }
+
+    /// <summary>
     /// Text scaled down until it fits the allowed width, so a long reading never
     /// overflows the hub or dial it is drawn inside.
     /// </summary>
@@ -190,19 +217,7 @@ internal static class DashboardVisuals
         double minimumSize,
         double maxWidth,
         IBrush brush)
-    {
-        var formatted = new FormattedText(text, CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight, typeface, Math.Max(minimumSize, preferredSize), brush);
-
-        if (formatted.Width > maxWidth && formatted.Width > 0)
-        {
-            var size = Math.Max(minimumSize, preferredSize * (maxWidth / formatted.Width));
-            formatted = new FormattedText(text, CultureInfo.CurrentCulture,
-                FlowDirection.LeftToRight, typeface, size, brush);
-        }
-
-        return formatted;
-    }
+        => Text(text, typeface, FittedSize(text, typeface, preferredSize, minimumSize, maxWidth), brush);
 
     /// <summary>Draws text centred on a point, with an optional vertical nudge.</summary>
     public static void DrawCentred(DrawingContext context, FormattedText text, Point center, double dy = 0)

@@ -227,17 +227,21 @@ public class ClusterGauge : AnimatedGauge
             }
         }
 
-        // Digital hub. The text is the reported reading, never the eased one.
+        // Digital hub. The text is the reported reading, or the eased count-up
+        // while the opening sweep is still running. The count-up is drawn at the
+        // size the finished reading resolves to, so the digits do not change size
+        // as the sweep lands.
         context.DrawEllipse(
             DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
             new Pen(strongBrush, 1),
             center, _hubRadius, _hubRadius);
 
-        var value = DashboardVisuals.FittedText(
-            IsStartupSweeping
-                ? DashboardVisuals.CountUp(ValueText, StartupSweepPhase)
-                : ValueText ?? "-",
-            typeface, _hubRadius * 0.95, 10.0, _hubRadius * 1.5, valueBrush);
+        var reading = ValueText ?? "-";
+        var value = DashboardVisuals.Text(
+            IsStartupSweeping ? DashboardVisuals.CountUp(reading, StartupSweepPhase) : reading,
+            typeface,
+            DashboardVisuals.FittedSize(reading, typeface, _hubRadius * 0.95, 10.0, _hubRadius * 1.5),
+            valueBrush);
         DashboardVisuals.DrawCentred(context, value, center, -_hubRadius * 0.24);
 
         // The unit only means something next to a reading the machine reported.
