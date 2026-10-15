@@ -189,7 +189,7 @@ public class AnalogFanControl : Control
         // Blades, alternating in weight so the rotation reads clearly.
         var rotation = Matrix.CreateRotation(_angle * Math.PI / 180.0)
             * Matrix.CreateTranslation(center.X, center.Y);
-        var bladePen = new Pen(new SolidColorBrush(Color.FromArgb(0x38, 0, 0, 0)), 1);
+        var bladePen = new Pen(lineBrush, 1);
         using (context.PushTransform(rotation))
         {
             context.DrawGeometry(accentBrush, bladePen, _bladesEven);
