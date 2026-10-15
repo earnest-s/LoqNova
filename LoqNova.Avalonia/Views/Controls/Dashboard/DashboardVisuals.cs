@@ -109,11 +109,11 @@ internal static class DashboardVisuals
         var majorContext = major.Open();
         try
         {
-            for (var i = 0; i <= count; i++)
+            for (var i = 0; i < count; i++)
             {
                 var isMajor = i % majorEvery == 0;
                 var angle = startDegrees + sweepDegrees * i / count;
-                var from = Polar(center, Inner(isMajor, innerRadius, outerRadius), angle);
+                var from = Polar(center, isMajor ? innerRadius * 0.55 : innerRadius, angle);
                 var to = Polar(center, outerRadius, angle);
                 var context = isMajor ? majorContext : minorContext;
                 context.BeginFigure(from, false);
@@ -129,9 +129,6 @@ internal static class DashboardVisuals
 
         return (minor, major);
     }
-
-    private static double Inner(bool isMajor, double innerRadius, double outerRadius)
-        => isMajor ? innerRadius * 0.55 : innerRadius;
 
     /// <summary>
     /// Text scaled down until it fits the allowed width, so a long reading never
