@@ -150,13 +150,13 @@ public class AnalogFanControl : AnimatedGauge
         // maximum there is no scale to place the reading on and no arc is drawn.
         context.DrawGeometry(null, new Pen(trackBrush, _arcThickness, null, PenLineCap.Round), _trackArc);
 
-        var ratio = reported && MaxRpm > 0
-            ? Math.Clamp(_visualRpm / MaxRpm, 0.0, 1.0)
-            : 0.0;
+        var ratio = VisualRatio();
         if (ratio > 0.004)
         {
             if (double.IsNaN(_progressRatio) || Math.Abs(ratio - _progressRatio) > 0.0005)
             {
+                // 0.0 and 1.0 are both well defined: a full turn is a complete
+                // ring, which DashboardVisuals.Arc draws as two half turns.
                 _progressArc = DashboardVisuals.Arc(center, _arcRadius, 0.0, 360.0 * ratio);
                 _progressRatio = ratio;
             }
@@ -212,6 +212,29 @@ public class AnalogFanControl : AnimatedGauge
         var omegaDegreesPerSecond = _visualRpm / 60.0 * Math.Tau * DisplayTimeScale * (180.0 / Math.PI);
         _angle = (_angle + omegaDegreesPerSecond * seconds) % 360.0;
         return true;
+    }
+
+    /// <summary>
+    /// The reported speed as a fraction of the reported maximum, for the arc and
+    /// for nothing else - the numeric readout beside the dial always prints the
+    /// machine's own value, unreported or over the maximum included.
+    /// <para>
+    /// Every boundary is explicit. Without a reported maximum there is no scale
+    /// to place the reading on and no arc at all; at rest the arc is empty; a
+    /// reading at the maximum pins the arc to a complete ring, and one above the
+    /// maximum is clamped to that same ring rather than wrapping past it. The
+    /// mapping is linear over the whole range, so 1 RPM is a real, non-zero
+    /// fraction and the smallest change in speed is a real change in the arc.
+    /// </para>
+    /// </summary>
+    private double VisualRatio()
+    {
+        if (MaxRpm <= 0)
+        {
+            return 0.0;
+        }
+
+        return Math.Clamp(_visualRpm / MaxRpm, 0.0, 1.0);
     }
 
     /// <summary>
