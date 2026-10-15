@@ -161,11 +161,7 @@ public class TemperatureGauge : AnimatedGauge
             }
         }
 
-        context.DrawText(
-            IsStartupSweeping
-                ? DashboardVisuals.CountUp(reading, StartupSweepPhase)
-                : reading,
-            new Point(textLeft, textCenter - value.Height / 2.0));
+        context.DrawText(readout, new Point(textLeft, textCenter - value.Height / 2.0));
         if (unit.Width > 0)
         {
             context.DrawText(unit, new Point(textLeft + value.Width + UnitGap, textCenter - unit.Height / 2.0));
