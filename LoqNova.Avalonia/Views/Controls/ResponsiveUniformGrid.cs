@@ -25,6 +25,21 @@ public class ResponsiveUniformGrid : UniformGrid
         set => SetValue(ItemWidthProperty, value);
     }
 
+    public static readonly StyledProperty<int> MaxColumnsProperty =
+        AvaloniaProperty.Register<ResponsiveUniformGrid, int>(nameof(MaxColumns), int.MaxValue);
+
+    /// <summary>
+    /// Upper bound on the derived column count. A panel with a fixed, small
+    /// number of children (the two device instruments) needs this: without it a
+    /// wide window would derive more columns than there are children and leave
+    /// the surplus cells empty.
+    /// </summary>
+    public int MaxColumns
+    {
+        get => GetValue(MaxColumnsProperty);
+        set => SetValue(MaxColumnsProperty, value);
+    }
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
