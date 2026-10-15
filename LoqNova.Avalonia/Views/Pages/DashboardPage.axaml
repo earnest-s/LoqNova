@@ -296,6 +296,41 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
 
+                                <!-- Multi-state feature: options are read from the machine. -->
+                                <ComboBox Classes="Control"
+                                          IsVisible="{Binding IsChoice}"
+                                          IsEnabled="{Binding !IsBusy}"
+                                          HorizontalAlignment="Stretch"
+                                          SelectionChanged="OnWidgetSelectionChanged"
+                                          ItemsSource="{Binding Options}"
+                                          SelectedItem="{Binding SelectedState, Mode=OneWay}">
+                                    <ComboBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <!-- Library state types implementing IDisplayName supply
+                                                 their own text (Resolution, RefreshRate). -->
+                                            <TextBlock Text="{Binding Converter={StaticResource DisplayNameConverter}}" />
+                                        </DataTemplate>
+                                    </ComboBox.ItemTemplate>
+                                </ComboBox>
+
+                                <!-- Read-only state, e.g. discrete GPU status. -->
+                                <TextBlock Text="{Binding StatusText}"
+                                           Classes="WidgetValue"
+                                           IsVisible="{Binding IsStatus}" />
+
+                                <!-- WPF's dashboard cards carry a settings button
+                                     beside the control for features with a detail
+                                     window: GPU overclock here, power mode settings
+                                     on the power-mode selector above. -->
+                                <Button Classes="IconButton"
+                                        HorizontalAlignment="Left"
+                                        Margin="0,4,0,0"
+                                        ToolTip.Tip="Open the detailed settings"
+                                        IsVisible="{Binding HasSettingsDialog}"
+                                        Command="{Binding OpenSettingsCommand}">
+                                    <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
+                                </Button>
+
                                 <TextBlock Text="{Binding Warning}"
                                            Classes="WidgetWarning"
                                            IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
@@ -303,14 +338,6 @@
                                 <TextBlock Text="{Binding ErrorMessage}"
                                            Classes="WidgetError"
                                            IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
-
-                                <Button Classes="IconButton"
-                                        IsVisible="{Binding IsToggle}"
-                                        IsEnabled="{Binding !IsBusy}"
-                                        ToolTip.Tip="Open the settings for this feature"
-                                        Command="{Binding OpenSettingsCommand}">
-                                    <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
-                                </Button>
 
                                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
                                             IsVisible="{Binding HasPrimaryAction}">
