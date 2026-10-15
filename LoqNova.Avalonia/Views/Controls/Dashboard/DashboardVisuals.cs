@@ -107,6 +107,12 @@ internal static class DashboardVisuals
     /// span the full arc). Every <paramref name="majorEvery"/>-th tick is
     /// returned separately and drawn 2.6 times longer, which is what gives the
     /// scale its readable major/minor rhythm.
+    /// <para>
+    /// <paramref name="firstDivision"/> and <paramref name="lastDivision"/> can
+    /// restrict the run to a span of the same scale. The redline is drawn that
+    /// way rather than from its own start angle, so its marks land on exactly
+    /// the same angles and the same major/minor rhythm as the full run.
+    /// </para>
     /// </summary>
     public static (Geometry Minor, Geometry Major) Ticks(
         Point center,
@@ -115,16 +121,19 @@ internal static class DashboardVisuals
         int divisions,
         int majorEvery,
         double startDegrees,
-        double sweepDegrees)
+        double sweepDegrees,
+        int firstDivision = 0,
+        int lastDivision = -1)
     {
         var minor = new StreamGeometry();
         var major = new StreamGeometry();
         var minorContext = minor.Open();
         var majorContext = major.Open();
         var majorInnerRadius = innerRadius - (outerRadius - innerRadius) * 1.6;
+        var last = lastDivision < 0 ? divisions : lastDivision;
         try
         {
-            for (var i = 0; i <= divisions; i++)
+            for (var i = firstDivision; i <= last; i++)
             {
                 var isMajor = i % majorEvery == 0;
                 var angle = startDegrees + sweepDegrees * i / divisions;
