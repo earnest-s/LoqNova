@@ -75,6 +75,11 @@ public class ResponsiveUniformGrid : UniformGrid
             columns = 1;
         }
 
+        if (columns > MaxColumns)
+        {
+            columns = Math.Max(1, MaxColumns);
+        }
+
         if (columns != Columns)
         {
             Columns = columns;
