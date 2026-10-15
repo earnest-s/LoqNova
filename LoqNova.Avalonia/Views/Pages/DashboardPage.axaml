@@ -290,31 +290,13 @@
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <!-- Library state types implementing IDisplayName supply
-                                                 the name. -->
-                                            <TextBlock Text="{Binding Converter={StaticResource DisplayNameConverter}}" />
-                                        </DataTemplate>
-                                    </ComboBox.ItemTemplate>
-                                </ComboBox>
-
-                                <!-- Multi-state feature: options are read from the machine. -->
-                                <ComboBox Classes="Control"
-                                          IsVisible="{Binding IsChoice}"
-                                          IsEnabled="{Binding !IsBusy}"
-                                          HorizontalAlignment="Stretch"
-                                          SelectionChanged="OnWidgetSelectionChanged"
-                                          ItemsSource="{Binding Options}"
-                                          SelectedItem="{Binding SelectedState, Mode=OneWay}">
-                                    <ComboBox.ItemTemplate>
-                                        <DataTemplate>
-                                            <!-- Library state types implementing IDisplayName supply
                                                  their own text (Resolution, RefreshRate). -->
                                             <TextBlock Text="{Binding Converter={StaticResource DisplayNameConverter}}" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
 
-                                <!-- Read-only state, e.g. discrete GPU status. -->
-                                <TextBlock Text="{Binding StatusText}"
+                                <!-- Read-only state, e.g. discrete GPU status. -->                                <TextBlock Text="{Binding StatusText}"
                                            Classes="WidgetValue"
                                            IsVisible="{Binding IsStatus}" />
 
