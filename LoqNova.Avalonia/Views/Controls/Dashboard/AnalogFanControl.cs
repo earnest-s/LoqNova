@@ -167,7 +167,7 @@ public class AnalogFanControl : AnimatedGauge
             DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
             new Pen(strongBrush, 1),
             center, _hubRadius, _hubRadius);
-        context.DrawEllipse(accentBrush, null, center, Math.Max(1.5, _hubRadius * 0.22));
+        context.DrawEllipse(accentBrush, null, center, _hubDotRadius, _hubDotRadius);
     }
 
     protected override bool Advance(double seconds)
