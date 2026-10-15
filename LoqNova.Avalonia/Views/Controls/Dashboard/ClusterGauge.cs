@@ -155,6 +155,7 @@ public class ClusterGauge : AnimatedGauge
         var strongBrush = DashboardVisuals.Brush(this, "BorderStrongBrush", Brushes.Gray);
         var trackBrush = DashboardVisuals.Brush(this, "SurfaceRaisedBrush", Brushes.Gray);
         var mutedBrush = DashboardVisuals.Brush(this, "TextMutedBrush", Brushes.Gray);
+        var dangerBrush = DashboardVisuals.Brush(this, "DangerBrush", Brushes.Red);
         var valueBrush = reported
             ? DashboardVisuals.Brush(this, "TextPrimaryBrush", Brushes.White)
             : mutedBrush;
