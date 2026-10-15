@@ -28,9 +28,17 @@ public class ClusterGauge : AnimatedGauge
     private const double StartAngle = 210.0;
     private const double SweepAngle = 240.0;
 
-    /// <summary>24 steps of 4.17% with a major mark every six: 0/25/50/75/100.</summary>
-    private const int Divisions = 24;
-    private const int MajorTickEvery = 6;
+    /// <summary>20 steps of 5% with a major mark every five: 0/25/50/75/100.</summary>
+    private const int Divisions = 20;
+    private const int MajorTickEvery = 5;
+
+    /// <summary>
+    /// Where the redline starts, as a fraction of the scale. The top fifth - 80%
+    /// utilisation and above - is where a machine is working hard enough for it
+    /// to matter at a glance. It lands on tick sixteen of twenty, so the red zone
+    /// sits exactly on the tick run instead of near it.
+    /// </summary>
+    private const double RedlineStartFraction = 0.80;
 
     /// <summary>Time constant for the needle's approach to a new reading.</summary>
     private const double EaseSeconds = 0.18;
