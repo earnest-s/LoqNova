@@ -139,6 +139,10 @@
                                     <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding CpuCoreClockText}" />
                                 </Grid>
                                 <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Maximum clock" />
+                                    <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding CpuCoreClockMaxText}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Temperature" />
                                     <StackPanel Grid.Column="1" Orientation="Horizontal"
                                                 Spacing="{StaticResource SpaceXs}"
