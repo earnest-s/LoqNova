@@ -379,7 +379,6 @@ public partial class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>Mirrors the readings into the metric cards the sensors panel renders.</summary>
-    /// <summary>Mirrors the readings into the metric cards the sensors panel renders.</summary>
     private void PublishMetrics()
     {
         // WPF's GetTemperatureText converts Celsius to Fahrenheit when the user picked °F,
