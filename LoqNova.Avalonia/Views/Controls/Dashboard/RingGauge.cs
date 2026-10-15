@@ -30,12 +30,6 @@ public class RingGauge : Control
     /// <summary>Time constant for the needle's approach to a new reading.</summary>
     private const double EaseSeconds = 0.16;
 
-    [Flags]
-    private enum Reserved
-    {
-        None = 0
-    }
-
     /// <summary>Reported reading; -1 means the machine did not report the channel.</summary>
     public static readonly StyledProperty<int> ValueProperty =
         AvaloniaProperty.Register<RingGauge, int>(nameof(Value), -1);
@@ -95,7 +89,6 @@ public class RingGauge : Control
     private double _targetRatio;
 
     // Geometry cache, rebuilt only when the control is resized.
-    private Point _center;
     private double _ringRadius;
     private double _thickness;
     private double _contentRadius;
