@@ -91,13 +91,13 @@ public class AnalogFanControl : Control
     private double _ringRadius;
     private double _ringThickness;
     private double _hubRadius;
-    private Geometry? _bladesEven;
-    private Geometry? _bladesOdd;
-    private Geometry? _ticksMinor;
-    private Geometry? _ticksMajor;
-    private Geometry? _trackArc;
+    private Geometry _bladesEven = new StreamGeometry();
+    private Geometry _bladesOdd = new StreamGeometry();
+    private Geometry _ticksMinor = new StreamGeometry();
+    private Geometry _ticksMajor = new StreamGeometry();
+    private Geometry _trackArc = new StreamGeometry();
     private Geometry? _progressArc;
-    private double _cachedDialSize;
+    private double _cachedDialSize = double.NaN;
     private double _cachedRatio = double.NaN;
 
     public AnalogFanControl()
