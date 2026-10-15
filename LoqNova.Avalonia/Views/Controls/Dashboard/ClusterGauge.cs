@@ -91,8 +91,6 @@ public class ClusterGauge : AnimatedGauge
     // Geometry cache, rebuilt only when the control is resized.
     private double _cachedDialSize = double.NaN;
     private double _outerRadius;
-    private double _tickInner;
-    private double _tickOuter;
     private double _labelRadius;
     private double _arcRadius;
     private double _arcThickness;
