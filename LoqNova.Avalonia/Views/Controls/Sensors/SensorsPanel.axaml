@@ -23,7 +23,7 @@
                         <TextBlock Text="CPU" Classes="SensorCardTitle SensorLabelCpu" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}" Margin="0,10,0,0">
                         <TextBlock Text="{Binding CpuUtilizationText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{DynamicResource SensorCpuBrush}" />
@@ -52,7 +52,7 @@
                         <TextBlock Text="GPU" Classes="SensorCardTitle SensorLabelGpu" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}" Margin="0,10,0,0">
                         <TextBlock Text="{Binding GpuUtilizationText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{DynamicResource SensorGpuBrush}" />
@@ -83,7 +83,7 @@
                         <TextBlock Text="CPU TEMP" Classes="SensorCardTitle SensorLabelTemp" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}" Margin="0,10,0,0">
                         <TextBlock Text="{Binding CpuTemperatureText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{DynamicResource SensorTempBrush}" />
@@ -108,7 +108,7 @@
                         <TextBlock Text="GPU TEMP" Classes="SensorCardTitle SensorLabelTemp" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}" Margin="0,10,0,0">
                         <TextBlock Text="{Binding GpuTemperatureText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{DynamicResource SensorTempBrush}" />
@@ -133,7 +133,7 @@
                         <TextBlock Text="CPU FAN" Classes="SensorCardTitle SensorLabelFan" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}" Margin="0,10,0,0">
                         <TextBlock Text="{Binding CpuFanSpeedText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{DynamicResource SensorFanBrush}" />
@@ -162,7 +162,7 @@
                         <TextBlock Text="GPU FAN" Classes="SensorCardTitle SensorLabelFan" TextTrimming="CharacterEllipsis" />
                     </StackPanel>
 
-                    <StackPanel Orientation="Horizontal" Spacing="4" Margin="0,10,0,0">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}" Margin="0,10,0,0">
                         <TextBlock Text="{Binding GpuFanSpeedText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{DynamicResource SensorFanBrush}" />

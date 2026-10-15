@@ -30,15 +30,15 @@
                     
                     <!-- Battery Info -->
                     <StackPanel VerticalAlignment="Center" Spacing="4">
-                        <TextBlock Text="{Binding Percentage, StringFormat='{}{0}%'}" FontSize="32" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <TextBlock Text="{Binding Percentage, StringFormat='{}{0}%'}" FontSize="{StaticResource FontSize6XL}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
                         <TextBlock Text="{Binding StatusText}" Classes="Body" Foreground="{DynamicResource TextSecondaryBrush}" />
                         <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,8,0,0">
                             <StackPanel>
-                                <TextBlock Text="{Binding HealthPercent, StringFormat='{}{0}%'}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding HealthPercent, StringFormat='{}{0}%'}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBlock Text="Health" Classes="Caption" />
                             </StackPanel>
                             <StackPanel Margin="24,0,0,0">
-                                <TextBlock Text="{Binding CycleCount}" FontSize="16" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
+                                <TextBlock Text="{Binding CycleCount}" FontSize="{StaticResource FontSizeXL}" FontWeight="Bold" Foreground="{DynamicResource TextPrimaryBrush}" />
                                 <TextBlock Text="Cycles" Classes="Caption" />
                             </StackPanel>
                         </StackPanel>
@@ -53,7 +53,7 @@
                         <TextBlock Text="Temperature" Classes="CardTitle" />
                         <StackPanel Orientation="Horizontal" Spacing="8">
                               <TextBlock Text="{Binding TemperatureText}" Classes="CardValue" />
-                            <ToggleSwitch IsChecked="{Binding UseFahrenheit}" OnContent="°F" OffContent="°C" />
+                            <ToggleSwitch Classes="Control" IsChecked="{Binding UseFahrenheit}" OnContent="°F" OffContent="°C" />
                         </StackPanel>
                     </StackPanel>
                 </Border>
@@ -130,22 +130,18 @@
                 <Border Grid.Row="4" Grid.Column="0" Classes="FeatureCard" Margin="0,0,8,8">
                     <StackPanel Spacing="4">
                         <TextBlock Text="Battery Mode" Classes="CardTitle" />
-                        <ComboBox ItemsSource="{Binding BatteryModes}"
-                                  SelectedItem="{Binding CurrentMode}"
-                                  Background="{DynamicResource SurfaceBrush}"
-                                  BorderBrush="{DynamicResource BorderBrush}"
-                                  Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <ComboBox Classes="Control"
+                                  ItemsSource="{Binding BatteryModes}"
+                                  SelectedItem="{Binding CurrentMode}" />
                     </StackPanel>
                 </Border>
                 
                 <Border Grid.Row="4" Grid.Column="1" Classes="FeatureCard" Margin="8,0,0,8">
                     <StackPanel Spacing="4">
                         <TextBlock Text="Night Charge" Classes="CardTitle" />
-                        <ComboBox ItemsSource="{Binding NightChargeModes}"
-                                  SelectedItem="{Binding NightChargeMode}"
-                                  Background="{DynamicResource SurfaceBrush}"
-                                  BorderBrush="{DynamicResource BorderBrush}"
-                                  Foreground="{DynamicResource TextPrimaryBrush}" />
+                        <ComboBox Classes="Control"
+                                  ItemsSource="{Binding NightChargeModes}"
+                                  SelectedItem="{Binding NightChargeMode}" />
                     </StackPanel>
                 </Border>
             </Grid>

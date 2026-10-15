@@ -75,6 +75,17 @@
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
     </Style>
 
+    <!-- A single-line setting label that sits beside its control, as opposed to
+         SettingHeader which stacks a title over a description. -->
+    <Style Selector="TextBlock.SettingLabel">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeLG}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,12,0" />
+    </Style>
+
     <Style Selector="TextBlock.FieldValue">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
@@ -235,9 +246,22 @@
         <Setter Property="Padding" Value="0" />
     </Style>
 
+    <!-- A StackPanel-rooted dialog: the whole body is inset and the rows are
+         spaced evenly. -->
     <Style Selector="StackPanel.DialogBody">
         <Setter Property="Spacing" Value="{StaticResource SpaceMd}" />
         <Setter Property="Margin" Value="{StaticResource InsetXl}" />
+    </Style>
+
+    <!-- A DockPanel-rooted dialog: header pinned top, footer pinned bottom, the
+         remaining region fills. -->
+    <Style Selector="DockPanel.DialogRoot">
+        <Setter Property="Margin" Value="{StaticResource InsetXl}" />
+    </Style>
+
+    <Style Selector="StackPanel.DialogHeader">
+        <Setter Property="Spacing" Value="{StaticResource SpaceXs}" />
+        <Setter Property="Margin" Value="0,0,0,12" />
     </Style>
 
     <Style Selector="TextBlock.DialogTitle">
@@ -254,11 +278,26 @@
         <Setter Property="TextWrapping" Value="Wrap" />
     </Style>
 
+    <!-- The button row at the bottom of a dialog, pinned as the DockPanel's
+         bottom child. -->
     <Style Selector="StackPanel.DialogFooter">
         <Setter Property="Orientation" Value="Horizontal" />
         <Setter Property="Spacing" Value="{StaticResource SpaceSm}" />
         <Setter Property="HorizontalAlignment" Value="Right" />
-        <Setter Property="Margin" Value="0,4,0,0" />
+        <Setter Property="Margin" Value="0,12,0,0" />
+    </Style>
+
+    <!-- The same button row when it sits inside a DialogFooterBlock, which
+         already owns the gap above it. -->
+    <Style Selector="StackPanel.DialogActions">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="{StaticResource SpaceSm}" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <!-- Groups advisory callouts above the button row. -->
+    <Style Selector="StackPanel.DialogFooterBlock">
+        <Setter Property="Margin" Value="0,12,0,0" />
     </Style>
 
     <!-- ==================== Overflow ====================

@@ -11,9 +11,9 @@
     </Design.DataContext>
 
     <ScrollViewer Classes="PageContainer">
-        <StackPanel Spacing="24">
+        <StackPanel Spacing="{StaticResource Space2xl}">
             <!-- Page Header -->
-            <StackPanel Orientation="Horizontal" Spacing="16">
+            <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceLg}">
                 <TextBlock Text="Keyboard Backlight" Classes="PageTitle" />
                 <Button Classes="GhostButton" Content="Spectrum" IsVisible="{Binding IsSpectrumKeyboard}" Margin="0,8,0,0" />
             </StackPanel>
@@ -32,7 +32,7 @@
             <Border Classes="ContentCard">
                 <StackPanel>
                     <TextBlock Text="Presets" Classes="SectionHeader" />
-                    <StackPanel Orientation="Horizontal" Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                         <Button Classes="PresetButton" Content="Off" IsEnabled="{Binding CanSelectPreset}"
                                 Command="{Binding SetPresetCommand}" CommandParameter="{x:Static services:RgbPreset.Off}" />
                         <Button Classes="PresetButton" Content="Preset 1" IsEnabled="{Binding CanSelectPreset}"
@@ -51,14 +51,12 @@
             <Border Classes="ContentCard">
                 <StackPanel>
                     <TextBlock Text="Brightness" Classes="SectionHeader" />
-                    <ComboBox ItemsSource="{Binding BrightnessLevels}"
+                    <ComboBox Classes="Control"
+                              ItemsSource="{Binding BrightnessLevels}"
                               SelectedItem="{Binding SelectedBrightness, Mode=TwoWay}"
                               IsEnabled="{Binding IsInteractive}"
                               Width="150"
-                              Margin="0,8,0,0"
-                              Background="{DynamicResource SurfaceBrush}"
-                              BorderBrush="{DynamicResource BorderBrush}"
-                              Foreground="{DynamicResource TextPrimaryBrush}">
+                              Margin="0,8,0,0">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
@@ -72,14 +70,12 @@
             <Border Classes="ContentCard">
                 <StackPanel>
                     <TextBlock Text="Effects" Classes="SectionHeader" />
-                    <ComboBox ItemsSource="{Binding Effects}"
+                    <ComboBox Classes="Control"
+                              ItemsSource="{Binding Effects}"
                               SelectedItem="{Binding SelectedEffect, Mode=TwoWay}"
                               IsEnabled="{Binding IsInteractive}"
                               Width="220"
-                              Margin="0,8,0,0"
-                              Background="{DynamicResource SurfaceBrush}"
-                              BorderBrush="{DynamicResource BorderBrush}"
-                              Foreground="{DynamicResource TextPrimaryBrush}">
+                              Margin="0,8,0,0">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
@@ -94,15 +90,13 @@
             <Border Classes="ContentCard">
                 <StackPanel>
                     <TextBlock Text="Speed" Classes="SectionHeader" />
-                    <ComboBox ItemsSource="{Binding Speeds}"
+                    <ComboBox Classes="Control"
+                              ItemsSource="{Binding Speeds}"
                               SelectedItem="{Binding SelectedSpeed, Mode=TwoWay}"
                               IsEnabled="{Binding SpeedEnabled}"
                               ToolTip.Tip="{Binding SpeedToolTip}"
                               Width="150"
-                              Margin="0,8,0,0"
-                              Background="{DynamicResource SurfaceBrush}"
-                              BorderBrush="{DynamicResource BorderBrush}"
-                              Foreground="{DynamicResource TextPrimaryBrush}">
+                              Margin="0,8,0,0">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
@@ -124,7 +118,7 @@
             <Border Classes="ContentCard">
                 <StackPanel Spacing="14">
 
-                    <StackPanel Spacing="2">
+                    <StackPanel Spacing="{StaticResource SpaceXxs}">
                         <TextBlock Text="Zone Colors" Classes="SectionHeader" />
                         <TextBlock Classes="CardSubtitle"
                                    Text="Click a zone to change its colour, or synchronise zones to copy one to all four." />

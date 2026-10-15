@@ -6,18 +6,18 @@
 
     <!-- Windows Power Modes mapping, reproducing WPF's WindowsPowerModesWindow. Each row
          applies immediately; the Custom Mode row is hidden unless the firmware reports it. -->
-    <Border Classes="ContentCard" Width="600">
-        <StackPanel Spacing="0">
+    <Border Classes="DialogCard" Width="600">
+        <StackPanel Classes="DialogBody">
 
-            <TextBlock Text="{Binding Title}" Classes="SectionHeader" Margin="0,0,0,16" />
+            <TextBlock Classes="DialogTitle" Text="{Binding Title}" />
 
             <ItemsControl ItemsSource="{Binding Rows}">
                 <ItemsControl.ItemTemplate>
                     <DataTemplate DataType="dialogs:MappingRow">
                         <Grid ColumnDefinitions="*,Auto" Margin="0,0,0,12" IsVisible="{Binding IsVisible}">
-                            <TextBlock Grid.Column="0" Classes="CardTitle"
-                                       Text="{Binding Title}" VerticalAlignment="Center" Margin="0,0,12,0" />
-                            <ComboBox Grid.Column="1" MinWidth="220"
+                            <TextBlock Grid.Column="0" Classes="SettingLabel"
+                                       Text="{Binding Title}" />
+                            <ComboBox Grid.Column="1" Classes="Control" MinWidth="220"
                                       ItemsSource="{Binding Options}"
                                       SelectedItem="{Binding Selected, Mode=TwoWay}">
                                 <ComboBox.ItemTemplate>
@@ -31,7 +31,7 @@
                 </ItemsControl.ItemTemplate>
             </ItemsControl>
 
-            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,8,0,0">
+            <StackPanel Classes="DialogActions">
                 <Button Classes="GhostButton" Content="Close" Command="{Binding CloseCommand}" />
             </StackPanel>
         </StackPanel>

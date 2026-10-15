@@ -7,27 +7,30 @@
     <!-- Boot logo, reproducing WPF's BootLogoWindow. The status line, the description of
          the required image size/formats and the success/failure message all come from the
          real BootLogo API. -->
-    <Border Classes="ContentCard" Width="420">
-        <StackPanel Spacing="0">
+    <Border Classes="DialogCard" Width="420">
+        <StackPanel Classes="DialogBody">
 
-            <TextBlock Text="{Binding Title}" Classes="SectionHeader" Margin="0,0,0,12" />
+            <TextBlock Classes="DialogTitle" Text="{Binding Title}" />
 
             <Grid ColumnDefinitions="*,Auto">
                 <TextBlock Grid.Column="0" Classes="CardTitle" Text="{Binding StatusText}" VerticalAlignment="Center" />
-                <TextBlock Grid.Column="1" FontWeight="Medium"
-                           Text="{Binding CustomLogoSetText}" IsVisible="{Binding IsCustomLogoSet}" />
-                <TextBlock Grid.Column="1" FontWeight="Medium"
-                           Text="{Binding DefaultLogoSetText}" IsVisible="{Binding IsDefaultLogoSet}" />
+                <Border Grid.Column="1" Classes="Chip" IsVisible="{Binding IsCustomLogoSet}">
+                    <TextBlock Classes="ChipText" Text="{Binding CustomLogoSetText}" />
+                </Border>
+                <Border Grid.Column="1" Classes="Chip" IsVisible="{Binding IsDefaultLogoSet}">
+                    <TextBlock Classes="ChipText" Text="{Binding DefaultLogoSetText}" />
+                </Border>
             </Grid>
 
-            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Margin="0,16,0,0"
-                       Text="{Binding Description}" />
+            <TextBlock Classes="DialogSubtitle" Text="{Binding Description}" />
 
-            <TextBlock FontWeight="Medium" TextAlignment="Center" TextWrapping="Wrap" Margin="0,16,0,0"
+            <TextBlock Classes="CalloutText"
+                       TextAlignment="Center"
+                       FontWeight="{StaticResource FontWeightMedium}"
                        Text="{Binding ResultMessage}"
                        Foreground="{Binding IsResultSuccess, Converter={StaticResource BoolToBrushConverter}, ConverterParameter='SuccessBrush|DangerBrush'}" />
 
-            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <StackPanel Classes="DialogActions">
                 <Button Classes="PrimaryButton" Content="{Binding RevertToDefaultText}"
                         IsVisible="{Binding IsCustomLogoSet}"
                         IsEnabled="{Binding !IsBusy}"
