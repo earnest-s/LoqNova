@@ -23,5 +23,6 @@
         <StyleInclude Source="avares://LOQ Nova/Styles/Cards.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Navigation.axaml" />
         <StyleInclude Source="avares://LOQ Nova/Styles/Sensors.axaml" />
+        <StyleInclude Source="avares://LOQ Nova/Styles/Dashboard.axaml" />
     </Application.Styles>
 </Application>
