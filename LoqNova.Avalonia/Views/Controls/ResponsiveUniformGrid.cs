@@ -44,7 +44,9 @@ public class ResponsiveUniformGrid : UniformGrid
     {
         base.OnPropertyChanged(change);
 
-        if (change.Property == ItemWidthProperty || change.Property == ColumnsProperty)
+        if (change.Property == ItemWidthProperty
+            || change.Property == MaxColumnsProperty
+            || change.Property == ColumnsProperty)
         {
             RecalculateColumns();
         }
