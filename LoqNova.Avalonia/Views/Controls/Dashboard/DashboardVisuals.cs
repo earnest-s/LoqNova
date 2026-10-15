@@ -8,9 +8,10 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
 /// <summary>
 /// Drawing helpers shared by the Dashboard's custom instruments
-/// (<see cref="AnalogFanControl"/> and <see cref="RingGauge"/>).
+/// (<see cref="ClusterGauge"/>, <see cref="TemperatureGauge"/> and
+/// <see cref="AnalogFanControl"/>).
 /// <para>
-/// Both instruments paint themselves in a <c>Render</c> override rather than
+/// Every instrument paints itself in a <c>Render</c> override rather than
 /// building a visual tree. That keeps each gauge a single element, so the
 /// animation loop only ever calls <c>InvalidateVisual</c> on one control: no
 /// layout pass, no element churn.
@@ -88,15 +89,18 @@ internal static class DashboardVisuals
     }
 
     /// <summary>
-    /// A run of radial tick marks between two radii, used for the analog scales.
-    /// Every <paramref name="majorEvery"/>-th tick is returned separately so the
-    /// caller can weight the major and minor marks differently.
+    /// A calibrated run of radial tick marks between two radii. The sweep is cut
+    /// into <paramref name="divisions"/> equal steps and a tick is drawn at each
+    /// step boundary <em>including both ends</em> (so <c>divisions + 1</c> ticks
+    /// span the full arc). Every <paramref name="majorEvery"/>-th tick is
+    /// returned separately and drawn 2.6 times longer, which is what gives the
+    /// scale its readable major/minor rhythm.
     /// </summary>
     public static (Geometry Minor, Geometry Major) Ticks(
         Point center,
         double innerRadius,
         double outerRadius,
-        int count,
+        int divisions,
         int majorEvery,
         double startDegrees,
         double sweepDegrees)
@@ -105,13 +109,14 @@ internal static class DashboardVisuals
         var major = new StreamGeometry();
         var minorContext = minor.Open();
         var majorContext = major.Open();
+        var majorInnerRadius = innerRadius - (outerRadius - innerRadius) * 1.6;
         try
         {
-            for (var i = 0; i < count; i++)
+            for (var i = 0; i <= divisions; i++)
             {
                 var isMajor = i % majorEvery == 0;
-                var angle = startDegrees + sweepDegrees * i / count;
-                var from = Polar(center, isMajor ? innerRadius * 0.55 : innerRadius, angle);
+                var angle = startDegrees + sweepDegrees * i / divisions;
+                var from = Polar(center, isMajor ? majorInnerRadius : innerRadius, angle);
                 var to = Polar(center, outerRadius, angle);
                 var context = isMajor ? majorContext : minorContext;
                 context.BeginFigure(from, false);
@@ -126,6 +131,31 @@ internal static class DashboardVisuals
         }
 
         return (minor, major);
+    }
+
+    /// <summary>
+    /// A tapered indicator built around the origin and pointing at 12 o'clock,
+    /// so a caller can aim it with a single rotation about the dial centre. The
+    /// tail runs behind the origin so the hub can be painted over it.
+    /// </summary>
+    public static Geometry Needle(double length, double halfWidth, double tail)
+    {
+        var geometry = new StreamGeometry();
+        var context = geometry.Open();
+        try
+        {
+            context.BeginFigure(new Point(0, tail), true);
+            context.LineTo(new Point(halfWidth, 0));
+            context.LineTo(new Point(0, -length));
+            context.LineTo(new Point(-halfWidth, 0));
+            context.EndFigure(true);
+        }
+        finally
+        {
+            context.Dispose();
+        }
+
+        return geometry;
     }
 
     /// <summary>
