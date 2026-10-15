@@ -89,7 +89,8 @@ public class AnalogFanControl : AnimatedGauge
     private Geometry _ticksMinor = new StreamGeometry();
     private Geometry _ticksMajor = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
-    private double _cachedDialSize = double.NaN;
+    private double _cachedWidth = double.NaN;
+    private double _cachedHeight = double.NaN;
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
