@@ -72,7 +72,6 @@ public class TemperatureGauge : AnimatedGauge
 
     private double _displayRatio;
     private double _targetRatio;
-    private bool _initialised;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -80,17 +79,10 @@ public class TemperatureGauge : AnimatedGauge
 
         if (change.Property == ValueProperty || change.Property == MaximumProperty)
         {
+            // The fill is deliberately left where it is: on the first frames it is
+            // still empty, so the one-shot opening sweep fills it to this reading.
             _targetRatio = ComputeRatio();
-            if (!_initialised)
-            {
-                _initialised = true;
-                _displayRatio = _targetRatio;
-            }
-            else
-            {
-                RequestFrames();
-            }
-
+            RequestFrames();
             InvalidateVisual();
         }
         else if (change.Property == ValueTextProperty || change.Property == UnitProperty)
@@ -160,7 +152,11 @@ public class TemperatureGauge : AnimatedGauge
             }
         }
 
-        context.DrawText(value, new Point(textLeft, textCenter - value.Height / 2.0));
+        context.DrawText(
+            IsStartupSweeping
+                ? DashboardVisuals.CountUp(ValueText, StartupSweepPhase)
+                : value.Text,
+            new Point(textLeft, textCenter - value.Height / 2.0));
         if (unit.Width > 0)
         {
             context.DrawText(unit, new Point(textLeft + value.Width + UnitGap, textCenter - unit.Height / 2.0));
@@ -169,6 +165,25 @@ public class TemperatureGauge : AnimatedGauge
 
     protected override bool Advance(double seconds)
     {
+        if (!HasReading)
+        {
+            // No reported reading: hold the fill empty until the machine reports
+            // this channel, so no fill and no movement are invented for it.
+            return false;
+        }
+
+        if (IsStartupSweeping)
+        {
+            if (AdvanceStartupSweep(seconds, skip: _targetRatio <= 0.0))
+            {
+                _displayRatio = _targetRatio * StartupSweepPhase;
+                return true;
+            }
+
+            _displayRatio = _targetRatio;
+            return false;
+        }
+
         var delta = _targetRatio - _displayRatio;
         if (Math.Abs(delta) < 0.0015)
         {
@@ -228,6 +243,9 @@ public class TemperatureGauge : AnimatedGauge
 
         return geometry;
     }
+
+    /// <summary>True when the machine reported both a reading and a maximum.</summary>
+    private bool HasReading => Value >= 0 && Maximum >= 0;
 
     private double ComputeRatio()
         => Value >= 0 && Maximum > 0 ? Math.Clamp((double)Value / Maximum, 0.0, 1.0) : 0.0;

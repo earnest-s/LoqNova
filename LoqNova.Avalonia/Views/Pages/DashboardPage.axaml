@@ -124,6 +124,7 @@
                         <Grid ColumnDefinitions="Auto,*">
                             <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
                                 <dash:ClusterGauge Width="196" Height="196"
+                                                   ChannelKey="Dashboard.CpuUtilization"
                                                    Value="{Binding CpuUtilization}"
                                                    Maximum="{Binding CpuMaxUtilization}"
                                                    ValueText="{Binding CpuUtilizationText}"
@@ -138,6 +139,7 @@
                                         VerticalAlignment="Center">
                                 <TextBlock Classes="InstrumentCaption" Text="Temperature" />
                                 <dash:TemperatureGauge Height="34"
+                                                       ChannelKey="Dashboard.CpuTemperature"
                                                        Value="{Binding CpuTemperature}"
                                                        Maximum="{Binding CpuMaxTemperature}"
                                                        ValueText="{Binding CpuTemperatureText}"
@@ -200,6 +202,7 @@
                         <Grid ColumnDefinitions="Auto,*">
                             <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
                                 <dash:ClusterGauge Width="196" Height="196"
+                                                   ChannelKey="Dashboard.GpuUtilization"
                                                    Value="{Binding GpuUtilization}"
                                                    Maximum="{Binding GpuMaxUtilization}"
                                                    ValueText="{Binding GpuUtilizationText}"
@@ -214,6 +217,7 @@
                                         VerticalAlignment="Center">
                                 <TextBlock Classes="InstrumentCaption" Text="Temperature" />
                                 <dash:TemperatureGauge Height="34"
+                                                       ChannelKey="Dashboard.GpuTemperature"
                                                        Value="{Binding GpuTemperature}"
                                                        Maximum="{Binding GpuMaxTemperature}"
                                                        ValueText="{Binding GpuTemperatureText}"
