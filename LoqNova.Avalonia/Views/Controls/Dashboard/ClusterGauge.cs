@@ -244,6 +244,28 @@ public class ClusterGauge : AnimatedGauge
 
     protected override bool Advance(double seconds)
     {
+        if (!HasReading)
+        {
+            // This channel has no reported reading: hold the needle at the bottom
+            // of the scale until the machine reports one, so no sweep and no
+            // movement are invented for a channel that carries no value.
+            return false;
+        }
+
+        if (IsStartupSweeping)
+        {
+            // The opening sweep rides the reported target, so a reading that
+            // lands while it is still running is absorbed rather than overshot.
+            if (AdvanceStartupSweep(seconds, skip: _targetRatio <= 0.0))
+            {
+                _displayRatio = _targetRatio * StartupSweepPhase;
+                return true;
+            }
+
+            _displayRatio = _targetRatio;
+            return false;
+        }
+
         var delta = _targetRatio - _displayRatio;
         if (Math.Abs(delta) < 0.0015)
         {
@@ -277,17 +299,37 @@ public class ClusterGauge : AnimatedGauge
 
         var tickOuter = _outerRadius * 0.855;
         var tickInner = _outerRadius * 0.80;
-        var needleLength = _outerRadius * 0.66;
-        var needleHalfWidth = Math.Max(1.5, _outerRadius * 0.034);
+        var needleLength = _outerRadius * 0.82;
+        var needleHalfWidth = Math.Max(1.8, _outerRadius * 0.05);
 
         var ticks = DashboardVisuals.Ticks(
             center, tickInner, tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
         _ticksMinor = ticks.Minor;
         _ticksMajor = ticks.Major;
 
+        // Redline geometry, built from the same scale: a band flush under the
+        // tick run, plus the ticks of the top fifth of the scale redrawn over
+        // the identical angles.
+        var redlineFirst = (int)Math.Round(Divisions * RedlineStartFraction);
+        _redlineThickness = Math.Clamp(_outerRadius * 0.045, 2.5, 6.0);
+        _redlineRadius = tickInner - _redlineThickness / 2.0;
+        _redlineArc = DashboardVisuals.Arc(
+            center,
+            _redlineRadius,
+            StartAngle + SweepAngle * RedlineStartFraction,
+            SweepAngle * (1.0 - RedlineStartFraction));
+        var redlineTicks = DashboardVisuals.Ticks(
+            center, tickInner, tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle,
+            redlineFirst, Divisions);
+        _redlineTicksMinor = redlineTicks.Minor;
+        _redlineTicksMajor = redlineTicks.Major;
+
         _trackArc = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle);
-        _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, _hubRadius * 0.9);
+        _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, _outerRadius * 0.14);
     }
+
+    /// <summary>True when the machine reported both a reading and a maximum.</summary>
+    private bool HasReading => Value >= 0 && Maximum >= 0;
 
     private double ComputeRatio()
         => Value >= 0 && Maximum > 0 ? Math.Clamp((double)Value / Maximum, 0.0, 1.0) : 0.0;
