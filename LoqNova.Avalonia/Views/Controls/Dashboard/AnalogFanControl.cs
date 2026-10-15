@@ -83,6 +83,7 @@ public class AnalogFanControl : AnimatedGauge
     private double _arcRadius;
     private double _arcThickness;
     private double _hubRadius;
+    private double _hubDotRadius;
     private Geometry _bladesEven = new StreamGeometry();
     private Geometry _bladesOdd = new StreamGeometry();
     private Geometry _ticksMinor = new StreamGeometry();
@@ -212,6 +213,7 @@ public class AnalogFanControl : AnimatedGauge
         _cachedDialSize = dial;
         _outerRadius = dial / 2.0 - 1.0;
         _hubRadius = _outerRadius * 0.19;
+        _hubDotRadius = Math.Max(1.5, _hubRadius * 0.22);
         _arcRadius = _outerRadius * 0.79;
         _arcThickness = Math.Clamp(_outerRadius * 0.05, 2.0, 5.0);
 
