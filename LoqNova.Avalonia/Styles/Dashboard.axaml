@@ -1,0 +1,100 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================
+         Dashboard composition primitives
+
+         The dashboard's own instrument chrome: the device cards that
+         hold the live CPU/GPU telemetry, the telemetry rows and the fan
+         readouts. The custom dials themselves (AnalogFanControl,
+         RingGauge) paint from the same colour tokens in code, so these
+         classes only describe the surrounding layout.
+
+         Everything here resolves through the shared tokens, so the whole
+         dashboard follows the theme and accent without local colours.
+         ============================================================ -->
+
+    <!-- ==================== Device card ====================
+         One live device (CPU / GPU). Sized by the ResponsiveUniformGrid
+         that hosts them, so the card never reserves fixed width. -->
+
+    <Style Selector="Border.DeviceCard">
+        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
+        <Setter Property="Padding" Value="{StaticResource InsetLg}" />
+    </Style>
+
+    <!-- The channel identity dot in a device header. -->
+    <Style Selector="Border.DeviceAccent">
+        <Setter Property="Width" Value="8" />
+        <Setter Property="Height" Value="8" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPillBox}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.DeviceTitle">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeLG}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="LetterSpacing" Value="0.4" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- ==================== Telemetry rows ====================
+         A label on the left and its reading on the right, used for every
+         non-radial channel so the numbers share one alignment. -->
+
+    <Style Selector="TextBlock.TelemetryLabel">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.TelemetryValue">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- Caption printed under a radial gauge. -->
+    <Style Selector="TextBlock.MetricCaption">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        <Setter Property="LetterSpacing" Value="0.6" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
+    <!-- A hairline rule between the two halves of a device card. -->
+    <Style Selector="Border.CardDivider">
+        <Setter Property="Height" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
+    </Style>
+
+    <!-- ==================== Fan readout ====================
+         The caption, maximum and state label that sit beside a fan dial.
+         The live RPM itself is printed in the dial's hub. -->
+
+    <Style Selector="TextBlock.FanCaption">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        <Setter Property="LetterSpacing" Value="0.8" />
+    </Style>
+
+    <Style Selector="TextBlock.FanMeta">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+</Styles>
