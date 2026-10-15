@@ -32,7 +32,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ============================ Power mode hero ============================ -->
+            <!-- ============================ Power mode ============================ -->
             <Border Classes="PowerCard">
                 <Grid ColumnDefinitions="Auto,*,Auto">
 
@@ -89,14 +89,7 @@
             </Border>
 
             <!-- ============================ Monitoring ============================ -->
-            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
-                <TextBlock Grid.Column="0" Text="Monitoring" Classes="SectionLabel" Margin="0" />
-                <Border Grid.Column="1" Classes="Chip Success"
-                        IsVisible="{Binding IsRefreshing}"
-                        ToolTip.Tip="The sensor refresh loop is running">
-                    <TextBlock Classes="ChipText" Text="Live" />
-                </Border>
-            </Grid>
+            <TextBlock Text="Monitoring" Classes="SectionLabel" Margin="0" />
 
             <!-- The machine's sensor source gate. When it reports no supported
                  source, every reading below stays blank rather than showing a
@@ -106,13 +99,20 @@
                            Text="This machine reports no supported sensor source, so live readings are unavailable." />
             </Border>
 
-            <!-- Live device readouts. The dials paint from the reported values
-                 only: AnalogFanControl rotates at a rate proportional to the
-                 reported RPM and RingGauge sweeps the reported value over the
-                 reported maximum. An unreported channel draws muted and blank. -->
-            <Grid ColumnDefinitions="*,*">
-                <Border Grid.Column="0" Classes="DeviceCard" Margin="0,0,12,0">
-                    <StackPanel Spacing="{StaticResource SpaceLg}">
+            <!-- The instrument cluster. Two device instruments that reflow from
+                 side by side to stacked as the window narrows, each drawing the
+                 same layout so CPU and GPU read as matching parts of one cluster.
+
+                 Every value comes from the reported telemetry: ClusterGauge
+                 sweeps utilisation over the reported maximum, TemperatureGauge
+                 fills against the reported maximum, and AnalogFanControl turns
+                 at the reported RPM. An unreported channel draws muted and blank
+                 rather than as a zero. -->
+            <controls:ResponsiveUniformGrid ItemWidth="420" MaxColumns="2">
+
+                <!-- ==================== CPU instrument ==================== -->
+                <Border Grid.Column="0" Classes="InstrumentCard" Margin="0,0,12,12">
+                    <StackPanel Spacing="{StaticResource SpaceXl}">
 
                         <Grid ColumnDefinitions="Auto,*">
                             <Border Grid.Column="0" Classes="DeviceAccent"
@@ -120,20 +120,31 @@
                             <TextBlock Grid.Column="1" Classes="DeviceTitle" Text="CPU" Margin="10,0,0,0" />
                         </Grid>
 
+                        <!-- Utilisation dial, temperature bar and the clock readouts. -->
                         <Grid ColumnDefinitions="Auto,*">
                             <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
-                                <dash:RingGauge Width="104" Height="104"
-                                                Value="{Binding CpuUtilization}"
-                                                Maximum="{Binding CpuMaxUtilization}"
-                                                ValueText="{Binding CpuUtilizationText}"
-                                                Unit="%"
-                                                Accent="{DynamicResource SensorCpuBrush}" />
-                                <TextBlock Classes="MetricCaption" Text="Utilization" />
+                                <dash:ClusterGauge Width="196" Height="196"
+                                                   Value="{Binding CpuUtilization}"
+                                                   Maximum="{Binding CpuMaxUtilization}"
+                                                   ValueText="{Binding CpuUtilizationText}"
+                                                   Unit="%"
+                                                   Accent="{DynamicResource SensorCpuBrush}" />
+                                <TextBlock Classes="InstrumentCaption" Text="Utilization"
+                                           HorizontalAlignment="Center" />
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
+                            <StackPanel Grid.Column="1" Margin="20,0,0,0"
                                         Spacing="{StaticResource SpaceMd}"
                                         VerticalAlignment="Center">
+                                <TextBlock Classes="InstrumentCaption" Text="Temperature" />
+                                <dash:TemperatureGauge Height="34"
+                                                       Value="{Binding CpuTemperature}"
+                                                       Maximum="{Binding CpuMaxTemperature}"
+                                                       ValueText="{Binding CpuTemperatureText}"
+                                                       Unit="{Binding TemperatureUnitLabel}" />
+
+                                <Border Classes="CardDivider" />
+
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Core clock" />
                                     <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding CpuCoreClockText}" />
@@ -142,35 +153,31 @@
                                     <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Maximum clock" />
                                     <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding CpuCoreClockMaxText}" />
                                 </Grid>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Temperature" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
-                                                Spacing="{StaticResource SpaceXs}"
-                                                VerticalAlignment="Center">
-                                        <TextBlock Classes="TelemetryValue" Text="{Binding CpuTemperatureText}" />
-                                        <TextBlock Classes="Unit" Text="{Binding TemperatureUnitLabel}" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Grid>
                             </StackPanel>
                         </Grid>
 
                         <Border Classes="CardDivider" />
 
-                        <!-- The dial prints the reported RPM in its hub; the column
-                             beside it names the channel, its maximum and the
-                             restrained qualitative state. -->
+                        <!-- The fan dial turns at the reported speed; the column
+                             beside it prints that same reading, the reported
+                             maximum and the restrained qualitative state. -->
                         <Grid ColumnDefinitions="Auto,*">
-                            <dash:AnalogFanControl Grid.Column="0" Width="116" Height="116"
+                            <dash:AnalogFanControl Grid.Column="0" Width="132" Height="132"
                                                    Rpm="{Binding CpuFanSpeed}"
                                                    MaxRpm="{Binding CpuMaxFanSpeed}"
-                                                   ValueText="{Binding CpuFanSpeedText}"
                                                    Accent="{DynamicResource SensorFanBrush}" />
 
-                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
-                                        Spacing="{StaticResource SpaceXs}"
+                            <StackPanel Grid.Column="1" Margin="18,0,0,0"
+                                        Spacing="{StaticResource SpaceSm}"
                                         VerticalAlignment="Center">
-                                <TextBlock Classes="FanCaption" Text="FAN" />
-                                <TextBlock Classes="FanMeta" Text="{Binding CpuFanSpeedMaxText}" />
+                                <TextBlock Classes="InstrumentCaption" Text="Fan" />
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}">
+                                    <TextBlock Classes="FanValue" Text="{Binding CpuFanSpeedText}" />
+                                    <TextBlock Classes="FanUnit" Text="RPM"
+                                               IsVisible="{Binding IsCpuFanReported}" />
+                                </StackPanel>
+                                <TextBlock Classes="InstrumentMeta" Text="{Binding CpuFanSpeedMaxText}"
+                                           IsVisible="{Binding CpuFanSpeedMaxText, Converter={StaticResource StringNotEmptyConverter}}" />
                                 <Border Classes="Chip" HorizontalAlignment="Left"
                                         IsVisible="{Binding CpuFanStateText, Converter={StaticResource StringNotEmptyConverter}}">
                                     <TextBlock Classes="ChipText" Text="{Binding CpuFanStateText}" />
@@ -180,8 +187,9 @@
                     </StackPanel>
                 </Border>
 
-                <Border Grid.Column="1" Classes="DeviceCard" Margin="12,0,0,0">
-                    <StackPanel Spacing="{StaticResource SpaceLg}">
+                <!-- ==================== GPU instrument ==================== -->
+                <Border Classes="InstrumentCard" Margin="0,0,12,12">
+                    <StackPanel Spacing="{StaticResource SpaceXl}">
 
                         <Grid ColumnDefinitions="Auto,*">
                             <Border Grid.Column="0" Classes="DeviceAccent"
@@ -191,18 +199,28 @@
 
                         <Grid ColumnDefinitions="Auto,*">
                             <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
-                                <dash:RingGauge Width="104" Height="104"
-                                                Value="{Binding GpuUtilization}"
-                                                Maximum="{Binding GpuMaxUtilization}"
-                                                ValueText="{Binding GpuUtilizationText}"
-                                                Unit="%"
-                                                Accent="{DynamicResource SensorGpuBrush}" />
-                                <TextBlock Classes="MetricCaption" Text="Utilization" />
+                                <dash:ClusterGauge Width="196" Height="196"
+                                                   Value="{Binding GpuUtilization}"
+                                                   Maximum="{Binding GpuMaxUtilization}"
+                                                   ValueText="{Binding GpuUtilizationText}"
+                                                   Unit="%"
+                                                   Accent="{DynamicResource SensorGpuBrush}" />
+                                <TextBlock Classes="InstrumentCaption" Text="Utilization"
+                                           HorizontalAlignment="Center" />
                             </StackPanel>
 
-                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
+                            <StackPanel Grid.Column="1" Margin="20,0,0,0"
                                         Spacing="{StaticResource SpaceMd}"
                                         VerticalAlignment="Center">
+                                <TextBlock Classes="InstrumentCaption" Text="Temperature" />
+                                <dash:TemperatureGauge Height="34"
+                                                       Value="{Binding GpuTemperature}"
+                                                       Maximum="{Binding GpuMaxTemperature}"
+                                                       ValueText="{Binding GpuTemperatureText}"
+                                                       Unit="{Binding TemperatureUnitLabel}" />
+
+                                <Border Classes="CardDivider" />
+
                                 <Grid ColumnDefinitions="*,Auto">
                                     <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Core clock" />
                                     <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding GpuCoreClockText}" />
@@ -211,32 +229,28 @@
                                     <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Memory clock" />
                                     <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding GpuMemoryClockText}" />
                                 </Grid>
-                                <Grid ColumnDefinitions="*,Auto">
-                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Temperature" />
-                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
-                                                Spacing="{StaticResource SpaceXs}"
-                                                VerticalAlignment="Center">
-                                        <TextBlock Classes="TelemetryValue" Text="{Binding GpuTemperatureText}" />
-                                        <TextBlock Classes="Unit" Text="{Binding TemperatureUnitLabel}" VerticalAlignment="Center" />
-                                    </StackPanel>
-                                </Grid>
                             </StackPanel>
                         </Grid>
 
                         <Border Classes="CardDivider" />
 
                         <Grid ColumnDefinitions="Auto,*">
-                            <dash:AnalogFanControl Grid.Column="0" Width="116" Height="116"
+                            <dash:AnalogFanControl Grid.Column="0" Width="132" Height="132"
                                                    Rpm="{Binding GpuFanSpeed}"
                                                    MaxRpm="{Binding GpuMaxFanSpeed}"
-                                                   ValueText="{Binding GpuFanSpeedText}"
                                                    Accent="{DynamicResource SensorFanBrush}" />
 
-                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
-                                        Spacing="{StaticResource SpaceXs}"
+                            <StackPanel Grid.Column="1" Margin="18,0,0,0"
+                                        Spacing="{StaticResource SpaceSm}"
                                         VerticalAlignment="Center">
-                                <TextBlock Classes="FanCaption" Text="FAN" />
-                                <TextBlock Classes="FanMeta" Text="{Binding GpuFanSpeedMaxText}" />
+                                <TextBlock Classes="InstrumentCaption" Text="Fan" />
+                                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceXs}">
+                                    <TextBlock Classes="FanValue" Text="{Binding GpuFanSpeedText}" />
+                                    <TextBlock Classes="FanUnit" Text="RPM"
+                                               IsVisible="{Binding IsGpuFanReported}" />
+                                </StackPanel>
+                                <TextBlock Classes="InstrumentMeta" Text="{Binding GpuFanSpeedMaxText}"
+                                           IsVisible="{Binding GpuFanSpeedMaxText, Converter={StaticResource StringNotEmptyConverter}}" />
                                 <Border Classes="Chip" HorizontalAlignment="Left"
                                         IsVisible="{Binding GpuFanStateText, Converter={StaticResource StringNotEmptyConverter}}">
                                     <TextBlock Classes="ChipText" Text="{Binding GpuFanStateText}" />
@@ -245,7 +259,7 @@
                         </Grid>
                     </StackPanel>
                 </Border>
-            </Grid>
+            </controls:ResponsiveUniformGrid>
 
             <!-- ============================ Quick controls ============================ -->
             <TextBlock Text="Quick controls" Classes="SectionLabel" Margin="0" />
@@ -260,7 +274,7 @@
                 </ItemsControl.ItemsPanel>
                 <ItemsControl.ItemTemplate>
                     <DataTemplate x:DataType="vmControls:FeatureWidgetViewModel">
-                        <Border Classes="WidgetCard" Margin="0,0,12,12">
+                        <Border Classes="WidgetCard ControlTile" Margin="0,0,12,12">
                             <StackPanel Spacing="6">
                                 <Grid ColumnDefinitions="Auto,*">
                                     <PathIcon Grid.Column="0"
@@ -312,32 +326,35 @@
                                 <Button Classes="IconButton"
                                         HorizontalAlignment="Left"
                                         Margin="0,4,0,0"
-                                        ToolTip.Tip="Open the detailed settings"
+                                        ToolTip.Tip="Open settings for this feature"
                                         IsVisible="{Binding HasSettingsDialog}"
                                         Command="{Binding OpenSettingsCommand}">
                                     <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
                                 </Button>
 
-                                <!-- Action widgets, matching WPF's buttons and context-menu actions. -->
+                                <!-- Feature actions, e.g. restart or apply. -->
                                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
                                             IsVisible="{Binding HasPrimaryAction}">
                                     <Button Classes="SecondaryButton"
-                                            IsEnabled="{Binding !IsBusy}"
                                             Content="{Binding PrimaryActionText}"
+                                            IsEnabled="{Binding !IsBusy}"
                                             Command="{Binding PrimaryActionCommand}" />
-                                    <Button Classes="GhostButton"
+                                    <Button Classes="SecondaryButton"
+                                            Content="{Binding SecondaryActionText}"
                                             IsVisible="{Binding HasSecondaryAction}"
                                             IsEnabled="{Binding !IsBusy}"
-                                            Content="{Binding SecondaryActionText}"
                                             Command="{Binding SecondaryActionCommand}" />
                                 </StackPanel>
 
-                                <TextBlock Text="{Binding Warning}"
-                                           Classes="WidgetWarning"
+                                <!-- Feature feedback: a warning or error the feature
+                                     reported, never a fabricated message. -->
+                                <TextBlock Classes="WidgetWarning"
+                                           Text="{Binding Warning}"
+                                           TextWrapping="Wrap"
                                            IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
-
-                                <TextBlock Text="{Binding ErrorMessage}"
-                                           Classes="WidgetError"
+                                <TextBlock Classes="WidgetError"
+                                           Text="{Binding ErrorMessage}"
+                                           TextWrapping="Wrap"
                                            IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
                             </StackPanel>
                         </Border>
