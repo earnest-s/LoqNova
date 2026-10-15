@@ -97,8 +97,6 @@ public class ClusterGauge : AnimatedGauge
     private double _arcRadius;
     private double _arcThickness;
     private double _hubRadius;
-    private double _needleLength;
-    private double _needleHalfWidth;
     private Geometry _ticksMinor = new StreamGeometry();
     private Geometry _ticksMajor = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
@@ -252,21 +250,22 @@ public class ClusterGauge : AnimatedGauge
         _cachedDialSize = dial;
         _outerRadius = dial / 2.0 - 1.0;
         _labelRadius = _outerRadius * 0.925;
-        _tickOuter = _outerRadius * 0.855;
-        _tickInner = _outerRadius * 0.80;
         _arcRadius = _outerRadius * 0.62;
         _arcThickness = Math.Clamp(_outerRadius * 0.075, 3.0, 9.0);
         _hubRadius = _outerRadius * 0.36;
-        _needleLength = _outerRadius * 0.66;
-        _needleHalfWidth = Math.Max(1.5, _outerRadius * 0.034);
+
+        var tickOuter = _outerRadius * 0.855;
+        var tickInner = _outerRadius * 0.80;
+        var needleLength = _outerRadius * 0.66;
+        var needleHalfWidth = Math.Max(1.5, _outerRadius * 0.034);
 
         var ticks = DashboardVisuals.Ticks(
-            center, _tickInner, _tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
+            center, tickInner, tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
         _ticksMinor = ticks.Minor;
         _ticksMajor = ticks.Major;
 
         _trackArc = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle);
-        _needle = DashboardVisuals.Needle(_needleLength, _needleHalfWidth, _hubRadius * 0.9);
+        _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, _hubRadius * 0.9);
     }
 
     private double ComputeRatio()
