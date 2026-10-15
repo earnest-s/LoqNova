@@ -3,7 +3,7 @@
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
              xmlns:vmControls="clr-namespace:LoqNova.Avalonia.ViewModels.Controls"
              xmlns:controls="clr-namespace:LoqNova.Avalonia.Views.Controls"
-             xmlns:sensors="clr-namespace:LoqNova.Avalonia.Views.Controls.Sensors"
+             xmlns:dash="clr-namespace:LoqNova.Avalonia.Views.Controls.Dashboard"
              x:Class="LoqNova.Avalonia.Views.Pages.DashboardPage"
              x:DataType="vm:DashboardViewModel">
 
@@ -18,8 +18,7 @@
             <Grid Classes="PageHeader" ColumnDefinitions="*,Auto">
                 <StackPanel Grid.Column="0" VerticalAlignment="Center">
                     <TextBlock Text="Dashboard" Classes="PageTitle" />
-                    <TextBlock Text="System telemetry and control overview"
-                               Classes="PageSubtitle" />
+                    <TextBlock Text="Live hardware control and telemetry" Classes="PageSubtitle" />
                 </StackPanel>
 
                 <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
@@ -33,7 +32,7 @@
                 </StackPanel>
             </Grid>
 
-            <!-- ============================ Power mode ============================ -->
+            <!-- ============================ Power mode hero ============================ -->
             <Border Classes="PowerCard">
                 <Grid ColumnDefinitions="Auto,*,Auto">
 
@@ -49,65 +48,209 @@
                             <Border Width="10" Height="10" CornerRadius="{StaticResource RadiusMdBox}"
                                     Background="{Binding PowerModeColor}"
                                     VerticalAlignment="Center" />
-                              <TextBlock Text="{Binding CurrentPowerMode, Converter={StaticResource PowerModeDisplayNameConverter}}"
-                                         Classes="PowerModeValue"
-                                         Foreground="{Binding PowerModeColor}" />
-                          </StackPanel>
-                      </StackPanel>
+                            <TextBlock Text="{Binding CurrentPowerMode, Converter={StaticResource PowerModeDisplayNameConverter}}"
+                                       Classes="PowerModeValue"
+                                       Foreground="{Binding PowerModeColor}" />
+                        </StackPanel>
+                    </StackPanel>
 
-                      <!-- Mode selector. The backend enum is PowerModeState.GodMode;
-                           it is presented as "Custom Mode" to match the WPF resource
-                           strings. The selection is OneWay so the combo reflects the
-                           authoritative VM state and can never write back a null it
-                           produces while ItemsSource is being populated; user changes
-                           are routed through the explicit handler below. -->
-                      <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
-                                  VerticalAlignment="Center">
-                          <ComboBox Classes="Control"
-                                    Width="200"
-                                    SelectionChanged="OnPowerModeSelectionChanged"
-                                    ItemsSource="{Binding PowerModeItems}"
-                                    SelectedItem="{Binding CurrentPowerMode, Mode=OneWay}">
-                              <ComboBox.ItemTemplate>
-                                  <DataTemplate>
-                                      <TextBlock Text="{Binding Converter={StaticResource PowerModeDisplayNameConverter}}" />
-                                  </DataTemplate>
-                              </ComboBox.ItemTemplate>
-                          </ComboBox>
+                    <!-- Mode selector. The backend enum is PowerModeState.GodMode;
+                         it is presented as "Custom Mode" to match the WPF resource
+                         strings. The selection is OneWay so the combo reflects the
+                         authoritative VM state and can never write back a null it
+                         produces while ItemsSource is being populated; user changes
+                         are routed through the explicit handler below. -->
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
+                                VerticalAlignment="Center" Margin="0,0,16,0">
+                        <ComboBox Classes="Control"
+                                  Width="200"
+                                  SelectionChanged="OnPowerModeSelectionChanged"
+                                  ItemsSource="{Binding PowerModeItems}"
+                                  SelectedItem="{Binding CurrentPowerMode, Mode=OneWay}">
+                            <ComboBox.ItemTemplate>
+                                <DataTemplate>
+                                    <TextBlock Text="{Binding Converter={StaticResource PowerModeDisplayNameConverter}}" />
+                                </DataTemplate>
+                            </ComboBox.ItemTemplate>
+                        </ComboBox>
 
-                          <!-- WPF shows a settings button beside the mode selector for
-                               Balance (AI Engine) and Custom Mode (the limits), and
-                               hides it otherwise. The same gating applies here, so the
-                               button is only offered where there is real settings. -->
-                          <Button Classes="IconButton"
-                                  ToolTip.Tip="Open the settings for this mode"
-                                  IsVisible="{Binding HasPowerModeSettings}"
-                                  Command="{Binding OpenPowerModeSettingsCommand}">
-                              <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
-                          </Button>
-                      </StackPanel>
+                        <!-- WPF shows a settings button beside the mode selector for
+                             Balance (AI Engine) and Custom Mode (the limits), and
+                             hides it otherwise. The same gating applies here, so the
+                             button is only offered where there is real settings. -->
+                        <Button Classes="IconButton"
+                                ToolTip.Tip="Open the settings for this mode"
+                                IsVisible="{Binding HasPowerModeSettings}"
+                                Command="{Binding OpenPowerModeSettingsCommand}">
+                            <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
+                        </Button>
+                    </StackPanel>
                 </Grid>
             </Border>
 
             <!-- ============================ Monitoring ============================ -->
-            <TextBlock Text="Monitoring" Classes="SectionLabel" />
+            <Grid ColumnDefinitions="*,Auto" VerticalAlignment="Center">
+                <TextBlock Grid.Column="0" Text="Monitoring" Classes="SectionLabel" Margin="0" />
+                <Border Grid.Column="1" Classes="Chip Success"
+                        IsVisible="{Binding IsRefreshing}"
+                        ToolTip.Tip="The sensor refresh loop is running">
+                    <TextBlock Classes="ChipText" Text="Live" />
+                </Border>
+            </Grid>
 
-            <sensors:SensorsPanel CpuUsage="{Binding CpuUsage}"
-                                   GpuUsage="{Binding GpuUsage}"
-                                   CpuTemperature="{Binding CpuTemperature}"
-                                   GpuTemperature="{Binding GpuTemperature}"
-                                   FanSpeedRpm="{Binding FanSpeedRpm}"
-                                   FanSpeedPercent="{Binding FanSpeedPercent}"
-                                   PowerModeColor="{Binding PowerModeColor}" />
+            <!-- The machine's sensor source gate. When it reports no supported
+                 source, every reading below stays blank rather than showing a
+                 plausible-looking number. -->
+            <Border Classes="Callout Warning" IsVisible="{Binding !IsSensorsSupported}">
+                <TextBlock Classes="CalloutText"
+                           Text="This machine reports no supported sensor source, so live readings are unavailable." />
+            </Border>
+
+            <!-- Live device readouts. The dials paint from the reported values
+                 only: AnalogFanControl rotates at a rate proportional to the
+                 reported RPM and RingGauge sweeps the reported value over the
+                 reported maximum. An unreported channel draws muted and blank. -->
+            <Grid ColumnDefinitions="*,*">
+                <Border Grid.Column="0" Classes="DeviceCard" Margin="0,0,12,0">
+                    <StackPanel Spacing="{StaticResource SpaceLg}">
+
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border Grid.Column="0" Classes="DeviceAccent"
+                                    Background="{DynamicResource SensorCpuBrush}" />
+                            <TextBlock Grid.Column="1" Classes="DeviceTitle" Text="CPU" Margin="10,0,0,0" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="Auto,*">
+                            <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
+                                <dash:RingGauge Width="104" Height="104"
+                                                Value="{Binding CpuUtilization}"
+                                                Maximum="{Binding CpuMaxUtilization}"
+                                                ValueText="{Binding CpuUtilizationText}"
+                                                Unit="%"
+                                                Accent="{DynamicResource SensorCpuBrush}" />
+                                <TextBlock Classes="MetricCaption" Text="Utilization" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
+                                        Spacing="{StaticResource SpaceMd}"
+                                        VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Core clock" />
+                                    <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding CpuCoreClockText}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Temperature" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                Spacing="{StaticResource SpaceXs}"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Classes="TelemetryValue" Text="{Binding CpuTemperatureText}" />
+                                        <TextBlock Classes="Unit" Text="{Binding TemperatureUnitLabel}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Classes="CardDivider" />
+
+                        <!-- The dial prints the reported RPM in its hub; the column
+                             beside it names the channel, its maximum and the
+                             restrained qualitative state. -->
+                        <Grid ColumnDefinitions="Auto,*">
+                            <dash:AnalogFanControl Grid.Column="0" Width="116" Height="116"
+                                                   Rpm="{Binding CpuFanSpeed}"
+                                                   MaxRpm="{Binding CpuMaxFanSpeed}"
+                                                   ValueText="{Binding CpuFanSpeedText}"
+                                                   Accent="{DynamicResource SensorFanBrush}" />
+
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
+                                        Spacing="{StaticResource SpaceXs}"
+                                        VerticalAlignment="Center">
+                                <TextBlock Classes="FanCaption" Text="FAN" />
+                                <TextBlock Classes="FanMeta" Text="{Binding CpuFanSpeedMaxText}" />
+                                <Border Classes="Chip" HorizontalAlignment="Left"
+                                        IsVisible="{Binding CpuFanStateText, Converter={StaticResource StringNotEmptyConverter}}">
+                                    <TextBlock Classes="ChipText" Text="{Binding CpuFanStateText}" />
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Column="1" Classes="DeviceCard" Margin="12,0,0,0">
+                    <StackPanel Spacing="{StaticResource SpaceLg}">
+
+                        <Grid ColumnDefinitions="Auto,*">
+                            <Border Grid.Column="0" Classes="DeviceAccent"
+                                    Background="{DynamicResource SensorGpuBrush}" />
+                            <TextBlock Grid.Column="1" Classes="DeviceTitle" Text="GPU" Margin="10,0,0,0" />
+                        </Grid>
+
+                        <Grid ColumnDefinitions="Auto,*">
+                            <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
+                                <dash:RingGauge Width="104" Height="104"
+                                                Value="{Binding GpuUtilization}"
+                                                Maximum="{Binding GpuMaxUtilization}"
+                                                ValueText="{Binding GpuUtilizationText}"
+                                                Unit="%"
+                                                Accent="{DynamicResource SensorGpuBrush}" />
+                                <TextBlock Classes="MetricCaption" Text="Utilization" />
+                            </StackPanel>
+
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
+                                        Spacing="{StaticResource SpaceMd}"
+                                        VerticalAlignment="Center">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Core clock" />
+                                    <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding GpuCoreClockText}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Memory clock" />
+                                    <TextBlock Grid.Column="1" Classes="TelemetryValue" Text="{Binding GpuMemoryClockText}" />
+                                </Grid>
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <TextBlock Grid.Column="0" Classes="TelemetryLabel" Text="Temperature" />
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal"
+                                                Spacing="{StaticResource SpaceXs}"
+                                                VerticalAlignment="Center">
+                                        <TextBlock Classes="TelemetryValue" Text="{Binding GpuTemperatureText}" />
+                                        <TextBlock Classes="Unit" Text="{Binding TemperatureUnitLabel}" VerticalAlignment="Center" />
+                                    </StackPanel>
+                                </Grid>
+                            </StackPanel>
+                        </Grid>
+
+                        <Border Classes="CardDivider" />
+
+                        <Grid ColumnDefinitions="Auto,*">
+                            <dash:AnalogFanControl Grid.Column="0" Width="116" Height="116"
+                                                   Rpm="{Binding GpuFanSpeed}"
+                                                   MaxRpm="{Binding GpuMaxFanSpeed}"
+                                                   ValueText="{Binding GpuFanSpeedText}"
+                                                   Accent="{DynamicResource SensorFanBrush}" />
+
+                            <StackPanel Grid.Column="1" Margin="16,0,0,0"
+                                        Spacing="{StaticResource SpaceXs}"
+                                        VerticalAlignment="Center">
+                                <TextBlock Classes="FanCaption" Text="FAN" />
+                                <TextBlock Classes="FanMeta" Text="{Binding GpuFanSpeedMaxText}" />
+                                <Border Classes="Chip" HorizontalAlignment="Left"
+                                        IsVisible="{Binding GpuFanStateText, Converter={StaticResource StringNotEmptyConverter}}">
+                                    <TextBlock Classes="ChipText" Text="{Binding GpuFanStateText}" />
+                                </Border>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </Border>
+            </Grid>
 
             <!-- ============================ Quick controls ============================ -->
-            <TextBlock Text="Quick controls" Classes="SectionLabel" Margin="0,4,0,0" />
+            <TextBlock Text="Quick controls" Classes="SectionLabel" Margin="0" />
 
             <ItemsControl ItemsSource="{Binding ControlWidgets}">
                 <ItemsControl.ItemsPanel>
                     <ItemsPanelTemplate>
-                        <!-- Column count follows the available width, so the
-                             grid reflows instead of reserving dead space. -->
+                        <!-- The grid reflows to the available width instead of
+                             reserving dead space. -->
                         <controls:ResponsiveUniformGrid ItemWidth="232" />
                     </ItemsPanelTemplate>
                 </ItemsControl.ItemsPanel>
@@ -147,31 +290,28 @@
                                     <ComboBox.ItemTemplate>
                                         <DataTemplate>
                                             <!-- Library state types implementing IDisplayName supply
-                                                 their own text (Resolution, RefreshRate). -->
+                                                 the name. -->
                                             <TextBlock Text="{Binding Converter={StaticResource DisplayNameConverter}}" />
                                         </DataTemplate>
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
 
-                                <!-- Read-only state, e.g. discrete GPU status. -->
-                                <TextBlock Text="{Binding StatusText}"
-                                           Classes="WidgetValue"
-                                           IsVisible="{Binding IsStatus}" />
+                                <TextBlock Text="{Binding Warning}"
+                                           Classes="WidgetWarning"
+                                           IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
 
-                                <!-- WPF's dashboard cards carry a settings button
-                                     beside the control for features with a detail
-                                     window: GPU overclock here, power mode settings
-                                     on the power-mode selector above. -->
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           Classes="WidgetError"
+                                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
+
                                 <Button Classes="IconButton"
-                                        HorizontalAlignment="Left"
-                                        Margin="0,4,0,0"
-                                        ToolTip.Tip="Open the detailed settings"
-                                        IsVisible="{Binding HasSettingsDialog}"
+                                        IsVisible="{Binding IsToggle}"
+                                        IsEnabled="{Binding !IsBusy}"
+                                        ToolTip.Tip="Open the settings for this feature"
                                         Command="{Binding OpenSettingsCommand}">
                                     <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
                                 </Button>
 
-                                <!-- Action widgets, matching WPF's buttons and context-menu actions. -->
                                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
                                             IsVisible="{Binding HasPrimaryAction}">
                                     <Button Classes="SecondaryButton"
@@ -184,15 +324,6 @@
                                             Content="{Binding SecondaryActionText}"
                                             Command="{Binding SecondaryActionCommand}" />
                                 </StackPanel>
-
-
-                                <TextBlock Text="{Binding Warning}"
-                                           Classes="WidgetWarning"
-                                           IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
-
-                                <TextBlock Text="{Binding ErrorMessage}"
-                                           Classes="WidgetError"
-                                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>
