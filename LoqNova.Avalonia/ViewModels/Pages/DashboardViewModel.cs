@@ -461,7 +461,6 @@ public partial class DashboardViewModel : ViewModelBase
     private static string FormatMegahertz(int megahertz)
         => megahertz < 0 ? "-" : $"{megahertz} MHz";
 
-    /// <summary>Clears every telemetry channel to "not reported" when the source is unsupported.</summary>
     /// <summary>
     /// Applies a power mode the user chose in the selector. The write goes through
     /// the existing service to the existing backend feature, and the resulting state
