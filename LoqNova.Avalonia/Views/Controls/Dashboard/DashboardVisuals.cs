@@ -23,8 +23,6 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 /// </summary>
 internal static class DashboardVisuals
 {
-    private static readonly Point Origin = default;
-
     /// <summary>Resolves a design-token brush, falling back when the key is absent.</summary>
     public static IBrush Brush(IResourceHost host, string key, IBrush fallback)
         => host.TryFindResource(key, out var value) && value is IBrush brush ? brush : fallback;
