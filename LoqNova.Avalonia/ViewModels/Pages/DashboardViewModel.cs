@@ -577,6 +577,16 @@ public partial class DashboardViewModel : ViewModelBase
     /// </summary>
     private static IBrush GetPowerModeColor(PowerModeState? mode) => ThemeBrushes.PowerMode(mode);
 
+    // The analog dials label themselves from the machine-reported value/maximum
+    // ratio, so each fan reading republishes the matching state label.
+    partial void OnCpuFanSpeedChanged(int value) => OnPropertyChanged(nameof(CpuFanStateText));
+
+    partial void OnCpuMaxFanSpeedChanged(int value) => OnPropertyChanged(nameof(CpuFanStateText));
+
+    partial void OnGpuFanSpeedChanged(int value) => OnPropertyChanged(nameof(GpuFanStateText));
+
+    partial void OnGpuMaxFanSpeedChanged(int value) => OnPropertyChanged(nameof(GpuFanStateText));
+
     [RelayCommand]
     private async Task RefreshAsync()
     {
@@ -588,5 +598,3 @@ public partial class DashboardViewModel : ViewModelBase
     [RelayCommand]
     private Task EditDashboardAsync() => _navigationService.NavigateToDialogAsync<EditDashboardViewModel>();
 }
-
-/// <summary>
