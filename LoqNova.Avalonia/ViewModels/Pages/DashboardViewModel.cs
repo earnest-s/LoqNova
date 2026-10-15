@@ -141,6 +141,17 @@ public partial class DashboardViewModel : ViewModelBase
     /// <summary>Restrained qualitative state for the GPU fan, same rules as the CPU fan.</summary>
     public string GpuFanStateText => FanStateText(GpuFanSpeed, GpuMaxFanSpeed);
 
+    /// <summary>
+    /// True when the machine reported both the speed and the maximum for the CPU
+    /// fan, which is exactly when <see cref="CpuFanSpeedText"/> carries a reading.
+    /// The unit suffix beside the dial is only drawn for a reported channel, so an
+    /// unavailable fan never renders as "0 RPM".
+    /// </summary>
+    public bool IsCpuFanReported => CpuFanSpeed >= 0 && CpuMaxFanSpeed >= 0;
+
+    /// <summary>Whether the GPU fan reported a reading, with the same rule as the CPU fan.</summary>
+    public bool IsGpuFanReported => GpuFanSpeed >= 0 && GpuMaxFanSpeed >= 0;
+
     private static string FanStateText(int value, int maximum)
     {
         if (value < 0 || maximum <= 0)
