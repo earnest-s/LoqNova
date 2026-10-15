@@ -207,4 +207,28 @@ internal static class DashboardVisuals
     /// <summary>Draws text centred on a point, with an optional vertical nudge.</summary>
     public static void DrawCentred(DrawingContext context, FormattedText text, Point center, double dy = 0)
         => context.DrawText(text, new Point(center.X - text.Width / 2.0, center.Y - text.Height / 2.0 + dy));
+
+    /// <summary>
+    /// The reading shown while an opening sweep is running: the reported number
+    /// eased up from zero, so the digits travel with the needle instead of
+    /// snapping straight to the answer.
+    /// <para>
+    /// It counts up from the formatted reading itself rather than from the raw
+    /// sensor value, so it lands on exactly the text the machine's reading
+    /// formats to - including any unit conversion already applied to it - and a
+    /// reading that is not a plain number (an unreported channel's dash) is
+    /// returned untouched rather than replaced with an invented figure.
+    /// </para>
+    /// </summary>
+    public static string CountUp(string? valueText, double phase)
+    {
+        if (valueText is null
+            || !int.TryParse(valueText, NumberStyles.Integer, CultureInfo.CurrentCulture, out var reported))
+        {
+            return valueText ?? "-";
+        }
+
+        return Math.Round(reported * Math.Clamp(phase, 0.0, 1.0))
+            .ToString("F0", CultureInfo.CurrentCulture);
+    }
 }
