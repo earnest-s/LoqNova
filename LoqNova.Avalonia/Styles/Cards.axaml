@@ -3,22 +3,18 @@
 
     <!-- ============================ Card primitives ============================
          Flat, 1px bordered, low radius. No shadows: the visual language is
-         technical and dense rather than soft and rounded. -->
+         technical and dense rather than soft and rounded.
 
-    <Style Selector="Border.BaseCard">
+         Every card class resolves to one of three paddings. The historical
+         class names are kept as aliases so existing views keep working; new
+         markup should use BaseCard or ContentCard. -->
+
+    <Style Selector="Border.BaseCard, Border.ContentCard, Border.HoverCard, Border.FeatureCard, Border.PowerCard">
         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16" />
-    </Style>
-
-    <Style Selector="Border.ContentCard">
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
+        <Setter Property="Padding" Value="{StaticResource InsetLg}" />
     </Style>
 
     <!-- Recessed panel used for grouped controls inside a card. -->
@@ -26,73 +22,27 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="5" />
-        <Setter Property="Padding" Value="12" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMdBox}" />
+        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
     </Style>
 
-    <Style Selector="Border.HoverCard">
+    <!-- Compact card variants, used where the card sits in a dense grid. -->
+    <Style Selector="Border.ToggleCard, Border.ComboBoxCard, Border.ButtonCard, Border.CustomCard">
         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16" />
-    </Style>
-
-    <Style Selector="Border.HoverCard:pointerover">
-        <Setter Property="Background" Value="{DynamicResource CardElevatedBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
-    </Style>
-
-    <Style Selector="Border.FeatureCard">
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16" />
-    </Style>
-
-    <Style Selector="Border.ToggleCard">
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="12" />
-    </Style>
-
-    <Style Selector="Border.ComboBoxCard">
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="12" />
-    </Style>
-
-    <Style Selector="Border.ButtonCard">
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="12" />
-    </Style>
-
-    <Style Selector="Border.CustomCard">
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="12" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
+        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
     </Style>
 
     <!-- ============================ Power card ============================
          The hero card of the dashboard. A left accent rail carries the
          active power mode colour. -->
 
-    <Style Selector="Border.PowerCard">
-        <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
-        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
-        <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16" />
+    <!-- Interactive card: the whole card is a pointer target. -->
+    <Style Selector="Border.HoverCard:pointerover">
+        <Setter Property="Background" Value="{DynamicResource CardElevatedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
     </Style>
 
     <Style Selector="Border.PowerAccent">
@@ -111,11 +61,12 @@
 
     <!-- ============================ Widget grid ============================ -->
 
+    <!-- Widget grid: the dashboard metrics. Slightly tighter than a full card. -->
     <Style Selector="Border.WidgetCard">
         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
         <Setter Property="Padding" Value="14" />
         <Setter Property="MinHeight" Value="80" />
     </Style>
@@ -191,8 +142,8 @@
         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
-        <Setter Property="CornerRadius" Value="6" />
-        <Setter Property="Padding" Value="16" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
+        <Setter Property="Padding" Value="{StaticResource InsetLg}" />
         <Setter Property="HorizontalAlignment" Value="Stretch" />
         <Setter Property="HorizontalContentAlignment" Value="Stretch" />
         <Setter Property="VerticalAlignment" Value="Center" />

@@ -1,0 +1,276 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+
+    <!-- ============================================================
+         Shared composition primitives
+
+         These are the patterns every page and dialog is assembled from:
+         page headers, setting groups and rows, chips, callouts, field
+         readouts, empty states and the dialog frame. Nothing here paints a
+         control's own chrome - that lives in Buttons / Cards / Layout /
+         Navigation / Sensors.
+
+         Rule: markup composes these classes instead of restating fonts,
+         margins and colours, so a single edit here moves the whole
+         application at once.
+         ============================================================ -->
+
+    <!-- ==================== Page header ==================== -->
+
+    <Style Selector="StackPanel.PageHeaderBlock">
+        <Setter Property="Spacing" Value="{StaticResource SpaceXs}" />
+    </Style>
+
+    <!-- ==================== Setting groups ====================
+         A run of related setting cards. The cards carry no margins of their
+         own: the group owns the rhythm, so every page spaces its cards the
+         same way. -->
+
+    <Style Selector="StackPanel.SettingsGroup">
+        <Setter Property="Spacing" Value="{StaticResource SpaceSm}" />
+    </Style>
+
+    <Style Selector="TextBlock.SettingsSectionTitle">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize3XL}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- ==================== Setting row ====================
+         Title + description on the left, the control on the right. -->
+
+    <Style Selector="StackPanel.SettingHeader">
+        <Setter Property="Spacing" Value="{StaticResource SpaceXxs}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,0,16,0" />
+    </Style>
+
+    <Style Selector="ComboBox.SettingControl">
+        <Setter Property="MinWidth" Value="160" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="ToggleSwitch.SettingControl">
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Button.SettingControl">
+        <Setter Property="MinWidth" Value="160" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="StackPanel.SettingControlRow">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="{StaticResource SpaceSm}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- ==================== Field label / value ====================
+         A label above a slider or input and its numeric readout. -->
+
+    <Style Selector="TextBlock.FieldLabel">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.FieldValue">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="MinWidth" Value="72" />
+        <Setter Property="Margin" Value="12,0,0,0" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+    </Style>
+
+    <!-- ==================== Chip ====================
+         Small status / value pill. The neutral form is used for readouts,
+         the variant classes for state. -->
+
+    <Style Selector="Border.Chip">
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusPillBox}" />
+        <Setter Property="Padding" Value="8,2" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Border.Chip.Accent">
+        <Setter Property="Background" Value="{DynamicResource PrimaryMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="Border.Chip.Success">
+        <Setter Property="Background" Value="{DynamicResource SuccessMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}" />
+    </Style>
+
+    <Style Selector="Border.Chip.Warning">
+        <Setter Property="Background" Value="{DynamicResource WarningMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}" />
+    </Style>
+
+    <Style Selector="Border.Chip.Danger">
+        <Setter Property="Background" Value="{DynamicResource DangerMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.ChipText">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="Border.Chip.Accent TextBlock.ChipText">
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="Border.Chip.Success TextBlock.ChipText">
+        <Setter Property="Foreground" Value="{DynamicResource SuccessBrush}" />
+    </Style>
+
+    <Style Selector="Border.Chip.Warning TextBlock.ChipText">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+    </Style>
+
+    <Style Selector="Border.Chip.Danger TextBlock.ChipText">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    </Style>
+
+    <!-- ==================== Callout ====================
+         The one pattern for inline advisory text: a warning, an error, a
+         success note or a plain note inside a card or dialog. -->
+
+    <Style Selector="Border.Callout">
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMdBox}" />
+        <Setter Property="Padding" Value="12,10" />
+    </Style>
+
+    <Style Selector="Border.Callout.Information">
+        <Setter Property="Background" Value="{DynamicResource PrimaryMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="Border.Callout.Success">
+        <Setter Property="Background" Value="{DynamicResource SuccessMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource SuccessBrush}" />
+    </Style>
+
+    <Style Selector="Border.Callout.Warning">
+        <Setter Property="Background" Value="{DynamicResource WarningMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource WarningBrush}" />
+    </Style>
+
+    <Style Selector="Border.Callout.Danger">
+        <Setter Property="Background" Value="{DynamicResource DangerMutedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DangerBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.CalloutText">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="Border.Callout.Warning TextBlock.CalloutText">
+        <Setter Property="Foreground" Value="{DynamicResource WarningBrush}" />
+    </Style>
+
+    <Style Selector="Border.Callout.Danger TextBlock.CalloutText">
+        <Setter Property="Foreground" Value="{DynamicResource DangerBrush}" />
+    </Style>
+
+    <Style Selector="Border.Callout.Information TextBlock.CalloutText">
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <!-- ==================== Empty state ==================== -->
+
+    <Style Selector="StackPanel.EmptyState">
+        <Setter Property="Spacing" Value="{StaticResource SpaceSm}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="VerticalAlignment" Value="Center" />
+        <Setter Property="Margin" Value="0,24" />
+    </Style>
+
+    <Style Selector="TextBlock.EmptyStateTitle">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeLG}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
+    <Style Selector="TextBlock.EmptyStateText">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+        <Setter Property="MaxWidth" Value="420" />
+        <Setter Property="HorizontalAlignment" Value="Center" />
+        <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+
+    <!-- ==================== Dialog chrome ====================
+         Dialogs are hosted inside the main window instead of being separate
+         windows, so they carry their own frame. Layout is:
+         DialogCard > (DialogBody layout) > DialogTitle / DialogSubtitle /
+         content / DialogFooter. -->
+
+    <Style Selector="Border.DialogCard">
+        <Setter Property="Background" Value="{DynamicResource CardElevatedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusLgBox}" />
+        <Setter Property="Padding" Value="0" />
+    </Style>
+
+    <Style Selector="StackPanel.DialogBody">
+        <Setter Property="Spacing" Value="{StaticResource SpaceMd}" />
+        <Setter Property="Margin" Value="{StaticResource InsetXl}" />
+    </Style>
+
+    <Style Selector="TextBlock.DialogTitle">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSize2XL}" />
+        <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+    </Style>
+
+    <Style Selector="TextBlock.DialogSubtitle">
+        <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
+        <Setter Property="TextWrapping" Value="Wrap" />
+    </Style>
+
+    <Style Selector="StackPanel.DialogFooter">
+        <Setter Property="Orientation" Value="Horizontal" />
+        <Setter Property="Spacing" Value="{StaticResource SpaceSm}" />
+        <Setter Property="HorizontalAlignment" Value="Right" />
+        <Setter Property="Margin" Value="0,4,0,0" />
+    </Style>
+
+    <!-- ==================== Overflow ====================
+         A scrollable region inside a card or dialog. The inner panel is inset
+         so content never sits flush against the frame. -->
+
+    <Style Selector="Border.ScrollRegion">
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="CornerRadius" Value="{StaticResource RadiusMdBox}" />
+        <Setter Property="Padding" Value="{StaticResource InsetMd}" />
+    </Style>
+
+</Styles>
