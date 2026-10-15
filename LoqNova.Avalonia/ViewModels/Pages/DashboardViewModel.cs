@@ -537,6 +537,7 @@ public partial class DashboardViewModel : ViewModelBase
             PowerModeItems.Add(value);
     }
 
+    /// <summary>Clears every telemetry channel to "not reported" when the source is unsupported.</summary>
     private void ResetTelemetry()
     {
         CpuUtilization = CpuMaxUtilization = CpuCoreClock = CpuMaxCoreClock = -1;
