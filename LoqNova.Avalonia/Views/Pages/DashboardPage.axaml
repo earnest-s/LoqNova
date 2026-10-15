@@ -296,7 +296,8 @@
                                     </ComboBox.ItemTemplate>
                                 </ComboBox>
 
-                                <!-- Read-only state, e.g. discrete GPU status. -->                                <TextBlock Text="{Binding StatusText}"
+                                <!-- Read-only state, e.g. discrete GPU status. -->
+                                <TextBlock Text="{Binding StatusText}"
                                            Classes="WidgetValue"
                                            IsVisible="{Binding IsStatus}" />
 
