@@ -30,10 +30,10 @@
                 <Border Classes="ContentCard" Padding="10" Margin="0,8,0,0"
                         Background="{DynamicResource DangerMutedBrush}"
                         IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
-                    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" FontSize="11" />
+                    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeXS}" />
                 </Border>
 
-                <ToggleSwitch IsChecked="{Binding IsAutomationEnabled}"
+                <ToggleSwitch Classes="Control" IsChecked="{Binding IsAutomationEnabled}"
                               OnContent="Enabled" OffContent="Disabled"
                               VerticalAlignment="Center" />
 
