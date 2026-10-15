@@ -91,6 +91,15 @@ public class AnalogFanControl : AnimatedGauge
     private Geometry _trackArc = new StreamGeometry();
     private double _cachedWidth = double.NaN;
     private double _cachedHeight = double.NaN;
+
+    /// <summary>
+    /// The reported-speed arc, rebuilt only when the level actually moves. The
+    /// rotor repaints every frame, so caching this keeps a steady reading from
+    /// allocating a new arc geometry sixty times a second.
+    /// </summary>
+    private Geometry _progressArc = new StreamGeometry();
+    private double _progressRatio = double.NaN;
+
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
@@ -146,8 +155,13 @@ public class AnalogFanControl : AnimatedGauge
             : 0.0;
         if (ratio > 0.004)
         {
-            var progress = DashboardVisuals.Arc(center, _arcRadius, 0.0, 360.0 * ratio);
-            context.DrawGeometry(null, new Pen(accentBrush, _arcThickness, null, PenLineCap.Round), progress);
+            if (double.IsNaN(_progressRatio) || Math.Abs(ratio - _progressRatio) > 0.0005)
+            {
+                _progressArc = DashboardVisuals.Arc(center, _arcRadius, 0.0, 360.0 * ratio);
+                _progressRatio = ratio;
+            }
+
+            context.DrawGeometry(null, new Pen(accentBrush, _arcThickness, null, PenLineCap.Round), _progressArc);
         }
 
         // The rotor. Alternating blade weight keeps the rotation direction and
@@ -206,12 +220,15 @@ public class AnalogFanControl : AnimatedGauge
     /// </summary>
     private void EnsureGeometry(double dial, Point center)
     {
-        if (Math.Abs(dial - _cachedDialSize) < 0.5)
+        // Keyed on both dimensions: a dial that only grows sideways still moves
+        // its centre, so a size cache on the shorter side alone would go stale.
+        if (Math.Abs(Bounds.Width - _cachedWidth) < 0.5 && Math.Abs(Bounds.Height - _cachedHeight) < 0.5)
         {
             return;
         }
 
-        _cachedDialSize = dial;
+        _cachedWidth = Bounds.Width;
+        _cachedHeight = Bounds.Height;
         _outerRadius = dial / 2.0 - 1.0;
         _hubRadius = _outerRadius * 0.19;
         _hubDotRadius = Math.Max(1.5, _hubRadius * 0.22);
@@ -225,6 +242,7 @@ public class AnalogFanControl : AnimatedGauge
         _ticksMajor = ticks.Major;
 
         _trackArc = DashboardVisuals.Arc(center, _arcRadius, 0, 360);
+        _progressRatio = double.NaN;
 
         var bladeOuter = _outerRadius * 0.72;
         _bladesEven = BuildBlades(_hubRadius, bladeOuter, even: true);
