@@ -104,14 +104,18 @@ public class ClusterGauge : AnimatedGauge
     private double _arcRadius;
     private double _arcThickness;
     private double _hubRadius;
+    private double _redlineRadius;
+    private double _redlineThickness;
     private Geometry _ticksMinor = new StreamGeometry();
     private Geometry _ticksMajor = new StreamGeometry();
+    private Geometry _redlineTicksMinor = new StreamGeometry();
+    private Geometry _redlineTicksMajor = new StreamGeometry();
+    private Geometry _redlineArc = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
     private Geometry _needle = new StreamGeometry();
 
     private double _displayRatio;
     private double _targetRatio;
-    private bool _initialised;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -119,17 +123,11 @@ public class ClusterGauge : AnimatedGauge
 
         if (change.Property == ValueProperty || change.Property == MaximumProperty)
         {
+            // The needle is deliberately left where it is: on the first frames it
+            // is still at the bottom of the scale, so the one-shot opening sweep
+            // carries it up to this reading.
             _targetRatio = ComputeRatio();
-            if (!_initialised)
-            {
-                _initialised = true;
-                _displayRatio = _targetRatio;
-            }
-            else
-            {
-                RequestFrames();
-            }
-
+            RequestFrames();
             InvalidateVisual();
         }
         else if (change.Property == ValueTextProperty
