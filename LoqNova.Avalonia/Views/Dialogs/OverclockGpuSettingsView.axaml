@@ -49,7 +49,7 @@
             <ScrollViewer VerticalScrollBarVisibility="Auto">
                 <StackPanel Spacing="{StaticResource SpaceLg}">
 
-                    <StackPanel Spacing="{StaticResource SpaceXs}">
+                    <StackPanel Classes="FieldRow">
                         <TextBlock Classes="FieldLabel" Text="Core Frequency Offset" />
                         <Grid ColumnDefinitions="*,Auto">
                             <Slider Grid.Column="0"
@@ -64,7 +64,7 @@
                         </Grid>
                     </StackPanel>
 
-                    <StackPanel Spacing="{StaticResource SpaceXs}">
+                    <StackPanel Classes="FieldRow">
                         <TextBlock Classes="FieldLabel" Text="Memory Frequency Offset" />
                         <Grid ColumnDefinitions="*,Auto">
                             <Slider Grid.Column="0"
