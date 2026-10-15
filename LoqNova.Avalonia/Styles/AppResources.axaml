@@ -4,116 +4,314 @@
 
     <!-- ============================================================
          LOQ Nova Design System
-         Single source of truth for color, spacing, radius and metrics.
+         Single source of truth for colour, spacing, radius and metrics.
          Control XAML must reference these tokens, never raw hex.
+
+         Colour is theme aware: every surface, line, text and semantic
+         colour is declared once per variant under ThemeDictionaries, so
+         the Light and Dark settings produce two coherent palettes rather
+         than a dark palette under light control templates. Views reference
+         these tokens with DynamicResource so switching the theme in
+         Settings repaints the whole window live.
          ============================================================ -->
 
-    <!-- Surfaces: deep, slightly cool, technical -->
-    <Color x:Key="BackgroundColor">#0B0D11</Color>
-    <Color x:Key="SidebarColor">#0E1116</Color>
-    <Color x:Key="SurfaceColor">#12161C</Color>
-    <Color x:Key="CardBackgroundColor">#161A21</Color>
-    <Color x:Key="CardElevatedColor">#1B2029</Color>
-    <Color x:Key="SurfaceRaisedColor">#1F242D</Color>
-
-    <!-- Lines -->
-    <Color x:Key="BorderColor">#242A33</Color>
-    <Color x:Key="BorderStrongColor">#2F3742</Color>
-    <Color x:Key="DividerColor">#1E232B</Color>
-    <Color x:Key="HoverColor">#1C212A</Color>
-    <Color x:Key="PressedColor">#232935</Color>
-
-    <!-- Brand accent + semantic states -->
+    <!-- ============================================================
+         Runtime accent
+         The brand accent is user configurable (Settings -> Appearance).
+         ThemeService replaces these values in place, and every accent
+         surface in the app derives from PrimaryColor, so one write
+         repaints navigation, buttons, toggles, check boxes, sliders and
+         selection highlights together.
+         ============================================================ -->
     <Color x:Key="PrimaryColor">#1E9EFF</Color>
     <Color x:Key="PrimaryHoverColor">#45B0FF</Color>
     <Color x:Key="PrimaryPressedColor">#1483D6</Color>
     <Color x:Key="PrimaryMutedColor">#14314C</Color>
     <Color x:Key="AccentColor">#1E9EFF</Color>
-    <Color x:Key="SecondaryColor">#12C2A8</Color>
-    <Color x:Key="SecondaryMutedColor">#0E3B36</Color>
-    <Color x:Key="DangerColor">#E5484D</Color>
-    <Color x:Key="DangerHoverColor">#F05A5E</Color>
-    <Color x:Key="DangerPressedColor">#C63A3E</Color>
-    <Color x:Key="WarningColor">#F5A524</Color>
-    <Color x:Key="SuccessColor">#2FA96B</Color>
-
-    <!-- Text -->
-    <Color x:Key="TextPrimaryColor">#E9EDF2</Color>
-    <Color x:Key="TextSecondaryColor">#98A2B0</Color>
-    <Color x:Key="TextMutedColor">#66707D</Color>
-    <Color x:Key="DisabledTextColor">#4C545F</Color>
-    <Color x:Key="FocusColor">#1E9EFF</Color>
-    <Color x:Key="DisabledColor">#232830</Color>
-    <!-- Foreground used on top of the accent / danger fills -->
     <Color x:Key="OnAccentColor">#FFFFFF</Color>
 
-    <!-- Power mode ramp: calm -> hot -->
-    <Color x:Key="QuietModeColor">#4C9AFF</Color>
-    <Color x:Key="BalanceModeColor">#12C2A8</Color>
-    <Color x:Key="PerformanceModeColor">#F5A524</Color>
-    <Color x:Key="GodModeColor">#E5484D</Color>
+    <SolidColorBrush x:Key="PrimaryBrush" Color="{DynamicResource PrimaryColor}" />
+    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{DynamicResource PrimaryHoverColor}" />
+    <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{DynamicResource PrimaryPressedColor}" />
+    <SolidColorBrush x:Key="PrimaryMutedBrush" Color="{DynamicResource PrimaryMutedColor}" />
+    <SolidColorBrush x:Key="AccentBrush" Color="{DynamicResource AccentColor}" />
+    <SolidColorBrush x:Key="OnAccentBrush" Color="{DynamicResource OnAccentColor}" />
+    <SolidColorBrush x:Key="FocusBrush" Color="{DynamicResource PrimaryColor}" />
 
-    <!-- Sensor channel identity -->
-    <Color x:Key="SensorCpuColor">#1E9EFF</Color>
-    <Color x:Key="SensorGpuColor">#12C2A8</Color>
-    <Color x:Key="SensorTempColor">#F5A524</Color>
-    <Color x:Key="SensorFanColor">#8B7BF7</Color>
+    <!-- ============================================================
+         Fluent control chrome
+         Avalonia resolves Application.Resources before Application.Styles,
+         so declaring the theme keys here re-skins the built-in controls
+         without retemplating them. Everything below points at a design
+         token, which keeps third-party chrome on the LOQ Nova palette.
+         ============================================================ -->
 
-    <!-- Solid brushes -->
-    <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
-    <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
-    <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
-    <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
-    <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}" />
-    <SolidColorBrush x:Key="CardElevatedBrush" Color="{StaticResource CardElevatedColor}" />
-    <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
+    <CornerRadius x:Key="ControlCornerRadius">6</CornerRadius>
+    <CornerRadius x:Key="OverlayCornerRadius">6</CornerRadius>
+    <x:Double x:Key="TextControlThemeMinHeight">32</x:Double>
 
-    <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
-    <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
-    <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
-    <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
-    <SolidColorBrush x:Key="PressedBrush" Color="{StaticResource PressedColor}" />
+    <!-- Toggles: 34 call sites, so this is the highest-leverage control. -->
+    <SolidColorBrush x:Key="ToggleSwitchContentForeground" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOff" Color="{DynamicResource SurfaceRaisedColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOffPointerOver" Color="{DynamicResource HoverColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOffPressed" Color="{DynamicResource PressedColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOff" Color="{DynamicResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPointerOver" Color="{DynamicResource TextMutedColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOffPressed" Color="{DynamicResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOff" Color="{DynamicResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPointerOver" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffPressed" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOn" Color="{DynamicResource PrimaryColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnPointerOver" Color="{DynamicResource PrimaryHoverColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnPressed" Color="{DynamicResource PrimaryPressedColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOn" Color="{DynamicResource PrimaryColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPointerOver" Color="{DynamicResource PrimaryHoverColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOnPressed" Color="{DynamicResource PrimaryPressedColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOn" Color="{DynamicResource OnAccentColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPointerOver" Color="{DynamicResource OnAccentColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnPressed" Color="{DynamicResource OnAccentColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOnDisabled" Color="{DynamicResource DisabledColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchFillOffDisabled" Color="{DynamicResource DisabledColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOnDisabled" Color="{DynamicResource DisabledColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchStrokeOffDisabled" Color="{DynamicResource DisabledColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOnDisabled" Color="{DynamicResource DisabledTextColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchKnobFillOffDisabled" Color="{DynamicResource DisabledTextColor}" />
+    <SolidColorBrush x:Key="ToggleSwitchContainerBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="ToggleSwitchContainerBackgroundPointerOver" Color="Transparent" />
+    <SolidColorBrush x:Key="ToggleSwitchContainerBackgroundPressed" Color="Transparent" />
 
-    <SolidColorBrush x:Key="PrimaryBrush" Color="{StaticResource PrimaryColor}" />
-    <SolidColorBrush x:Key="PrimaryHoverBrush" Color="{StaticResource PrimaryHoverColor}" />
-    <SolidColorBrush x:Key="PrimaryPressedBrush" Color="{StaticResource PrimaryPressedColor}" />
-    <SolidColorBrush x:Key="PrimaryMutedBrush" Color="{StaticResource PrimaryMutedColor}" />
-    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}" />
-    <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
-    <SolidColorBrush x:Key="SecondaryMutedBrush" Color="{StaticResource SecondaryMutedColor}" />
-    <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
-    <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource DangerHoverColor}" />
-    <SolidColorBrush x:Key="DangerPressedBrush" Color="{StaticResource DangerPressedColor}" />
-    <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
-    <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+    <!-- Tooltips: flat elevated card with a hairline border. -->
+    <SolidColorBrush x:Key="ToolTipBackground" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="ToolTipForeground" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{DynamicResource BorderStrongColor}" />
+    <Thickness x:Key="ToolTipBorderThemePadding">10,6,10,7</Thickness>
+    <x:Double x:Key="ToolTipContentThemeFontSize">12</x:Double>
 
-    <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
-    <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
-    <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
-    <SolidColorBrush x:Key="DisabledTextBrush" Color="{StaticResource DisabledTextColor}" />
-    <SolidColorBrush x:Key="OnAccentBrush" Color="{StaticResource OnAccentColor}" />
-    <SolidColorBrush x:Key="FocusBrush" Color="{StaticResource FocusColor}" />
-    <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}" />
+    <!-- Flyouts, context menus and the tray menu. -->
+    <SolidColorBrush x:Key="MenuFlyoutPresenterBackground" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{DynamicResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForeground" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPointerOver" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemForegroundPressed" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackground" Color="Transparent" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPointerOver" Color="{DynamicResource HoverColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutItemBackgroundPressed" Color="{DynamicResource PressedColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutSubItemChevron" Color="{DynamicResource TextMutedColor}" />
+    <SolidColorBrush x:Key="MenuFlyoutSubItemChevronPointerOver" Color="{DynamicResource TextPrimaryColor}" />
+    <Thickness x:Key="MenuFlyoutPresenterThemePadding">4,4</Thickness>
+    <Thickness x:Key="MenuFlyoutItemThemePaddingNarrow">10,6,10,7</Thickness>
 
-    <SolidColorBrush x:Key="QuietModeBrush" Color="{StaticResource QuietModeColor}" />
-    <SolidColorBrush x:Key="BalanceModeBrush" Color="{StaticResource BalanceModeColor}" />
-    <SolidColorBrush x:Key="PerformanceModeBrush" Color="{StaticResource PerformanceModeColor}" />
-    <SolidColorBrush x:Key="GodModeBrush" Color="{StaticResource GodModeColor}" />
+    <!-- Combo box chrome (ComboBox.Control refines this further). -->
+    <SolidColorBrush x:Key="ComboBoxDropDownBackground" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{DynamicResource BorderStrongColor}" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForeground" Color="{DynamicResource TextSecondaryColor}" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundPointerOver" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundFocused" Color="{DynamicResource TextPrimaryColor}" />
+    <SolidColorBrush x:Key="ComboBoxDropDownGlyphForegroundFocusedPressed" Color="{DynamicResource TextPrimaryColor}" />
 
-    <SolidColorBrush x:Key="SensorCpuBrush" Color="{StaticResource SensorCpuColor}" />
-    <SolidColorBrush x:Key="SensorGpuBrush" Color="{StaticResource SensorGpuColor}" />
-    <SolidColorBrush x:Key="SensorTempBrush" Color="{StaticResource SensorTempColor}" />
-    <SolidColorBrush x:Key="SensorFanBrush" Color="{StaticResource SensorFanColor}" />
+    <!-- Notification cards. -->
+    <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="NotificationCardInformationBackgroundBrush" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="NotificationCardSuccessBackgroundBrush" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="NotificationCardWarningBackgroundBrush" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="NotificationCardErrorBackgroundBrush" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="NotificationCardProgressBackgroundBrush" Color="{DynamicResource CardElevatedColor}" />
+    <SolidColorBrush x:Key="NotificationCardForegroundBrush" Color="{DynamicResource TextPrimaryColor}" />
 
-    <!-- ============================ Spacing scale ============================ -->
-    <x:Double x:Key="SpaceXxs">2</x:Double>
-    <x:Double x:Key="SpaceXs">4</x:Double>
-    <x:Double x:Key="SpaceSm">8</x:Double>
-    <x:Double x:Key="SpaceMd">12</x:Double>
-    <x:Double x:Key="SpaceLg">16</x:Double>
-    <x:Double x:Key="SpaceXl">20</x:Double>
-    <x:Double x:Key="Space2xl">24</x:Double>
-    <x:Double x:Key="Space3xl">32</x:Double>
+    <!-- ============================================================
+         Palettes
+         Every colour is declared per variant. Brushes reference their
+         sibling colour with StaticResource, which resolves inside the
+         dictionary currently being loaded.
+         ============================================================ -->
+    <ResourceDictionary.ThemeDictionaries>
+
+        <!-- ==================== Dark ==================== -->
+        <ResourceDictionary x:Key="Dark">
+            <!-- Surfaces: deep, slightly cool, technical -->
+            <Color x:Key="BackgroundColor">#0B0D11</Color>
+            <Color x:Key="SidebarColor">#0E1116</Color>
+            <Color x:Key="SurfaceColor">#12161C</Color>
+            <Color x:Key="CardBackgroundColor">#161A21</Color>
+            <Color x:Key="CardElevatedColor">#1B2029</Color>
+            <Color x:Key="SurfaceRaisedColor">#1F242D</Color>
+
+            <!-- Lines -->
+            <Color x:Key="BorderColor">#242A33</Color>
+            <Color x:Key="BorderStrongColor">#2F3742</Color>
+            <Color x:Key="DividerColor">#1E232B</Color>
+            <Color x:Key="HoverColor">#1C212A</Color>
+            <Color x:Key="PressedColor">#232935</Color>
+
+            <!-- Semantic states -->
+            <Color x:Key="SecondaryColor">#12C2A8</Color>
+            <Color x:Key="SecondaryMutedColor">#0E3B36</Color>
+            <Color x:Key="DangerColor">#E5484D</Color>
+            <Color x:Key="DangerHoverColor">#F05A5E</Color>
+            <Color x:Key="DangerPressedColor">#C63A3E</Color>
+            <Color x:Key="DangerMutedColor">#3A1D20</Color>
+            <Color x:Key="WarningColor">#F5A524</Color>
+            <Color x:Key="WarningMutedColor">#3A2E12</Color>
+            <Color x:Key="SuccessColor">#2FA96B</Color>
+            <Color x:Key="SuccessMutedColor">#12301F</Color>
+
+            <!-- Text -->
+            <Color x:Key="TextPrimaryColor">#E9EDF2</Color>
+            <Color x:Key="TextSecondaryColor">#98A2B0</Color>
+            <Color x:Key="TextMutedColor">#66707D</Color>
+            <Color x:Key="DisabledTextColor">#4C545F</Color>
+            <Color x:Key="DisabledColor">#232830</Color>
+            <Color x:Key="FocusColor">#1E9EFF</Color>
+            <Color x:Key="ScrimColor">#66000000</Color>
+
+            <!-- Power mode ramp: calm -> hot -->
+            <Color x:Key="QuietModeColor">#4C9AFF</Color>
+            <Color x:Key="BalanceModeColor">#12C2A8</Color>
+            <Color x:Key="PerformanceModeColor">#F5A524</Color>
+            <Color x:Key="GodModeColor">#E5484D</Color>
+
+            <!-- Sensor channel identity -->
+            <Color x:Key="SensorCpuColor">#1E9EFF</Color>
+            <Color x:Key="SensorGpuColor">#12C2A8</Color>
+            <Color x:Key="SensorTempColor">#F5A524</Color>
+            <Color x:Key="SensorFanColor">#8B7BF7</Color>
+
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+            <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}" />
+            <SolidColorBrush x:Key="CardElevatedBrush" Color="{StaticResource CardElevatedColor}" />
+            <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
+
+            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+            <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+            <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
+            <SolidColorBrush x:Key="PressedBrush" Color="{StaticResource PressedColor}" />
+
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
+            <SolidColorBrush x:Key="SecondaryMutedBrush" Color="{StaticResource SecondaryMutedColor}" />
+            <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+            <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource DangerHoverColor}" />
+            <SolidColorBrush x:Key="DangerPressedBrush" Color="{StaticResource DangerPressedColor}" />
+            <SolidColorBrush x:Key="DangerMutedBrush" Color="{StaticResource DangerMutedColor}" />
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+            <SolidColorBrush x:Key="WarningMutedBrush" Color="{StaticResource WarningMutedColor}" />
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+            <SolidColorBrush x:Key="SuccessMutedBrush" Color="{StaticResource SuccessMutedColor}" />
+
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+            <SolidColorBrush x:Key="DisabledTextBrush" Color="{StaticResource DisabledTextColor}" />
+            <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}" />
+            <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
+            <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
+
+            <SolidColorBrush x:Key="QuietModeBrush" Color="{StaticResource QuietModeColor}" />
+            <SolidColorBrush x:Key="BalanceModeBrush" Color="{StaticResource BalanceModeColor}" />
+            <SolidColorBrush x:Key="PerformanceModeBrush" Color="{StaticResource PerformanceModeColor}" />
+            <SolidColorBrush x:Key="GodModeBrush" Color="{StaticResource GodModeColor}" />
+
+            <SolidColorBrush x:Key="SensorCpuBrush" Color="{StaticResource SensorCpuColor}" />
+            <SolidColorBrush x:Key="SensorGpuBrush" Color="{StaticResource SensorGpuColor}" />
+            <SolidColorBrush x:Key="SensorTempBrush" Color="{StaticResource SensorTempColor}" />
+            <SolidColorBrush x:Key="SensorFanBrush" Color="{StaticResource SensorFanColor}" />
+        </ResourceDictionary>
+
+        <!-- ==================== Light ==================== -->
+        <ResourceDictionary x:Key="Light">
+            <!-- Surfaces: paper white with cool neutral recesses -->
+            <Color x:Key="BackgroundColor">#F4F6FA</Color>
+            <Color x:Key="SidebarColor">#EDF0F6</Color>
+            <Color x:Key="SurfaceColor">#FFFFFF</Color>
+            <Color x:Key="CardBackgroundColor">#FFFFFF</Color>
+            <Color x:Key="CardElevatedColor">#FFFFFF</Color>
+            <Color x:Key="SurfaceRaisedColor">#EDF1F7</Color>
+
+            <!-- Lines -->
+            <Color x:Key="BorderColor">#E1E6EE</Color>
+            <Color x:Key="BorderStrongColor">#C7D0DC</Color>
+            <Color x:Key="DividerColor">#E8ECF2</Color>
+            <Color x:Key="HoverColor">#E9EEF6</Color>
+            <Color x:Key="PressedColor">#DCE3ED</Color>
+
+            <!-- Semantic states: darkened for contrast on white -->
+            <Color x:Key="SecondaryColor">#0E9E8A</Color>
+            <Color x:Key="SecondaryMutedColor">#D6F0EB</Color>
+            <Color x:Key="DangerColor">#D2383E</Color>
+            <Color x:Key="DangerHoverColor">#E04E53</Color>
+            <Color x:Key="DangerPressedColor">#B42D33</Color>
+            <Color x:Key="DangerMutedColor">#FBE4E5</Color>
+            <Color x:Key="WarningColor">#A96A00</Color>
+            <Color x:Key="WarningMutedColor">#FBEEDA</Color>
+            <Color x:Key="SuccessColor">#1E8A57</Color>
+            <Color x:Key="SuccessMutedColor">#DCF1E5</Color>
+
+            <!-- Text -->
+            <Color x:Key="TextPrimaryColor">#14181F</Color>
+            <Color x:Key="TextSecondaryColor">#4C5665</Color>
+            <Color x:Key="TextMutedColor">#78828F</Color>
+            <Color x:Key="DisabledTextColor">#A7AFBB</Color>
+            <Color x:Key="DisabledColor">#E4E8EF</Color>
+            <Color x:Key="FocusColor">#1E9EFF</Color>
+            <Color x:Key="ScrimColor">#40000000</Color>
+
+            <!-- Power mode ramp -->
+            <Color x:Key="QuietModeColor">#2563EB</Color>
+            <Color x:Key="BalanceModeColor">#0E9E8A</Color>
+            <Color x:Key="PerformanceModeColor">#B1710A</Color>
+            <Color x:Key="GodModeColor">#D2383E</Color>
+
+            <!-- Sensor channel identity -->
+            <Color x:Key="SensorCpuColor">#1E7FE0</Color>
+            <Color x:Key="SensorGpuColor">#0E9E8A</Color>
+            <Color x:Key="SensorTempColor">#B1710A</Color>
+            <Color x:Key="SensorFanColor">#6D5BE0</Color>
+
+            <SolidColorBrush x:Key="BackgroundBrush" Color="{StaticResource BackgroundColor}" />
+            <SolidColorBrush x:Key="SidebarBrush" Color="{StaticResource SidebarColor}" />
+            <SolidColorBrush x:Key="SurfaceBrush" Color="{StaticResource SurfaceColor}" />
+            <SolidColorBrush x:Key="CardBackgroundBrush" Color="{StaticResource CardBackgroundColor}" />
+            <SolidColorBrush x:Key="CardElevatedBrush" Color="{StaticResource CardElevatedColor}" />
+            <SolidColorBrush x:Key="SurfaceRaisedBrush" Color="{StaticResource SurfaceRaisedColor}" />
+
+            <SolidColorBrush x:Key="BorderBrush" Color="{StaticResource BorderColor}" />
+            <SolidColorBrush x:Key="BorderStrongBrush" Color="{StaticResource BorderStrongColor}" />
+            <SolidColorBrush x:Key="DividerBrush" Color="{StaticResource DividerColor}" />
+            <SolidColorBrush x:Key="HoverBrush" Color="{StaticResource HoverColor}" />
+            <SolidColorBrush x:Key="PressedBrush" Color="{StaticResource PressedColor}" />
+
+            <SolidColorBrush x:Key="SecondaryBrush" Color="{StaticResource SecondaryColor}" />
+            <SolidColorBrush x:Key="SecondaryMutedBrush" Color="{StaticResource SecondaryMutedColor}" />
+            <SolidColorBrush x:Key="DangerBrush" Color="{StaticResource DangerColor}" />
+            <SolidColorBrush x:Key="DangerHoverBrush" Color="{StaticResource DangerHoverColor}" />
+            <SolidColorBrush x:Key="DangerPressedBrush" Color="{StaticResource DangerPressedColor}" />
+            <SolidColorBrush x:Key="DangerMutedBrush" Color="{StaticResource DangerMutedColor}" />
+            <SolidColorBrush x:Key="WarningBrush" Color="{StaticResource WarningColor}" />
+            <SolidColorBrush x:Key="WarningMutedBrush" Color="{StaticResource WarningMutedColor}" />
+            <SolidColorBrush x:Key="SuccessBrush" Color="{StaticResource SuccessColor}" />
+            <SolidColorBrush x:Key="SuccessMutedBrush" Color="{StaticResource SuccessMutedColor}" />
+
+            <SolidColorBrush x:Key="TextPrimaryBrush" Color="{StaticResource TextPrimaryColor}" />
+            <SolidColorBrush x:Key="TextSecondaryBrush" Color="{StaticResource TextSecondaryColor}" />
+            <SolidColorBrush x:Key="TextMutedBrush" Color="{StaticResource TextMutedColor}" />
+            <SolidColorBrush x:Key="DisabledTextBrush" Color="{StaticResource DisabledTextColor}" />
+            <SolidColorBrush x:Key="DisabledBrush" Color="{StaticResource DisabledColor}" />
+            <SolidColorBrush x:Key="ScrimBrush" Color="{StaticResource ScrimColor}" />
+            <SolidColorBrush x:Key="TransparentBrush" Color="Transparent" />
+
+            <SolidColorBrush x:Key="QuietModeBrush" Color="{StaticResource QuietModeColor}" />
+            <SolidColorBrush x:Key="BalanceModeBrush" Color="{StaticResource BalanceModeColor}" />
+            <SolidColorBrush x:Key="PerformanceModeBrush" Color="{StaticResource PerformanceModeColor}" />
+            <SolidColorBrush x:Key="GodModeBrush" Color="{StaticResource GodModeColor}" />
+
+            <SolidColorBrush x:Key="SensorCpuBrush" Color="{StaticResource SensorCpuColor}" />
+            <SolidColorBrush x:Key="SensorGpuBrush" Color="{StaticResource SensorGpuColor}" />
+            <SolidColorBrush x:Key="SensorTempBrush" Color="{StaticResource SensorTempColor}" />
+            <SolidColorBrush x:Key="SensorFanBrush" Color="{StaticResource SensorFanColor}" />
+        </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
 
     <!-- ============================ Corner radius ============================ -->
     <x:Double x:Key="RadiusSm">3</x:Double>
@@ -127,6 +325,38 @@
     <CornerRadius x:Key="RadiusLgBox">6</CornerRadius>
     <CornerRadius x:Key="RadiusPillBox">99</CornerRadius>
 
+    <!-- ============================ Spacing scale ============================ -->
+    <x:Double x:Key="SpaceXs">2</x:Double>
+    <x:Double x:Key="SpaceSm">4</x:Double>
+    <x:Double x:Key="SpaceMd">8</x:Double>
+    <x:Double x:Key="SpaceLg">12</x:Double>
+    <x:Double x:Key="SpaceXl">16</x:Double>
+    <x:Double x:Key="Space2Xl">24</x:Double>
+    <x:Double x:Key="Space3Xl">32</x:Double>
+
+    <!-- ============================================================
+         Legacy spacing aliases
+         The original scale shipped two generations of names (the small
+         steps were renamed once SpaceXs..Space3xl existed). Both spellings
+         are still referenced by views, so both are kept; new markup must
+         use the Space* names above.
+         ============================================================ -->
+    <x:Double x:Key="SpaceSmTight">4</x:Double>
+    <x:Double x:Key="SpaceMd2">6</x:Double>
+    <x:Double x:Key="SpaceLg2">10</x:Double>
+    <x:Double x:Key="SpaceXLg">20</x:Double>
+    <x:Double x:Key="Space2Lg">24</x:Double>
+    <x:Double x:Key="Space3Lg">32</x:Double>
+
+    <!-- ============================ Control metrics ============================ -->
+    <x:Double x:Key="ControlHeightSm">28</x:Double>
+    <x:Double x:Key="ControlHeightMd">32</x:Double>
+    <x:Double x:Key="ControlHeightLg">40</x:Double>
+    <x:Double x:Key="SidebarWidth">220</x:Double>
+    <x:Double x:Key="TitleBarHeight">36</x:Double>
+    <x:Double x:Key="IconSize">18</x:Double>
+    <x:Double x:Key="IconSizeSm">15</x:Double>
+
     <!-- Thickness typed tokens for Padding / Margin -->
     <Thickness x:Key="InsetXs">4</Thickness>
     <Thickness x:Key="InsetSm">8</Thickness>
@@ -138,15 +368,6 @@
     <Thickness x:Key="InsetHorizontalLg">16,0</Thickness>
     <Thickness x:Key="InsetTopMd">0,0,0,12</Thickness>
 
-    <!-- ============================ Control metrics ============================ -->
-    <x:Double x:Key="ControlHeightSm">28</x:Double>
-    <x:Double x:Key="ControlHeightMd">32</x:Double>
-    <x:Double x:Key="ControlHeightLg">40</x:Double>
-    <x:Double x:Key="SidebarWidth">220</x:Double>
-    <x:Double x:Key="TitleBarHeight">36</x:Double>
-    <x:Double x:Key="IconSize">18</x:Double>
-    <x:Double x:Key="IconSizeSm">15</x:Double>
-
     <!-- ============================ Opacity ramp ============================ -->
     <x:Double x:Key="OpacityDisabled">0.45</x:Double>
     <x:Double x:Key="OpacityMuted">0.7</x:Double>
@@ -156,13 +377,13 @@
     <local:BoolToBrushConverter x:Key="BoolToBrushConverter" />
     <local:EnumToDisplayConverter x:Key="EnumToDisplayConverter" />
     <local:RgbZoneColorToBrushConverter x:Key="RgbZoneColorToBrushConverter" />
-  <local:RgbZoneColorConverter x:Key="RgbZoneColorConverter" />
-  <local:RgbDisplayNameConverter x:Key="RgbDisplayNameConverter" />
+    <local:RgbZoneColorConverter x:Key="RgbZoneColorConverter" />
+    <local:RgbDisplayNameConverter x:Key="RgbDisplayNameConverter" />
     <local:IntNotEqualConverter x:Key="IntNotEqualConverter" />
     <local:StringEqualityConverter x:Key="StringEqualityConverter" />
     <local:IconNameToGeometryConverter x:Key="IconNameToGeometryConverter" />
     <local:EnumDisplayNameConverter x:Key="EnumDisplayNameConverter" />
-  <local:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
-  <local:DisplayNameConverter x:Key="DisplayNameConverter" />
-  <local:PowerModeDisplayNameConverter x:Key="PowerModeDisplayNameConverter" />
+    <local:StringNotEmptyConverter x:Key="StringNotEmptyConverter" />
+    <local:DisplayNameConverter x:Key="DisplayNameConverter" />
+    <local:PowerModeDisplayNameConverter x:Key="PowerModeDisplayNameConverter" />
 </ResourceDictionary>
