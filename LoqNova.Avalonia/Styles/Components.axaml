@@ -96,6 +96,13 @@
         <Setter Property="HorizontalAlignment" Value="Right" />
     </Style>
 
+    <!-- A labelled slider / input row: a small caption above its control, with the
+         rhythm used between repeated rows in a dialog. -->
+    <Style Selector="StackPanel.FieldRow">
+        <Setter Property="Spacing" Value="{StaticResource SpaceXxs}" />
+        <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
     <!-- ==================== Chip ====================
          Small status / value pill. The neutral form is used for readouts,
          the variant classes for state. -->

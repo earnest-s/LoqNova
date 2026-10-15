@@ -28,7 +28,7 @@
                      simply did nothing when a backend step could not be created, because
                      the reason was only written to the debug output. -->
                 <Border Classes="ContentCard" Padding="10" Margin="0,8,0,0"
-                        Background="#33FF6B6B"
+                        Background="{DynamicResource DangerMutedBrush}"
                         IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
                     <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" FontSize="11" />
                 </Border>

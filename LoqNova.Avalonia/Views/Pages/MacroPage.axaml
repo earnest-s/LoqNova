@@ -187,9 +187,9 @@
                 BorderThickness="1"
                 IsHitTestVisible="False">
             <StackPanel Orientation="Horizontal" Spacing="16">
-                <TextBlock Text="&#x23F8;" FontSize="32" VerticalAlignment="Center"
+                <TextBlock Text="&#x23F8;" FontSize="{StaticResource FontSize6XL}" VerticalAlignment="Center"
                            IsVisible="{Binding IsPreparing}" />
-                <TextBlock Text="&#x25CF;" FontSize="32" VerticalAlignment="Center"
+                <TextBlock Text="&#x25CF;" FontSize="{StaticResource FontSize6XL}" VerticalAlignment="Center"
                            Foreground="{DynamicResource DangerBrush}"
                            IsVisible="{Binding IsCapturing}" />
                 <StackPanel Spacing="4" VerticalAlignment="Center">

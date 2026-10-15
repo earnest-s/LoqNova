@@ -149,14 +149,14 @@
                                     <!-- Title row -->
                                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                                         <TextBlock Text="{Binding Title}" Classes="CardValue" />
-                                        <Border Classes="InsetPanel" Padding="8,2"
+                                        <Border Classes="Chip"
                                                 IsVisible="{Binding IsUpdate}">
-                                            <TextBlock Text="{Binding IsUpdateLabel}" Classes="Caption"
+                                            <TextBlock Text="{Binding IsUpdateLabel}" Classes="ChipText"
                                                        Foreground="{DynamicResource WarningBrush}" />
                                         </Border>
-                                        <Border Classes="InsetPanel" Padding="8,2"
+                                        <Border Classes="Chip"
                                                 IsVisible="{Binding IsOld}">
-                                            <TextBlock Text="{Binding OldPackageWarning}" Classes="Caption" />
+                                            <TextBlock Text="{Binding OldPackageWarning}" Classes="ChipText" />
                                         </Border>
                                     </StackPanel>
 
