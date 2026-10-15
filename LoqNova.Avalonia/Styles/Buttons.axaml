@@ -103,7 +103,8 @@
     <Style Selector="Button.GhostButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Padding" Value="12,0" />
         <Setter Property="MinHeight" Value="{StaticResource ControlHeightSm}" />
         <Setter Property="CornerRadius" Value="5" />
@@ -124,7 +125,8 @@
     <Style Selector="Button.LinkButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Padding" Value="0" />
         <Setter Property="MinHeight" Value="0" />
         <Setter Property="MinWidth" Value="0" />
@@ -150,7 +152,8 @@
     <Style Selector="Button.IconButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Padding" Value="8" />
         <Setter Property="Width" Value="{StaticResource ControlHeightMd}" />
         <Setter Property="Height" Value="{StaticResource ControlHeightMd}" />
@@ -192,6 +195,7 @@
     <Style Selector="Button.PresetButtonSelected">
         <Setter Property="Background" Value="{DynamicResource PrimaryMutedBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="1" />
         <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
         <Setter Property="Padding" Value="12,0" />
         <Setter Property="MinWidth" Value="84" />
@@ -205,7 +209,8 @@
     <Style Selector="Button.DangerButton">
         <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Padding" Value="16,0" />
         <Setter Property="MinWidth" Value="112" />
         <Setter Property="CornerRadius" Value="6" />
@@ -279,6 +284,7 @@
                       Button.PresetButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
                       Button.PresetButtonSelected:disabled /template/ ContentPresenter#PART_ContentPresenter,
                       Button.DangerButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.CardActionButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
                       Button.KeyPadKey:disabled /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Opacity" Value="{StaticResource OpacityDisabled}" />
     </Style>
