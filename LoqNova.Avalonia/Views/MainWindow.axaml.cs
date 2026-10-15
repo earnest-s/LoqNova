@@ -1,3 +1,4 @@
+using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -17,6 +18,37 @@ public partial class MainWindow : Window
     private void InitializeComponent()
     {
         AvaloniaXamlLoader.Load(this);
+    }
+
+    /// <summary>
+    /// Keeps the view model's maximised flag in step with the window, so the caption
+    /// bar can swap the maximise glyph for a restore glyph. The window stays the
+    /// source of truth: every path that changes <see cref="Window.WindowState"/>
+    /// (caption button, double-click, system menu, Win+Up) flows through here.
+    /// </summary>
+    protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
+    {
+        base.OnPropertyChanged(change);
+
+        if (change.Property == WindowStateProperty)
+        {
+            SyncMaximizedState();
+        }
+    }
+
+    /// <summary>The data context can arrive after construction, so seed the flag from it.</summary>
+    protected override void OnDataContextChanged(EventArgs e)
+    {
+        base.OnDataContextChanged(e);
+        SyncMaximizedState();
+    }
+
+    private void SyncMaximizedState()
+    {
+        if (DataContext is ViewModels.MainWindowViewModel vm)
+        {
+            vm.IsMaximized = WindowState == WindowState.Maximized;
+        }
     }
 
     /// <summary>

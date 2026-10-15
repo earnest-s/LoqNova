@@ -56,6 +56,24 @@
         <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Margin" Value="-1" />
+        <!-- Reserved so the focus ring can appear without the row shifting. -->
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
+    </Style>
+
+    <!-- Pointer feedback on an unselected row. The selected plate is opaque and
+         drawn over this one, so the active row is unaffected. -->
+    <Style Selector="Button.NavItem:pointerover Border.NavItemPlate">
+        <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.NavItem:pressed Border.NavItemPlate">
+        <Setter Property="Background" Value="{DynamicResource PressedBrush}" />
+    </Style>
+
+    <!-- Keyboard focus ring for sidebar navigation. -->
+    <Style Selector="Button.NavItem:focus-visible Border.NavItemPlate">
+        <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
     </Style>
 
     <!-- Selected plate: clearly raised against the base plate. -->
@@ -157,7 +175,9 @@
     <Style Selector="Button.CaptionButton">
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <!-- Reserved so the focus ring can appear without the glyph shifting. -->
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Width" Value="44" />
         <Setter Property="Height" Value="{StaticResource TitleBarHeight}" />
         <Setter Property="CornerRadius" Value="0" />
@@ -169,8 +189,21 @@
         <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
     </Style>
 
+    <Style Selector="Button.CaptionButton:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource PressedBrush}" />
+    </Style>
+
+    <Style Selector="Button.CaptionButton:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
+    </Style>
+
     <Style Selector="Button.CaptionClose:pointerover /template/ ContentPresenter#PART_ContentPresenter">
         <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+    </Style>
+
+    <Style Selector="Button.CaptionClose:pressed /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
+        <Setter Property="Opacity" Value="0.8" />
     </Style>
 
     <Style Selector="Button.CaptionClose:pointerover /template/ ContentPresenter#PART_ContentPresenter PathIcon">

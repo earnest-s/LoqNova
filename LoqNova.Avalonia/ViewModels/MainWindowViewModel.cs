@@ -29,6 +29,18 @@ public partial class MainWindowViewModel : ViewModelBase
     /// <summary>Machine type as reported by the machine information source, or empty until loaded.</summary>
     private string _deviceModel = "";
 
+    /// <summary>
+    /// Mirrors the host window's maximised state so the caption bar can swap the
+    /// maximise glyph for a restore glyph. The window remains the source of truth;
+    /// <see cref="Views.MainWindow"/> keeps this in sync from its WindowState.
+    /// </summary>
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(MaximizeRestoreToolTip))]
+    private bool _isMaximized;
+
+    /// <summary>Caption tooltip that matches the current window state.</summary>
+    public string MaximizeRestoreToolTip => IsMaximized ? "Restore" : "Maximize";
+
     /// <summary>Real product version, read from the running assembly.</summary>
     public string AppVersion { get; } =
         typeof(MainWindowViewModel).Assembly.GetName().Version?.ToString(3) ?? "0.0.0";

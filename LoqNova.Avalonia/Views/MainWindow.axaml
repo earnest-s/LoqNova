@@ -80,8 +80,15 @@
                         <Button Classes="CaptionButton" ToolTip.Tip="Minimize" Command="{Binding MinimizeCommand}">
                             <PathIcon Data="{x:Static icons:IconGeometries.Minimize}" Classes="CaptionGlyph" />
                         </Button>
-                        <Button Classes="CaptionButton" ToolTip.Tip="Maximize" Command="{Binding ToggleMaximizeCommand}">
-                            <PathIcon Data="{x:Static icons:IconGeometries.Maximize}" Classes="CaptionGlyph" />
+                        <Button Classes="CaptionButton" ToolTip.Tip="{Binding MaximizeRestoreToolTip}" Command="{Binding ToggleMaximizeCommand}">
+                            <Panel>
+                                <PathIcon Data="{x:Static icons:IconGeometries.Maximize}"
+                                          Classes="CaptionGlyph"
+                                          IsVisible="{Binding !IsMaximized}" />
+                                <PathIcon Data="{x:Static icons:IconGeometries.Restore}"
+                                          Classes="CaptionGlyph"
+                                          IsVisible="{Binding IsMaximized}" />
+                            </Panel>
                         </Button>
                         <Button Classes="CaptionButton CaptionClose" ToolTip.Tip="Close" Command="{Binding CloseCommand}">
                             <PathIcon Data="{x:Static icons:IconGeometries.Close}" Classes="CaptionGlyph" />
@@ -154,7 +161,7 @@
              after the scrim so it is layered above it. -->
         <Border x:Name="DialogScrim"
                 IsVisible="{Binding IsDialogOpen}"
-                Background="#66000000"
+                Background="{DynamicResource ScrimBrush}"
                 PointerPressed="OnDialogScrimPressed" />
         <ContentControl x:Name="DialogHost"
                         HorizontalAlignment="Center"

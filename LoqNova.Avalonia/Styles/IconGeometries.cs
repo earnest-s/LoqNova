@@ -45,6 +45,12 @@ public static class IconGeometries
     // fill area and renders as nothing inside a PathIcon.
     public static Geometry Minimize { get; } = P("M4 10.5h16v3H4z");
     public static Geometry Maximize { get; } = P("M4.5 4.5h15v15h-15z");
+    /// <summary>
+    /// Restore-down caption glyph, shown while the window is maximised. The rear
+    /// sheet is drawn as an L so the front sheet does not cut into it, which keeps
+    /// the shape readable when the two overlap.
+    /// </summary>
+    public static Geometry Restore { get; } = P("M9 5 H19 V15 H17 V7 H9 Z M5 9 H15 V19 H5 Z M7 11 H13 V17 H7 Z");
     public static Geometry Close { get; } = P("M6.4 5 L12 10.6 L17.6 5 L19 6.4 L13.4 12 L19 17.6 L17.6 19 L12 13.4 L6.4 19 L5 17.6 L10.6 12 L5 6.4 Z");
 
     // ---- Battery charge levels ----
@@ -88,6 +94,7 @@ public static class IconGeometries
         {
             ["Minimize"] = Minimize,
             ["Maximize"] = Maximize,
+            ["Restore"] = Restore,
             ["Close"] = Close,
             ["Home"] = Home,
             ["Keyboard"] = Keyboard,
