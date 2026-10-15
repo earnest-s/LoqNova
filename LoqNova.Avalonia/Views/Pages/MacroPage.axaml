@@ -182,15 +182,15 @@
                 Margin="0,24,0,0"
                 Padding="20,16"
                 CornerRadius="8"
-                Background="{StaticResource CardBackgroundBrush}"
-                BorderBrush="{StaticResource BorderBrush}"
+                Background="{DynamicResource CardBackgroundBrush}"
+                BorderBrush="{DynamicResource BorderBrush}"
                 BorderThickness="1"
                 IsHitTestVisible="False">
             <StackPanel Orientation="Horizontal" Spacing="16">
                 <TextBlock Text="&#x23F8;" FontSize="32" VerticalAlignment="Center"
                            IsVisible="{Binding IsPreparing}" />
                 <TextBlock Text="&#x25CF;" FontSize="32" VerticalAlignment="Center"
-                           Foreground="{StaticResource DangerBrush}"
+                           Foreground="{DynamicResource DangerBrush}"
                            IsVisible="{Binding IsCapturing}" />
                 <StackPanel Spacing="4" VerticalAlignment="Center">
                     <TextBlock Classes="Heading4"

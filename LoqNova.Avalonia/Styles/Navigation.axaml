@@ -4,8 +4,8 @@
     <!-- ============================ Sidebar shell ============================ -->
 
     <Style Selector="Border.NavSidebar">
-        <Setter Property="Background" Value="{StaticResource SidebarBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SidebarBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="0,0,1,0" />
         <Setter Property="Width" Value="{StaticResource SidebarWidth}" />
         <Setter Property="MinWidth" Value="{StaticResource SidebarWidth}" />
@@ -44,24 +44,24 @@
     </Style>
 
     <Style Selector="Button.NavItem:pointerover /template/ ContentPresenter#PART_ContentPresenter TextBlock">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
 
     <Style Selector="Button.NavItem:pointerover /template/ ContentPresenter#PART_ContentPresenter PathIcon">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
 
     <!-- Base row plate: sits on the sidebar colour so unselected rows read flat. -->
     <Style Selector="Border.NavItemPlate">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Margin" Value="-1" />
     </Style>
 
     <!-- Selected plate: clearly raised against the base plate. -->
     <Style Selector="Border.NavItemPlateSelected">
-        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="Margin" Value="-1" />
@@ -69,7 +69,7 @@
 
     <!-- Left accent rail marks the active destination. -->
     <Style Selector="Border.NavRail">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Width" Value="3" />
         <Setter Property="CornerRadius" Value="2" />
         <Setter Property="HorizontalAlignment" Value="Left" />
@@ -79,24 +79,24 @@
     <Style Selector="PathIcon.NavIcon">
         <Setter Property="Width" Value="{StaticResource IconSize}" />
         <Setter Property="Height" Value="{StaticResource IconSize}" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style Selector="PathIcon.NavIconActive">
-        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
     </Style>
 
     <Style Selector="TextBlock.NavItemLabel">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style Selector="TextBlock.NavItemLabelActive">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
     </Style>
 
@@ -106,33 +106,33 @@
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXL}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="LetterSpacing" Value="0.4" />
     </Style>
 
     <Style Selector="TextBlock.NavBrandMeta">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
 
     <Style Selector="TextBlock.NavSectionLabel">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         <Setter Property="LetterSpacing" Value="1.1" />
     </Style>
 
     <Style Selector="Border.NavFooterPlate">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="0,1,0,0" />
         <Setter Property="Padding" Value="0,6,0,10" />
     </Style>
 
     <Style Selector="Separator.NavSeparator">
-        <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Height" Value="1" />
         <Setter Property="Margin" Value="10,8" />
@@ -141,8 +141,8 @@
     <!-- ============================ Window chrome ============================ -->
 
     <Style Selector="Border.TitleBar">
-        <Setter Property="Background" Value="{StaticResource SurfaceBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource DividerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="0,0,0,1" />
         <Setter Property="Height" Value="{StaticResource TitleBarHeight}" />
     </Style>
@@ -150,13 +150,13 @@
     <Style Selector="TextBlock.TitleBarText">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 
     <Style Selector="Button.CaptionButton">
         <Setter Property="Background" Value="Transparent" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Width" Value="44" />
         <Setter Property="Height" Value="{StaticResource TitleBarHeight}" />
@@ -166,21 +166,21 @@
     </Style>
 
     <Style Selector="Button.CaptionButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
     </Style>
 
     <Style Selector="Button.CaptionClose:pointerover /template/ ContentPresenter#PART_ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource DangerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource DangerBrush}" />
     </Style>
 
     <Style Selector="Button.CaptionClose:pointerover /template/ ContentPresenter#PART_ContentPresenter PathIcon">
-        <Setter Property="Foreground" Value="{StaticResource OnAccentBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
     </Style>
 
     <Style Selector="PathIcon.CaptionGlyph">
         <Setter Property="Width" Value="10" />
         <Setter Property="Height" Value="10" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
         <Setter Property="HorizontalAlignment" Value="Center" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>

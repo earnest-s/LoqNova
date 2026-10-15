@@ -14,19 +14,19 @@
         ShowInTaskbar="False"
         ShowActivated="False"
         Topmost="True"
-        Background="{StaticResource CardElevatedBrush}">
+        Background="{DynamicResource CardElevatedBrush}">
 
     <!-- The same three blocks WPF's StatusWindow shows, in the same order and with
          its spacing: power mode, discrete GPU (only when the machine has one) and
          the battery. -->
-    <Border BorderBrush="{StaticResource BorderStrongBrush}" BorderThickness="1">
+    <Border BorderBrush="{DynamicResource BorderStrongBrush}" BorderThickness="1">
         <StackPanel>
 
             <!-- Application name, as the popup's heading. -->
             <TextBlock Text="{Binding AppName}"
                        Margin="16,16,16,0"
                        FontSize="{StaticResource FontSizeSM}"
-                       Foreground="{StaticResource TextMutedBrush}" />
+                       Foreground="{DynamicResource TextMutedBrush}" />
 
             <!-- Power mode -->
             <Grid Margin="16,16,16,0"
@@ -36,7 +36,7 @@
                 <PathIcon Grid.Row="0" Grid.Column="0"
                           Width="24" Height="24"
                           Data="{x:Static icons:IconGeometries.SpeedHigh}"
-                          Foreground="{StaticResource TextPrimaryBrush}" />
+                          Foreground="{DynamicResource TextPrimaryBrush}" />
 
                 <TextBlock Grid.Row="0" Grid.Column="1"
                            Margin="8,0,0,0"
@@ -44,7 +44,7 @@
                            Text="{Binding PowerModeLabel}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
 
                 <StackPanel Grid.Row="0" Grid.Column="3"
                             Margin="16,0,0,0"
@@ -56,7 +56,7 @@
                                VerticalAlignment="Center"
                                Text="{Binding PowerMode, Converter={StaticResource PowerModeDisplayNameConverter}}"
                                FontSize="{StaticResource FontSizeLG}"
-                               Foreground="{StaticResource TextPrimaryBrush}" />
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>
 
                 <!-- Only shown in God Mode, exactly as in WPF. -->
@@ -67,7 +67,7 @@
                            IsVisible="{Binding ShowPreset}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
                 <TextBlock Grid.Row="1" Grid.Column="3"
                            Margin="16,4,0,0"
                            HorizontalAlignment="Right"
@@ -75,7 +75,7 @@
                            Text="{Binding PresetName}"
                            IsVisible="{Binding ShowPreset}"
                            FontSize="{StaticResource FontSizeLG}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
             </Grid>
 
             <!-- Discrete GPU: hidden when the machine reports none. -->
@@ -87,14 +87,14 @@
                 <PathIcon Grid.Row="0" Grid.Column="0"
                           Width="24" Height="24"
                           Data="{x:Static icons:IconGeometries.Gpu}"
-                          Foreground="{StaticResource TextPrimaryBrush}" />
+                          Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Grid.Row="0" Grid.Column="1"
                            Margin="8,0,0,0"
                            VerticalAlignment="Center"
                            Text="{Binding DiscreteGpuLabel}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <StackPanel Grid.Row="0" Grid.Column="3"
                             Margin="16,0,0,0"
                             HorizontalAlignment="Right"
@@ -105,7 +105,7 @@
                                VerticalAlignment="Center"
                                Text="{Binding GpuStateName}"
                                FontSize="{StaticResource FontSizeLG}"
-                               Foreground="{StaticResource TextPrimaryBrush}" />
+                               Foreground="{DynamicResource TextPrimaryBrush}" />
                 </StackPanel>
 
                 <!-- The GPU's performance state is meaningless while it is off. -->
@@ -116,7 +116,7 @@
                            IsVisible="{Binding ShowGpuPowerState}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
                 <TextBlock Grid.Row="1" Grid.Column="3"
                            Margin="16,4,0,0"
                            HorizontalAlignment="Right"
@@ -124,7 +124,7 @@
                            Text="{Binding GpuPowerState}"
                            IsVisible="{Binding ShowGpuPowerState}"
                            FontSize="{StaticResource FontSizeLG}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
             </Grid>
 
             <!-- Battery -->
@@ -135,14 +135,14 @@
                 <PathIcon Grid.Row="0" Grid.Column="0"
                           Width="24" Height="24"
                           Data="{Binding BatteryIcon, Converter={StaticResource IconNameToGeometryConverter}}"
-                          Foreground="{StaticResource TextPrimaryBrush}" />
+                          Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Grid.Row="0" Grid.Column="1"
                            Margin="8,0,0,0"
                            VerticalAlignment="Center"
                            Text="{Binding BatteryLabel}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextPrimaryBrush}" />
+                           Foreground="{DynamicResource TextPrimaryBrush}" />
                 <TextBlock Grid.Row="0" Grid.Column="3"
                            Margin="16,0,0,0"
                            HorizontalAlignment="Right"
@@ -157,14 +157,14 @@
                            Text="{Binding BatteryModeLabel}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
                 <TextBlock Grid.Row="1" Grid.Column="3"
                            Margin="16,4,0,0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
                            Text="{Binding BatteryMode, Converter={StaticResource EnumDisplayNameConverter}}"
                            FontSize="{StaticResource FontSizeLG}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
 
                 <TextBlock Grid.Row="2" Grid.Column="1"
                            Margin="8,4,0,0"
@@ -172,14 +172,14 @@
                            Text="{Binding DischargeRateLabel}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
                 <TextBlock Grid.Row="2" Grid.Column="3"
                            Margin="16,4,0,0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
                            Text="{Binding DischargeRate}"
                            FontSize="{StaticResource FontSizeLG}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
 
                 <TextBlock Grid.Row="3" Grid.Column="1"
                            Margin="8,4,0,0"
@@ -187,14 +187,14 @@
                            Text="{Binding MinDischargeRateLabel}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
                 <TextBlock Grid.Row="3" Grid.Column="3"
                            Margin="16,4,0,0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
                            Text="{Binding MinDischargeRate}"
                            FontSize="{StaticResource FontSizeLG}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
 
                 <TextBlock Grid.Row="4" Grid.Column="1"
                            Margin="8,4,0,0"
@@ -202,14 +202,14 @@
                            Text="{Binding MaxDischargeRateLabel}"
                            FontSize="{StaticResource FontSizeLG}"
                            FontWeight="{StaticResource FontWeightMedium}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
                 <TextBlock Grid.Row="4" Grid.Column="3"
                            Margin="16,4,0,0"
                            HorizontalAlignment="Right"
                            VerticalAlignment="Center"
                            Text="{Binding MaxDischargeRate}"
                            FontSize="{StaticResource FontSizeLG}"
-                           Foreground="{StaticResource TextSecondaryBrush}" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" />
             </Grid>
         </StackPanel>
     </Border>

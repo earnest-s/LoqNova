@@ -43,7 +43,7 @@
                         ToolTip.Tip="Change this zone's colour">
                     <Border Name="SwatchBox"
                             CornerRadius="4"
-                            BorderBrush="{StaticResource BorderStrongBrush}"
+                            BorderBrush="{DynamicResource BorderStrongBrush}"
                             BorderThickness="1" />
                 </Button>
 
@@ -69,8 +69,8 @@
                    PlacementTarget="PickButton"
                    Placement="BottomEdgeAlignedLeft"
                    IsLightDismissEnabled="True">
-                <Border Background="{StaticResource SurfaceRaisedBrush}"
-                        BorderBrush="{StaticResource BorderBrush}"
+                <Border Background="{DynamicResource SurfaceRaisedBrush}"
+                        BorderBrush="{DynamicResource BorderBrush}"
                         BorderThickness="1"
                         CornerRadius="6"
                         Padding="10">

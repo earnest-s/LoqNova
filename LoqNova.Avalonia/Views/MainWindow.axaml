@@ -12,7 +12,7 @@
         MinHeight="680"
         WindowStartupLocation="CenterScreen"
         Icon="avares://LOQ Nova/Assets/icon.ico"
-        Background="{StaticResource BackgroundBrush}"
+        Background="{DynamicResource BackgroundBrush}"
         ExtendClientAreaToDecorationsHint="True"
         ExtendClientAreaChromeHints="NoChrome"
         ExtendClientAreaTitleBarHeightHint="-1">
@@ -43,11 +43,11 @@
                         <Grid Width="{StaticResource IconSize}" Height="{StaticResource IconSize}">
                             <PathIcon Classes="NavIcon"
                                       Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
-                                      Foreground="{StaticResource TextSecondaryBrush}" />
+                                      Foreground="{DynamicResource TextSecondaryBrush}" />
                             <PathIcon Classes="NavIcon NavIconActive"
                                       IsVisible="{Binding IsSelected}"
                                       Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
-                                      Foreground="{StaticResource PrimaryBrush}" />
+                                      Foreground="{DynamicResource PrimaryBrush}" />
                         </Grid>
 
                         <Grid>

@@ -2,30 +2,30 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="LoqNova.Avalonia.Views.Controls.RGB.KeyboardPreviewControl">
 
-    <Border Background="{StaticResource SurfaceBrush}" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" Padding="16">
+    <Border Background="{DynamicResource SurfaceBrush}" CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" Padding="16">
         <Canvas Width="600" Height="200">
             <!-- Zone 1 - Left -->
-            <Border x:Name="Zone1Border" Canvas.Left="20" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2"
+            <Border x:Name="Zone1Border" Canvas.Left="20" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="2"
                     Background="{Binding $parent[UserControl].Zone1Color, Converter={StaticResource RgbZoneColorToBrushConverter}}">
-                <TextBlock Text="Zone 1" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock Text="Zone 1" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
             
             <!-- Zone 2 - Left Center -->
-            <Border x:Name="Zone2Border" Canvas.Left="180" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2"
+            <Border x:Name="Zone2Border" Canvas.Left="180" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="2"
                     Background="{Binding $parent[UserControl].Zone2Color, Converter={StaticResource RgbZoneColorToBrushConverter}}">
-                <TextBlock Text="Zone 2" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock Text="Zone 2" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
             
             <!-- Zone 3 - Right Center -->
-            <Border x:Name="Zone3Border" Canvas.Left="340" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2"
+            <Border x:Name="Zone3Border" Canvas.Left="340" Canvas.Top="40" Width="140" Height="120" CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="2"
                     Background="{Binding $parent[UserControl].Zone3Color, Converter={StaticResource RgbZoneColorToBrushConverter}}">
-                <TextBlock Text="Zone 3" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock Text="Zone 3" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
             
             <!-- Zone 4 - Right -->
-            <Border x:Name="Zone4Border" Canvas.Left="500" Canvas.Top="40" Width="80" Height="120" CornerRadius="8" BorderBrush="{StaticResource BorderBrush}" BorderThickness="2"
+            <Border x:Name="Zone4Border" Canvas.Left="500" Canvas.Top="40" Width="80" Height="120" CornerRadius="8" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="2"
                     Background="{Binding $parent[UserControl].Zone4Color, Converter={StaticResource RgbZoneColorToBrushConverter}}">
-                <TextBlock Text="Zone 4" Foreground="{StaticResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                <TextBlock Text="Zone 4" Foreground="{DynamicResource TextMutedBrush}" FontSize="12" HorizontalAlignment="Center" VerticalAlignment="Center" />
             </Border>
 
             <!-- The preview is a read-only display of rendered frames. It contains no

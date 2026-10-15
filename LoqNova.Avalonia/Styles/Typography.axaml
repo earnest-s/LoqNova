@@ -30,77 +30,77 @@
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSize5XL}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Heading2">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSize4XL}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Heading3">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSize3XL}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Heading4">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSize2XL}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.BodyLarge">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeLG}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Body">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.BodySmall">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Caption">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Label">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeSM}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightMedium}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Value">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeLG}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
     
     <Style Selector="TextBlock.Unit">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
 
     <!-- ============================ Page scaffolding ============================
@@ -111,7 +111,7 @@
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSize4XL}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="LetterSpacing" Value="-0.4" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
@@ -120,7 +120,7 @@
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightNormal}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         <Setter Property="Margin" Value="0,2,0,0" />
     </Style>
 
@@ -128,7 +128,7 @@
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         <Setter Property="LetterSpacing" Value="1.1" />
     </Style>
 
@@ -136,7 +136,7 @@
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSize5XL}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="LetterSpacing" Value="-0.8" />
     </Style>
 </Styles>

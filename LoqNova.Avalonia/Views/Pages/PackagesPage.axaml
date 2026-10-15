@@ -142,7 +142,7 @@
 
                                 <!-- Update / status rail -->
                                 <Border Grid.Column="0" Width="3" CornerRadius="2"
-                                        Background="{StaticResource PrimaryMutedBrush}" />
+                                        Background="{DynamicResource PrimaryMutedBrush}" />
 
                                 <StackPanel Grid.Column="1" Margin="14,0,0,0" Spacing="6">
 
@@ -152,7 +152,7 @@
                                         <Border Classes="InsetPanel" Padding="8,2"
                                                 IsVisible="{Binding IsUpdate}">
                                             <TextBlock Text="{Binding IsUpdateLabel}" Classes="Caption"
-                                                       Foreground="{StaticResource WarningBrush}" />
+                                                       Foreground="{DynamicResource WarningBrush}" />
                                         </Border>
                                         <Border Classes="InsetPanel" Padding="8,2"
                                                 IsVisible="{Binding IsOld}">
@@ -163,10 +163,10 @@
                                     <!-- Category + date -->
                                     <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
                                         <TextBlock Text="{Binding Category}" Classes="Caption"
-                                                   Foreground="{StaticResource PrimaryBrush}" />
+                                                   Foreground="{DynamicResource PrimaryBrush}" />
                                         <TextBlock Text="{Binding ReleaseDateText}" Classes="Caption" />
                                         <TextBlock Text="{Binding RebootText}" Classes="Caption"
-                                                   Foreground="{StaticResource WarningBrush}"
+                                                   Foreground="{DynamicResource WarningBrush}"
                                                    IsVisible="{Binding HasRebootWarning}" />
                                     </StackPanel>
 

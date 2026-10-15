@@ -31,7 +31,7 @@
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeXS}" />
         <Setter Property="FontWeight" Value="{StaticResource FontWeightSemiBold}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         <Setter Property="LetterSpacing" Value="1.1" />
         <Setter Property="Margin" Value="0,0,0,10" />
     </Style>
@@ -39,9 +39,9 @@
     <!-- ============================ Selectors ============================ -->
 
     <Style Selector="ComboBox.Control">
-        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="MinHeight" Value="{StaticResource ControlHeightMd}" />
@@ -54,17 +54,17 @@
     </Style>
 
     <Style Selector="ComboBox.Control:pointerover /template/ ToggleButton#ToggleButton">
-        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
     </Style>
 
     <Style Selector="ComboBox.Control:disabled /template/ ToggleButton#ToggleButton">
-        <Setter Property="Background" Value="{StaticResource DisabledBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource DisabledTextBrush}" />
+        <Setter Property="Background" Value="{DynamicResource DisabledBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource DisabledTextBrush}" />
     </Style>
 
     <Style Selector="ComboBoxItem.Control">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="Background" Value="Transparent" />
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
@@ -73,21 +73,21 @@
     </Style>
 
     <Style Selector="ComboBoxItem.Control:pointerover /template/ ContentPresenter">
-        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
-        <Setter Property="TextBlock.Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource TextPrimaryBrush}" />
     </Style>
 
     <!-- ============================ Toggles ============================ -->
 
     <Style Selector="CheckBox.Control">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
     <Style Selector="ToggleSwitch.Control">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="Cursor" Value="Hand" />
     </Style>
 
@@ -96,17 +96,17 @@
 
 
     <Style Selector="CheckBox.Control /template/ Border#PART_NormalBackground">
-        <Setter Property="Background" Value="{StaticResource PrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
     </Style>
 
     <Style Selector="CheckBox.Control:unchecked /template/ Border#PART_NormalBackground">
-        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
     </Style>
 
     <Style Selector="RadioButton.Control">
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
         <Setter Property="Cursor" Value="Hand" />
@@ -114,15 +114,15 @@
 
 
     <Style Selector="ToggleSwitch.Control:pointerover /template/ Border#PART_OffBackground">
-        <Setter Property="Background" Value="{StaticResource HoverBrush}" />
+        <Setter Property="Background" Value="{DynamicResource HoverBrush}" />
     </Style>
 
     <!-- ============================ Inputs ============================ -->
 
     <Style Selector="TextBox.Control">
-        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
-        <Setter Property="BorderBrush" Value="{StaticResource BorderStrongBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource BorderStrongBrush}" />
         <Setter Property="BorderThickness" Value="1" />
         <Setter Property="CornerRadius" Value="6" />
         <Setter Property="MinHeight" Value="{StaticResource ControlHeightMd}" />
@@ -133,14 +133,14 @@
     </Style>
 
     <Style Selector="TextBox.Control:focus /template/ Border#PART_BorderElement">
-        <Setter Property="BorderBrush" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource PrimaryBrush}" />
     </Style>
 
     <!-- ============================ Progress ============================ -->
 
     <Style Selector="ProgressBar.Metric">
-        <Setter Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="Background" Value="{DynamicResource SurfaceRaisedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Height" Value="4" />
         <Setter Property="MinHeight" Value="4" />
         <Setter Property="Minimum" Value="0" />
@@ -155,11 +155,11 @@
     <Style Selector="ScrollBar">
         <!-- A visible track: the Fluent scrollbar is otherwise fully
              transparent at rest, so a scrollable page looked clipped. -->
-        <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
         <Setter Property="Opacity" Value="1" />
         <Setter Property="Width" Value="12" />
         <Setter Property="MinWidth" Value="12" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
     </Style>
 
     <Style Selector="ScrollBar:horizontal">
@@ -168,8 +168,8 @@
     </Style>
 
     <Style Selector="ScrollBar /template/ Thumb#PART_Thumb">
-        <Setter Property="Background" Value="{StaticResource TextMutedBrush}" />
-        <Setter Property="Foreground" Value="{StaticResource TextMutedBrush}" />
+        <Setter Property="Background" Value="{DynamicResource TextMutedBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextMutedBrush}" />
         <Setter Property="Opacity" Value="1" />
         <Setter Property="MinHeight" Value="36" />
         <Setter Property="MinWidth" Value="36" />
@@ -183,7 +183,7 @@
     </Style>
 
     <Style Selector="ScrollBar:pointerover">
-        <Setter Property="Foreground" Value="{StaticResource TextSecondaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextSecondaryBrush}" />
     </Style>
 
 
@@ -195,14 +195,14 @@
     <!-- ============================ Dividers ============================ -->
 
     <Style Selector="Separator.Hairline">
-        <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Height" Value="1" />
         <Setter Property="Margin" Value="0" />
     </Style>
 
     <Style Selector="Separator.Divider">
-        <Setter Property="Background" Value="{StaticResource DividerBrush}" />
+        <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
         <Setter Property="BorderThickness" Value="0" />
         <Setter Property="Height" Value="1" />
         <Setter Property="Margin" Value="0" />
@@ -212,7 +212,7 @@
     <Style Selector="TextBlock.SettingsLabel">
         <Setter Property="FontFamily" Value="{StaticResource DefaultFontFamily}" />
         <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
-        <Setter Property="Foreground" Value="{StaticResource TextPrimaryBrush}" />
+        <Setter Property="Foreground" Value="{DynamicResource TextPrimaryBrush}" />
         <Setter Property="VerticalAlignment" Value="Center" />
     </Style>
 </Styles>

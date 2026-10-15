@@ -120,7 +120,7 @@
                                               Classes="SensorIcon"
                                               VerticalAlignment="Center"
                                               Data="{Binding Icon, Converter={StaticResource IconNameToGeometryConverter}}"
-                                              Foreground="{StaticResource TextMutedBrush}" />
+                                              Foreground="{DynamicResource TextMutedBrush}" />
 
                                     <TextBlock Grid.Column="1"
                                                Text="{Binding Title}"

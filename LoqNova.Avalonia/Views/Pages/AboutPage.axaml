@@ -44,13 +44,13 @@
             <StackPanel Margin="0,24,0,0">
                 <TextBlock Text="{Binding AppName}" Classes="Heading4" />
                 <TextBlock Text="{Binding VersionText}" Classes="Body"
-                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0" />
                 <TextBlock Text="{Binding BuildText}" Classes="Body"
-                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,8,0,0" />
                 <TextBlock Text="{Binding Copyright}" Classes="Body"
-                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,16,0,0" />
+                           Foreground="{DynamicResource TextSecondaryBrush}" Margin="0,16,0,0" />
                 <TextBlock Text="{Binding TranslationCredit}" Classes="BodySmall"
-                           Foreground="{StaticResource TextMutedBrush}"
+                           Foreground="{DynamicResource TextMutedBrush}"
                            IsVisible="{Binding ShowTranslationCredit}" Margin="0,8,0,0" />
             </StackPanel>
 

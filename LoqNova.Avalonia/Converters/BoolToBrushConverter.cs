@@ -32,10 +32,15 @@ public class BoolToBrushConverter : IValueConverter
         name = name.Trim();
         if (string.IsNullOrEmpty(name)) return Brushes.Transparent;
 
-        if (Application.Current != null && Application.Current.TryGetResource(name, null, out var resource))
+        if (Application.Current is { } app)
         {
-            if (resource is IBrush brush) return brush;
-            if (resource is Color colorRes) return new SolidColorBrush(colorRes);
+            // Pass the active variant: the palette lives in theme dictionaries,
+            // and a null variant would skip them.
+            if (app.TryGetResource(name, app.ActualThemeVariant, out var resource))
+            {
+                if (resource is IBrush brush) return brush;
+                if (resource is Color colorRes) return new SolidColorBrush(colorRes);
+            }
         }
 
         if (Color.TryParse(name, out var color))

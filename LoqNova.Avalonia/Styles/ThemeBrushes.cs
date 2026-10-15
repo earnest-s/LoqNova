@@ -38,8 +38,11 @@ public static class ThemeBrushes
     /// <summary>Looks a brush up by resource key, falling back to grey.</summary>
     public static IBrush FromKey(string key)
     {
+        // The theme variant matters: the palette is declared per variant in
+        // AppResources.axaml, and a null variant skips the theme dictionaries
+        // entirely, which would silently fall back to grey.
         if (global::Avalonia.Application.Current is { } app &&
-            app.TryGetResource(key, null, out var resource) &&
+            app.TryGetResource(key, app.ActualThemeVariant, out var resource) &&
             resource is IBrush brush)
         {
             return brush;

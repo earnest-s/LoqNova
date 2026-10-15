@@ -56,9 +56,9 @@
                               IsEnabled="{Binding IsInteractive}"
                               Width="150"
                               Margin="0,8,0,0"
-                              Background="{StaticResource SurfaceBrush}"
-                              BorderBrush="{StaticResource BorderBrush}"
-                              Foreground="{StaticResource TextPrimaryBrush}">
+                              Background="{DynamicResource SurfaceBrush}"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              Foreground="{DynamicResource TextPrimaryBrush}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
@@ -77,9 +77,9 @@
                               IsEnabled="{Binding IsInteractive}"
                               Width="220"
                               Margin="0,8,0,0"
-                              Background="{StaticResource SurfaceBrush}"
-                              BorderBrush="{StaticResource BorderBrush}"
-                              Foreground="{StaticResource TextPrimaryBrush}">
+                              Background="{DynamicResource SurfaceBrush}"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              Foreground="{DynamicResource TextPrimaryBrush}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
@@ -100,9 +100,9 @@
                               ToolTip.Tip="{Binding SpeedToolTip}"
                               Width="150"
                               Margin="0,8,0,0"
-                              Background="{StaticResource SurfaceBrush}"
-                              BorderBrush="{StaticResource BorderBrush}"
-                              Foreground="{StaticResource TextPrimaryBrush}">
+                              Background="{DynamicResource SurfaceBrush}"
+                              BorderBrush="{DynamicResource BorderBrush}"
+                              Foreground="{DynamicResource TextPrimaryBrush}">
                         <ComboBox.ItemTemplate>
                             <DataTemplate>
                                 <TextBlock Text="{Binding Converter={StaticResource RgbDisplayNameConverter}}" />
