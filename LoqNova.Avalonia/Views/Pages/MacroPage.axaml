@@ -32,9 +32,11 @@
             <StackPanel Spacing="0">
 
                 <!-- Page heading, matching the WPF title and subtitle -->
-                <TextBlock Margin="0,16,0,8" FontSize="{StaticResource FontSize4XL}" FontWeight="Medium" Text="Macro" />
-                <TextBlock Margin="0,0,0,24"
-                           Text="You can record series of key presses and invoke them using the number pad on your keyboard." />
+                <StackPanel Classes="PageHeaderBlock" Margin="0,0,0,24">
+                    <TextBlock Text="Macro" Classes="PageTitle" />
+                    <TextBlock Classes="PageSubtitle"
+                               Text="You can record series of key presses and invoke them using the number pad on your keyboard." />
+                </StackPanel>
 
                 <!-- Enable. Bound to MacroController.IsEnabled, written through SetEnabled. -->
                 <Border Classes="ContentCard" Margin="0,0,0,32">

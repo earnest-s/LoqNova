@@ -20,56 +20,60 @@
     <ScrollViewer Classes="PageContainer">
         <StackPanel Spacing="24">
 
-            <!-- Header -->
-            <StackPanel Orientation="Horizontal" Spacing="12">
-<TextBlock Text="Automation" Classes="PageTitle" />
+            <!-- Header. The title gets its own line; the toolbar sits below it so
+                 the page reads like every other page instead of one long row. -->
+            <StackPanel Spacing="{StaticResource SpaceMd}">
+
+                <TextBlock Text="Automation" Classes="PageTitle" />
+
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+
+                    <ToggleSwitch Classes="Control" IsChecked="{Binding IsAutomationEnabled}"
+                                  OnContent="Enabled" OffContent="Disabled"
+                                  VerticalAlignment="Center" />
+
+                    <!-- Real trigger types, labelled by the backend's own DisplayName. -->
+                    <ComboBox Classes="Control" Width="240" VerticalAlignment="Center"
+                              ItemTemplate="{StaticResource TriggerOptionTemplate}"
+                              ItemsSource="{Binding AvailableTriggers}"
+                              SelectedItem="{Binding SelectedTriggerOption, Mode=TwoWay}" />
+
+                    <Button Classes="PrimaryButton" Content="Add Automatic"
+                            Command="{Binding AddAutomaticPipelineCommand}" />
+
+                    <Button Classes="PrimaryButton" Content="Add Manual"
+                            Command="{Binding OpenManualNamePromptCommand}" />
+
+                    <!-- WPF asks for the name inline, capped at 50 characters. -->
+                    <TextBox Classes="Control" Width="200" MaxLength="50"
+                             Watermark="Quick action name"
+                             IsVisible="{Binding IsManualNamePromptOpen}"
+                             Text="{Binding PendingManualName, Mode=TwoWay}" />
+
+                    <Button Classes="SecondaryButton" Content="OK"
+                            IsVisible="{Binding IsManualNamePromptOpen}"
+                            Command="{Binding AddManualPipelineCommand}" />
+
+                    <Button Classes="GhostButton" Content="Cancel"
+                            IsVisible="{Binding IsManualNamePromptOpen}"
+                            Command="{Binding CancelManualNamePromptCommand}" />
+
+                    <Button Classes="SecondaryButton" Content="Save"
+                            Command="{Binding SaveCommand}"
+                            IsVisible="{Binding IsDirty}" />
+
+                    <Button Classes="GhostButton" Content="Revert"
+                            Command="{Binding RevertCommand}"
+                            IsVisible="{Binding IsDirty}" />
+                </StackPanel>
 
                 <!-- Editor failures must be visible. Without this the Add step button
                      simply did nothing when a backend step could not be created, because
                      the reason was only written to the debug output. -->
-                <Border Classes="ContentCard" Padding="10" Margin="0,8,0,0"
-                        Background="{DynamicResource DangerMutedBrush}"
+                <Border Classes="Callout Danger"
                         IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
-                    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" FontSize="{StaticResource FontSizeXS}" />
+                    <TextBlock Classes="CalloutText" Text="{Binding ErrorMessage}" />
                 </Border>
-
-                <ToggleSwitch Classes="Control" IsChecked="{Binding IsAutomationEnabled}"
-                              OnContent="Enabled" OffContent="Disabled"
-                              VerticalAlignment="Center" />
-
-                <!-- Real trigger types, labelled by the backend's own DisplayName. -->
-                <ComboBox Classes="Control" Width="240" VerticalAlignment="Center"
-                          ItemTemplate="{StaticResource TriggerOptionTemplate}"
-                          ItemsSource="{Binding AvailableTriggers}"
-                          SelectedItem="{Binding SelectedTriggerOption, Mode=TwoWay}" />
-
-                <Button Classes="PrimaryButton" Content="Add Automatic"
-                        Command="{Binding AddAutomaticPipelineCommand}" />
-
-<Button Classes="PrimaryButton" Content="Add Manual"
-                            Command="{Binding OpenManualNamePromptCommand}" />
-
-                <!-- WPF asks for the name inline, capped at 50 characters. -->
-                <TextBox Classes="Control" Width="200" MaxLength="50"
-                         Watermark="Quick action name"
-                         IsVisible="{Binding IsManualNamePromptOpen}"
-                         Text="{Binding PendingManualName, Mode=TwoWay}" />
-
-                <Button Classes="SecondaryButton" Content="OK"
-                        IsVisible="{Binding IsManualNamePromptOpen}"
-                        Command="{Binding AddManualPipelineCommand}" />
-
-                <Button Classes="GhostButton" Content="Cancel"
-                        IsVisible="{Binding IsManualNamePromptOpen}"
-                        Command="{Binding CancelManualNamePromptCommand}" />
-
-                <Button Classes="SecondaryButton" Content="Save"
-                        Command="{Binding SaveCommand}"
-                        IsVisible="{Binding IsDirty}" />
-
-                <Button Classes="GhostButton" Content="Revert"
-                        Command="{Binding RevertCommand}"
-                        IsVisible="{Binding IsDirty}" />
             </StackPanel>
 
             <!-- Automatic pipelines -->
