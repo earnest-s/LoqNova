@@ -2,41 +2,48 @@ using System;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
-using Avalonia.Threading;
 
 namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
 /// <summary>
-/// An analog fan dial.
+/// A fan instrument: a seven-bladed rotor inside a calibrated circular scale,
+/// driven by the speed the machine actually reports for one fan channel.
 /// <para>
-/// The blades rotate at a speed strictly proportional to the RPM the machine
-/// reported and stop when it reports zero. The hub always prints that same
-/// reported value, so the motion never implies a speed the hardware is not
-/// actually running at. A tick scale and an accent arc add a second,
-/// at-a-glance reading of reported speed against the reported maximum.
+/// The rotor turns at the physical angular velocity of the reported speed,
+/// ω = 2π·r/60 rad/s, integrated against real elapsed time, so a higher reported
+/// RPM always turns faster and 1 RPM still produces a mathematically nonzero
+/// rotation. A real fan turns far faster than a screen can usefully show - at
+/// 3000 RPM it is 50 revolutions per second, which a 60 Hz display can only
+/// render as an aliased blur - so one fixed display time scale slows the whole
+/// pattern down. Because that scale is a constant, the rotation stays exactly
+/// proportional to the reported RPM; it is never bucketed into slow/medium/fast.
 /// </para>
 /// <para>
-/// The control paints itself in <see cref="Render"/> and only calls
-/// <c>InvalidateVisual</c> from its animation tick, so the visual tree stays a
-/// single element and no layout runs while the fan spins. That tick is owned by
-/// a <see cref="DispatcherTimer"/> which runs only while the control is
-/// attached to the tree and visible, and resumes when the dashboard comes back.
+/// The numeric reading itself lives beside the dial and is bound straight to the
+/// reported value, so the displayed RPM is never the eased or scaled one. At
+/// zero RPM the rotor settles smoothly to a stop and the loop shuts down
+/// completely, so a resting fan costs nothing.
 /// </para>
 /// </summary>
-public class AnalogFanControl : Control
+public class AnalogFanControl : AnimatedGauge
 {
-    /// <summary>
-    /// Blade rotation in degrees per second, per reported RPM. A real fan turns
-    /// far faster than a screen can usefully show and its blades are seven-fold
-    /// symmetric, so a single fixed factor slows the pattern down while keeping
-    /// the rotation strictly proportional: a higher reported RPM always rotates
-    /// faster than a lower one, and zero stays still.
-    /// </summary>
-    private const double DegreesPerRpmSecond = 0.04;
-
+    /// <summary>Blades in the rotor. Seven is the common laptop-fan leaf count.</summary>
     private const int BladeCount = 7;
-    private const int TickCount = 56;
-    private const int MajorTickEvery = 8;
+
+    /// <summary>Scale divisions around the rim and how often a major mark falls.</summary>
+    private const int Divisions = 60;
+    private const int MajorTickEvery = 5;
+
+    /// <summary>
+    /// Fixed display time scale applied to the physical angular velocity. One
+    /// revolution takes roughly 2.7 seconds at 3000 RPM: slow enough that the
+    /// blade pattern does not alias into a strobe, fast enough to read as a fan.
+    /// It is a constant, so angular velocity remains strictly proportional to RPM.
+    /// </summary>
+    private const double DisplayTimeScale = 0.0075;
+
+    /// <summary>Time constant for the rotor's speed following a new reading.</summary>
+    private const double ResponseSeconds = 0.25;
 
     /// <summary>Reported speed in RPM; -1 means the machine did not report the channel.</summary>
     public static readonly StyledProperty<int> RpmProperty =
@@ -45,10 +52,6 @@ public class AnalogFanControl : Control
     /// <summary>Highest speed the machine reports for this fan, used for the scale.</summary>
     public static readonly StyledProperty<int> MaxRpmProperty =
         AvaloniaProperty.Register<AnalogFanControl, int>(nameof(MaxRpm), -1);
-
-    /// <summary>Formatted value drawn in the hub; a dash when the channel is not reported.</summary>
-    public static readonly StyledProperty<string?> ValueTextProperty =
-        AvaloniaProperty.Register<AnalogFanControl, string?>(nameof(ValueText), "-");
 
     /// <summary>Channel accent. A design-token fallback is used when unset.</summary>
     public static readonly StyledProperty<IBrush?> AccentProperty =
@@ -66,54 +69,27 @@ public class AnalogFanControl : Control
         set => SetValue(MaxRpmProperty, value);
     }
 
-    public string? ValueText
-    {
-        get => GetValue(ValueTextProperty);
-        set => SetValue(ValueTextProperty, value);
-    }
-
     public IBrush? Accent
     {
         get => GetValue(AccentProperty);
         set => SetValue(AccentProperty, value);
     }
 
-    private readonly DispatcherTimer _timer = new() { Interval = TimeSpan.FromMilliseconds(16) };
-    private bool _attached;
-    private bool _running;
-    private long _lastTimestamp;
-    private double _angle;
     private double _visualRpm;
+    private double _angle;
 
-    // Geometry is rebuilt when the dial is resized, never on the animation tick.
+    // Geometry cache, rebuilt only when the dial is resized.
     private Point _center;
     private double _outerRadius;
-    private double _ringRadius;
-    private double _ringThickness;
+    private double _arcRadius;
+    private double _arcThickness;
     private double _hubRadius;
     private Geometry _bladesEven = new StreamGeometry();
     private Geometry _bladesOdd = new StreamGeometry();
     private Geometry _ticksMinor = new StreamGeometry();
     private Geometry _ticksMajor = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
-    private Geometry? _progressArc;
     private double _cachedDialSize = double.NaN;
-    private double _cachedRatio = double.NaN;
-
-    public AnalogFanControl()
-    {
-        _timer.Tick += OnTick;
-        AttachedToVisualTree += (_, _) =>
-        {
-            _attached = true;
-            UpdateAnimationState();
-        };
-        DetachedFromVisualTree += (_, _) =>
-        {
-            _attached = false;
-            Stop();
-        };
-    }
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -121,25 +97,19 @@ public class AnalogFanControl : Control
 
         if (change.Property == RpmProperty)
         {
-            UpdateAnimationState();
+            RequestFrames();
             InvalidateVisual();
         }
-        else if (change.Property == MaxRpmProperty
-            || change.Property == ValueTextProperty
-            || change.Property == AccentProperty)
+        else if (change.Property == MaxRpmProperty || change.Property == AccentProperty)
         {
             InvalidateVisual();
-        }
-        else if (change.Property == IsVisibleProperty)
-        {
-            UpdateAnimationState();
         }
     }
 
     public override void Render(DrawingContext context)
     {
         var dial = Math.Min(Bounds.Width, Bounds.Height);
-        if (double.IsNaN(dial) || dial <= 24)
+        if (double.IsNaN(dial) || dial <= 48)
         {
             return;
         }
@@ -148,21 +118,18 @@ public class AnalogFanControl : Control
         EnsureGeometry(dial, center);
 
         var reported = Rpm >= 0;
-        var ratio = reported && MaxRpm > 0 ? Math.Clamp((double)Rpm / MaxRpm, 0.0, 1.0) : 0.0;
-
+        var faceBrush = DashboardVisuals.Brush(this, "CardElevatedBrush", Brushes.Transparent);
         var lineBrush = DashboardVisuals.Brush(this, "BorderBrush", Brushes.Gray);
         var strongBrush = DashboardVisuals.Brush(this, "BorderStrongBrush", Brushes.Gray);
-        var faceBrush = DashboardVisuals.Brush(this, "CardElevatedBrush", Brushes.Transparent);
         var trackBrush = DashboardVisuals.Brush(this, "SurfaceRaisedBrush", Brushes.Gray);
         var mutedBrush = DashboardVisuals.Brush(this, "TextMutedBrush", Brushes.Gray);
         var accentBrush = reported
             ? Accent ?? DashboardVisuals.Brush(this, "PrimaryBrush", Brushes.DodgerBlue)
             : mutedBrush;
 
-        // Dial face.
+        // Dial face, so the fan reads as part of the same instrument family.
         context.DrawEllipse(faceBrush, new Pen(lineBrush, 1), center, _outerRadius, _outerRadius);
 
-        // Analog scale.
         using (context.PushOpacity(0.5))
         {
             context.DrawGeometry(null, new Pen(lineBrush, 1), _ticksMinor);
@@ -170,58 +137,72 @@ public class AnalogFanControl : Control
 
         context.DrawGeometry(null, new Pen(strongBrush, 1.4), _ticksMajor);
 
-        // Speed ring: a muted track plus the accent arc for reported / maximum.
-        context.DrawGeometry(null, new Pen(trackBrush, _ringThickness, null, PenLineCap.Round), _trackArc);
-        if (ratio > 0.001)
-        {
-            if (double.IsNaN(_cachedRatio) || Math.Abs(ratio - _cachedRatio) > 0.001)
-            {
-                _progressArc = DashboardVisuals.Arc(_center, _ringRadius, 0, 360.0 * ratio);
-                _cachedRatio = ratio;
-            }
+        // Speed scale, drawn only from what the machine reports: with no reported
+        // maximum there is no scale to place the reading on and no arc is drawn.
+        context.DrawGeometry(null, new Pen(trackBrush, _arcThickness, null, PenLineCap.Round), _trackArc);
 
-            if (_progressArc is not null)
-            {
-                context.DrawGeometry(null, new Pen(accentBrush, _ringThickness, null, PenLineCap.Round), _progressArc);
-            }
+        var ratio = reported && MaxRpm > 0
+            ? Math.Clamp(_visualRpm / MaxRpm, 0.0, 1.0)
+            : 0.0;
+        if (ratio > 0.004)
+        {
+            var progress = DashboardVisuals.Arc(center, _arcRadius, 0.0, 360.0 * ratio);
+            context.DrawGeometry(null, new Pen(accentBrush, _arcThickness, null, PenLineCap.Round), progress);
         }
 
-        // Blades, alternating in weight so the rotation reads clearly.
+        // The rotor. Alternating blade weight keeps the rotation direction and
+        // speed readable instead of turning into a symmetric blur.
         var rotation = Matrix.CreateRotation(_angle * Math.PI / 180.0)
             * Matrix.CreateTranslation(center.X, center.Y);
         var bladePen = new Pen(lineBrush, 1);
         using (context.PushTransform(rotation))
         {
             context.DrawGeometry(accentBrush, bladePen, _bladesEven);
-            using (context.PushOpacity(0.64))
+            using (context.PushOpacity(0.6))
             {
                 context.DrawGeometry(accentBrush, bladePen, _bladesOdd);
             }
         }
 
-        // Hub, then the reported value and its unit.
-        context.DrawEllipse(faceBrush, new Pen(lineBrush, 1), center, _hubRadius, _hubRadius);
+        // Hub cap with the channel colour at its centre.
+        context.DrawEllipse(
+            DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
+            new Pen(strongBrush, 1),
+            center, _hubRadius, _hubRadius);
+        context.DrawEllipse(accentBrush, null, center, Math.Max(1.5, _hubRadius * 0.22));
+    }
 
-        var typeface = DashboardVisuals.Typeface(this);
-        var valueBrush = reported
-            ? DashboardVisuals.Brush(this, "TextPrimaryBrush", Brushes.White)
-            : mutedBrush;
-        var value = DashboardVisuals.FittedText(ValueText ?? "-", typeface,
-            _hubRadius * 0.86, 9, _hubRadius * 1.68, valueBrush);
-        DashboardVisuals.DrawCentred(context, value, center, -_hubRadius * 0.3);
+    protected override bool Advance(double seconds)
+    {
+        var target = Rpm > 0 ? Rpm : 0.0;
 
-        if (reported && Rpm > 0)
+        // Exponential, time-based approach: the fraction covered depends on the
+        // real elapsed time rather than on how many frames happened to be drawn,
+        // so the deceleration is identical at any frame rate.
+        _visualRpm += (target - _visualRpm) * (1.0 - Math.Exp(-seconds / ResponseSeconds));
+        if (Math.Abs(target - _visualRpm) < 0.5)
         {
-            var unit = DashboardVisuals.FittedText("RPM", typeface,
-                _hubRadius * 0.34, 7, _hubRadius * 1.5, mutedBrush);
-            DashboardVisuals.DrawCentred(context, unit, center, _hubRadius * 0.5);
+            _visualRpm = target;
         }
+
+        if (_visualRpm <= 0.001)
+        {
+            // Settled at rest: stop the loop entirely rather than repainting a
+            // still dial sixty times a second.
+            _visualRpm = 0.0;
+            return false;
+        }
+
+        // ω = 2π·r/60 rad/s, scaled by the one fixed display factor. Integrating
+        // against real elapsed time keeps the speed independent of frame rate.
+        var omegaDegreesPerSecond = _visualRpm / 60.0 * Math.Tau * DisplayTimeScale * (180.0 / Math.PI);
+        _angle = (_angle + omegaDegreesPerSecond * seconds) % 360.0;
+        return true;
     }
 
     /// <summary>
-    /// Rebuilds the static geometry when the dial size changes. Everything is
-    /// expressed in control coordinates except the blades, which are built
-    /// around the origin so the tick can rotate them with one transform.
+    /// Rebuilds the static geometry when the dial size changes. The blades are
+    /// built around the origin so one transform per frame can rotate them.
     /// </summary>
     private void EnsureGeometry(double dial, Point center)
     {
@@ -233,21 +214,19 @@ public class AnalogFanControl : Control
         _cachedDialSize = dial;
         _center = center;
         _outerRadius = dial / 2.0 - 1.0;
-        _ringThickness = Math.Clamp(_outerRadius * 0.09, 2.0, 4.0);
-        _ringRadius = _outerRadius - _ringThickness / 2.0;
-        _hubRadius = _outerRadius * 0.42;
+        _hubRadius = _outerRadius * 0.19;
+        _arcRadius = _outerRadius * 0.79;
+        _arcThickness = Math.Clamp(_outerRadius * 0.05, 2.0, 5.0);
 
-        var tickOuter = _ringRadius - _ringThickness - 1.0;
-        var tickInner = tickOuter - _outerRadius * 0.08;
-        var ticks = DashboardVisuals.Ticks(center, tickInner, tickOuter, TickCount, MajorTickEvery, 0, 360);
+        var tickOuter = _outerRadius * 0.92;
+        var tickInner = _outerRadius * 0.86;
+        var ticks = DashboardVisuals.Ticks(center, tickInner, tickOuter, Divisions, MajorTickEvery, 0, 360);
         _ticksMinor = ticks.Minor;
         _ticksMajor = ticks.Major;
 
-        _trackArc = DashboardVisuals.Arc(center, _ringRadius, 0, 360);
-        _progressArc = null;
-        _cachedRatio = double.NaN;
+        _trackArc = DashboardVisuals.Arc(center, _arcRadius, 0, 360);
 
-        var bladeOuter = tickInner - _outerRadius * 0.08;
+        var bladeOuter = _outerRadius * 0.72;
         _bladesEven = BuildBlades(_hubRadius, bladeOuter, even: true);
         _bladesOdd = BuildBlades(_hubRadius, bladeOuter, even: false);
     }
@@ -306,77 +285,5 @@ public class AnalogFanControl : Control
             DashboardVisuals.Polar(origin, innerRadius * 0.94, angle - 5),
             rootLeading);
         context.EndFigure(true);
-    }
-
-    private void UpdateAnimationState()
-    {
-        if (_attached && IsVisible)
-        {
-            Start();
-        }
-        else
-        {
-            Stop();
-        }
-    }
-
-    private void Start()
-    {
-        if (_running)
-        {
-            return;
-        }
-
-        _running = true;
-        _lastTimestamp = Environment.TickCount64;
-        _timer.Start();
-    }
-
-    private void Stop()
-    {
-        if (!_running)
-        {
-            return;
-        }
-
-        _running = false;
-        _timer.Stop();
-    }
-
-    private void OnTick(object? sender, EventArgs e)
-    {
-        var now = Environment.TickCount64;
-        var elapsed = now - _lastTimestamp;
-        _lastTimestamp = now;
-        if (elapsed <= 0)
-        {
-            return;
-        }
-
-        // A minimised window or hidden ancestor stops producing motion without
-        // tearing the timer down; the next visible tick picks the rotation up.
-        if (!IsEffectivelyVisible)
-        {
-            return;
-        }
-
-        var elapsedSeconds = Math.Min(elapsed / 1000.0, 0.1);
-        var target = Rpm > 0 ? Rpm : 0.0;
-
-        // Only the motion is eased toward the measured speed; the hub keeps
-        // showing the value the machine reported, never an interpolated one.
-        _visualRpm += (target - _visualRpm) * Math.Min(1.0, elapsedSeconds / 0.22);
-        if (Math.Abs(target - _visualRpm) < 0.5)
-        {
-            _visualRpm = target;
-        }
-
-        if (_visualRpm <= 0.01)
-        {
-            return;
-        }
-
-        _angle = (_angle + _visualRpm * DegreesPerRpmSecond * elapsedSeconds) % 360.0;
-        InvalidateVisual();
     }
 }
