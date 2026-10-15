@@ -472,12 +472,6 @@ public partial class DashboardViewModel : ViewModelBase
         SyncTelemetry();
     }
 
-    /// <summary>
-    /// Guarantees the reported mode is present in the selector. Without this the
-    /// combo renders an empty item when the mode arrives before the list is
-    /// populated, which is how it previously displayed "--" beside a correct large
-    /// status.
-    /// </summary>
     /// <summary>Mirrors the machine's AI Chip capability, which gates Balance settings.</summary>
     public bool IsAIModeSupported => _performanceService.IsAIModeSupported;
 
@@ -528,6 +522,12 @@ public partial class DashboardViewModel : ViewModelBase
         }
     }
 
+    /// <summary>
+    /// Guarantees the reported mode is present in the selector. Without this the
+    /// combo renders an empty item when the mode arrives before the list is
+    /// populated, which is how it previously displayed "--" beside a correct large
+    /// status.
+    /// </summary>
     private void EnsurePowerModeIsListed(PowerModeState? mode)
     {
         if (mode is not { } value)

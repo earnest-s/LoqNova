@@ -200,10 +200,13 @@ public class RingGauge : Control
             _contentRadius * 0.86, 10, _contentRadius * 1.9, valueBrush);
         DashboardVisuals.DrawCentred(context, value, center, -_contentRadius * 0.34);
 
-        if (!string.IsNullOrEmpty(Unit))
+        // The unit is only meaningful next to a number the machine reported.
+        var unit = Unit;
+        if (reported && !string.IsNullOrEmpty(unit))
         {
-            var unit = DashboardVisuals.FittedText(Unit, typeface, _contentRadius * 0.44, 8, _contentRadius * 1.6, mutedBrush);
-            DashboardVisuals.DrawCentred(context, unit, center, _contentRadius * 0.34);
+            var formattedUnit = DashboardVisuals.FittedText(unit, typeface,
+                _contentRadius * 0.4, 8, _contentRadius * 1.6, mutedBrush);
+            DashboardVisuals.DrawCentred(context, formattedUnit, center, _contentRadius * 0.4);
         }
     }
 
