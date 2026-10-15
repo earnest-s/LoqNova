@@ -22,7 +22,10 @@
     <Style Selector="Button.PrimaryButton">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
         <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
-        <Setter Property="BorderThickness" Value="0" />
+        <!-- A constant 1px border keeps the content box stable when the focus
+             ring appears; the border itself is transparent until focused. -->
+        <Setter Property="BorderThickness" Value="1" />
+        <Setter Property="BorderBrush" Value="Transparent" />
         <Setter Property="Padding" Value="16,0" />
         <Setter Property="MinWidth" Value="112" />
         <Setter Property="CornerRadius" Value="6" />
@@ -242,7 +245,59 @@
 
     <Style Selector="Button.KeyPadKey.selected">
         <Setter Property="Background" Value="{DynamicResource PrimaryBrush}" />
-        <Setter Property="Foreground" Value="#FFFFFF" />
+        <Setter Property="Foreground" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+
+    <!-- ================================================================
+         Keyboard focus
+
+         Every button variant reserves a 1px border so that the focus ring
+         can appear without the content shifting. Buttons that carry an
+         accent fill use the on-accent colour; everything else uses the
+         neutral focus ring.
+         ================================================================ -->
+    <Style Selector="Button:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource FocusBrush}" />
+    </Style>
+
+    <Style Selector="Button.PrimaryButton:focus-visible /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.DangerButton:focus-visible /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.PresetButtonSelected:focus-visible /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="BorderBrush" Value="{DynamicResource OnAccentBrush}" />
+    </Style>
+
+    <!-- ================================================================
+         Disabled
+
+         Variants that paint their own colours dim out; variants that only
+         rely on the Fluent defaults fall back to a muted foreground.
+         ================================================================ -->
+    <Style Selector="Button.OutlineButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.GhostButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.IconButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.LinkButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.PresetButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.PresetButtonSelected:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.DangerButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.KeyPadKey:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="Opacity" Value="{StaticResource OpacityDisabled}" />
+    </Style>
+
+    <Style Selector="Button.OutlineButton:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledTextBrush}" />
+        <Setter Property="BorderBrush" Value="{DynamicResource DisabledBrush}" />
+    </Style>
+
+    <Style Selector="Button.GhostButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.IconButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.LinkButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.PresetButton:disabled /template/ ContentPresenter#PART_ContentPresenter,
+                      Button.KeyPadKey:disabled /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="{DynamicResource DisabledTextBrush}" />
+    </Style>
+
+    <Style Selector="Button:disabled">
+        <Setter Property="Cursor" Value="Arrow" />
     </Style>
 
 </Styles>
