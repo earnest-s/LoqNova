@@ -215,7 +215,6 @@ public class RingGauge : Control
         }
 
         _cachedDialSize = dial;
-        _center = center;
 
         var outer = dial / 2.0 - 1.0;
         _thickness = Math.Clamp(outer * 0.20, 4.0, 9.0);
