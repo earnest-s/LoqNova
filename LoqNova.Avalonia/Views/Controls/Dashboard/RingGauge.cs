@@ -209,7 +209,7 @@ public class RingGauge : Control
 
     private void EnsureGeometry(double dial, Point center)
     {
-        if (Math.Abs(dial - _cachedDialSize) < 0.5 && _trackArc is not null)
+        if (Math.Abs(dial - _cachedDialSize) < 0.5)
         {
             return;
         }
