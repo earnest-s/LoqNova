@@ -299,7 +299,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Boot Logo" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Replace the logo shown while Windows starts." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Customize Boot Logo image, visible during system startup." />
                         </StackPanel>
                         <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
                     </Grid>
