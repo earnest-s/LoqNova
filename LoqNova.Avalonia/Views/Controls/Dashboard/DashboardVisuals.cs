@@ -45,9 +45,9 @@ internal static class DashboardVisuals
     }
 
     /// <summary>
-    /// An open arc between two angles, drawn for stroking. A full turn is
-    /// emitted as a closing arc; an empty sweep produces a degenerate figure so
-    /// callers can draw unconditionally.
+    /// An arc between two angles, drawn for stroking. A full turn is emitted as
+    /// two half turns; an empty sweep produces a degenerate figure so callers
+    /// can draw unconditionally.
     /// </summary>
     public static Geometry Arc(Point center, double radius, double startDegrees, double sweepDegrees)
     {
@@ -57,15 +57,28 @@ internal static class DashboardVisuals
         {
             if (sweepDegrees >= 359.5)
             {
+                // A single arc cannot express a full turn: its start and end
+                // points coincide, which is a degenerate arc that resolves to
+                // nothing - or to a line wrapped back on itself - as soon as the
+                // sweep reaches a complete circle. A fan reaching its maximum
+                // RPM is exactly that case, so the ring is built from two half
+                // turns, which always resolves into a complete circle.
                 var top = Polar(center, radius, 0);
+                var bottom = Polar(center, radius, 180);
                 context.BeginFigure(top, false);
-                context.ArcTo(top, new Size(radius, radius), 0, true, SweepDirection.Clockwise);
+                context.ArcTo(bottom, new Size(radius, radius), 0, false, SweepDirection.Clockwise);
+                context.ArcTo(top, new Size(radius, radius), 0, false, SweepDirection.Clockwise);
+
+                // Closed, so the ring has one join at 12 o'clock instead of two
+                // stroke caps landing on top of each other.
+                context.EndFigure(true);
             }
             else if (sweepDegrees <= 0.01)
             {
                 var start = Polar(center, radius, startDegrees);
                 context.BeginFigure(start, false);
                 context.LineTo(start);
+                context.EndFigure(false);
             }
             else
             {
@@ -76,9 +89,8 @@ internal static class DashboardVisuals
                     0,
                     sweepDegrees > 180,
                     SweepDirection.Clockwise);
+                context.EndFigure(false);
             }
-
-            context.EndFigure(false);
         }
         finally
         {
