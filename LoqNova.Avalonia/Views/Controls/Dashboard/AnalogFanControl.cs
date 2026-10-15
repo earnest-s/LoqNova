@@ -79,7 +79,6 @@ public class AnalogFanControl : AnimatedGauge
     private double _angle;
 
     // Geometry cache, rebuilt only when the dial is resized.
-    private Point _center;
     private double _outerRadius;
     private double _arcRadius;
     private double _arcThickness;
@@ -90,7 +89,6 @@ public class AnalogFanControl : AnimatedGauge
     private Geometry _ticksMajor = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
     private double _cachedDialSize = double.NaN;
-
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
         base.OnPropertyChanged(change);
