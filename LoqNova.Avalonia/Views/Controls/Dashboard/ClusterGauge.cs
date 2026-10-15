@@ -227,7 +227,10 @@ public class ClusterGauge : AnimatedGauge
             center, _hubRadius, _hubRadius);
 
         var value = DashboardVisuals.FittedText(
-            ValueText ?? "-", typeface, _hubRadius * 0.95, 10.0, _hubRadius * 1.5, valueBrush);
+            IsStartupSweeping
+                ? DashboardVisuals.CountUp(ValueText, StartupSweepPhase)
+                : ValueText ?? "-",
+            typeface, _hubRadius * 0.95, 10.0, _hubRadius * 1.5, valueBrush);
         DashboardVisuals.DrawCentred(context, value, center, -_hubRadius * 0.24);
 
         // The unit only means something next to a reading the machine reported.
