@@ -313,14 +313,7 @@
                                     <PathIcon Data="{Binding SettingsIcon, Converter={StaticResource IconNameToGeometryConverter}}" />
                                 </Button>
 
-                                <TextBlock Text="{Binding Warning}"
-                                           Classes="WidgetWarning"
-                                           IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
-
-                                <TextBlock Text="{Binding ErrorMessage}"
-                                           Classes="WidgetError"
-                                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
-
+                                <!-- Action widgets, matching WPF's buttons and context-menu actions. -->
                                 <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}"
                                             IsVisible="{Binding HasPrimaryAction}">
                                     <Button Classes="SecondaryButton"
@@ -333,6 +326,14 @@
                                             Content="{Binding SecondaryActionText}"
                                             Command="{Binding SecondaryActionCommand}" />
                                 </StackPanel>
+
+                                <TextBlock Text="{Binding Warning}"
+                                           Classes="WidgetWarning"
+                                           IsVisible="{Binding Warning, Converter={StaticResource StringNotEmptyConverter}}" />
+
+                                <TextBlock Text="{Binding ErrorMessage}"
+                                           Classes="WidgetError"
+                                           IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}" />
                             </StackPanel>
                         </Border>
                     </DataTemplate>
