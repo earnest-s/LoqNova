@@ -89,7 +89,8 @@ public class ClusterGauge : AnimatedGauge
     }
 
     // Geometry cache, rebuilt only when the control is resized.
-    private double _cachedDialSize = double.NaN;
+    private double _cachedWidth = double.NaN;
+    private double _cachedHeight = double.NaN;
     private double _outerRadius;
     private double _labelRadius;
     private double _arcRadius;
@@ -240,12 +241,15 @@ public class ClusterGauge : AnimatedGauge
     /// <summary>Rebuilds static geometry only when the dial is resized.</summary>
     private void EnsureGeometry(double dial, Point center)
     {
-        if (Math.Abs(dial - _cachedDialSize) < 0.5)
+        // Keyed on both dimensions: a dial that only grows sideways still moves
+        // its centre, so a size cache on the shorter side alone would go stale.
+        if (Math.Abs(Bounds.Width - _cachedWidth) < 0.5 && Math.Abs(Bounds.Height - _cachedHeight) < 0.5)
         {
             return;
         }
 
-        _cachedDialSize = dial;
+        _cachedWidth = Bounds.Width;
+        _cachedHeight = Bounds.Height;
         _outerRadius = dial / 2.0 - 1.0;
         _labelRadius = _outerRadius * 0.925;
         _arcRadius = _outerRadius * 0.62;
