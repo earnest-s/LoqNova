@@ -107,9 +107,12 @@ public class TemperatureGauge : AnimatedGauge
         var lineBrush = DashboardVisuals.Brush(this, "BorderBrush", Brushes.Gray);
         var fillBrush = Severity(reported, _displayRatio, mutedBrush);
 
-        // Readout on the right; the graduated bar takes whatever is left.
+        // Readout on the right; the graduated bar takes whatever is left. The
+        // reserved width comes from the real reading, so the digits counting up
+        // during the opening sweep cannot shift the bar or the unit.
+        var reading = ValueText ?? "-";
         var value = DashboardVisuals.FittedText(
-            ValueText ?? "-", typeface, height * 0.60, 9.0, width * 0.4,
+            reading, typeface, height * 0.60, 9.0, width * 0.4,
             reported ? fillBrush : mutedBrush);
         var unit = DashboardVisuals.FittedText(
             Unit ?? string.Empty, typeface, height * 0.30, 7.0, width * 0.2, mutedBrush);
@@ -154,8 +157,8 @@ public class TemperatureGauge : AnimatedGauge
 
         context.DrawText(
             IsStartupSweeping
-                ? DashboardVisuals.CountUp(ValueText, StartupSweepPhase)
-                : value.Text,
+                ? DashboardVisuals.CountUp(reading, StartupSweepPhase)
+                : reading,
             new Point(textLeft, textCenter - value.Height / 2.0));
         if (unit.Width > 0)
         {
