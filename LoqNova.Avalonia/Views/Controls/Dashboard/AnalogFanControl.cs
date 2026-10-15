@@ -210,7 +210,6 @@ public class AnalogFanControl : AnimatedGauge
         }
 
         _cachedDialSize = dial;
-        _center = center;
         _outerRadius = dial / 2.0 - 1.0;
         _hubRadius = _outerRadius * 0.19;
         _arcRadius = _outerRadius * 0.79;
