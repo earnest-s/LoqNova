@@ -12,11 +12,18 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 /// a graduated arc, an analog needle and a large digital readout in the hub.
 /// <para>
 /// The arc, the needle and the hub all describe the same reported channel. The
-/// needle and the arc ease toward a new reading with a time-based exponential
-/// approach so the movement is smooth, while the numeral in the hub is always
-/// the value the machine reported - the animation can never disagree with the
-/// number beside it. A channel the machine does not report is drawn muted with
-/// no needle and no arc, never as a zero.
+/// first frames before the machine has reported anything hold the needle at the
+/// bottom of the scale; once a reading arrives the needle, the arc and the
+/// numerals sweep up to it together as a one-shot opening animation, and from
+/// then on the needle and the arc ease toward each new reading with a time-based
+/// exponential approach. A channel the machine does not report is drawn muted
+/// with no needle and no arc, never as a zero.
+/// </para>
+/// <para>
+/// The top fifth of the scale is a redline. It is drawn on the scale - a band
+/// flush under the tick run plus the ticks of that range redrawn over the
+/// identical angles - so it stays aligned with the tick marks and leaves the
+/// channel-coloured arc and needle untouched and still readable.
 /// </para>
 /// </summary>
 public class ClusterGauge : AnimatedGauge
