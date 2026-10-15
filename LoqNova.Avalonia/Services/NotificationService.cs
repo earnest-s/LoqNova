@@ -52,5 +52,13 @@ public class NotificationService : INotificationService
         return Task.CompletedTask;
     }
     
+    public void SetPosition(NotificationPosition position)
+    {
+        if (_notificationManager is not null)
+        {
+            _notificationManager.Position = position;
+        }
+    }
+
     public Task ShutdownAsync() => Task.CompletedTask;
 }

@@ -47,5 +47,12 @@ public interface INotificationService
     
     Task InitializeAsync();
     Task ShowAsync(NotificationMessage message);
+
+    /// <summary>
+    /// Sets where toasts appear. The persisted notification position is applied here
+    /// because the toast manager owns the placement.
+    /// </summary>
+    void SetPosition(global::Avalonia.Controls.Notifications.NotificationPosition position);
+
     Task ShutdownAsync();
 }

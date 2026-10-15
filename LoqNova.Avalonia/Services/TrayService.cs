@@ -29,6 +29,7 @@ public class TrayService : ITrayService
     private readonly ISettingsService _settingsService;
     private readonly INavigationService _navigationService;
     private readonly IAutomationService _automationService;
+    private readonly IMainThreadDispatcher _dispatcher;
     private readonly ILogger<TrayService> _logger;
 
     private Window? _mainWindow;
@@ -52,11 +53,13 @@ public class TrayService : ITrayService
         ISettingsService settingsService,
         INavigationService navigationService,
         IAutomationService automationService,
+        IMainThreadDispatcher dispatcher,
         ILogger<TrayService> logger)
     {
         _settingsService = settingsService;
         _navigationService = navigationService;
         _automationService = automationService;
+        _dispatcher = dispatcher;
         _logger = logger;
     }
 
@@ -211,8 +214,16 @@ public class TrayService : ITrayService
     /// <c>BringToForeground</c>: show it if it was hidden, restore it if it was
     /// minimised, then activate it.
     /// </summary>
-    private void ShowMainWindow()
+    public void ShowMainWindow()
     {
+        // Callers include the shared library's key listener and the tray menu, so this
+        // has to be safe off the UI thread.
+        if (!_dispatcher.CheckAccess())
+        {
+            _dispatcher.Post(ShowMainWindow);
+            return;
+        }
+
         var window = _mainWindow;
         if (window is null)
             return;

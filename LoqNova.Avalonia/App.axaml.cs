@@ -114,6 +114,27 @@ public partial class App : Application
 
         builder.RegisterType<RealMacroService>().As<IMacroService>().SingleInstance();
 
+        // The notification relay and the Smart Key listener take their library singletons
+        // from the shared container, so they are built by a factory instead of being
+        // resolved through IoCContainer directly. Both are started only after the
+        // readiness gate, which is why constructing them lazily is safe.
+        builder.Register(context => new NotificationRelay(
+                context.Resolve<INotificationService>(),
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.ApplicationSettings>(),
+                context.Resolve<IMainThreadDispatcher>(),
+                context.Resolve<ILogger<NotificationRelay>>()))
+            .As<INotificationRelay>()
+            .SingleInstance();
+
+        builder.Register(context => new SmartKeyService(
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Settings.ApplicationSettings>(),
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.SoftwareDisabler.FnKeysDisabler>(),
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Listeners.SpecialKeyListener>(),
+                LoqNova.Lib.IoCContainer.Resolve<LoqNova.Lib.Automation.AutomationProcessor>(),
+                context.Resolve<ILogger<SmartKeyService>>()))
+            .As<ISmartKeyService>()
+            .SingleInstance();
+
         // Real package downloader (Packages page) straight from LoqNova.Lib.
         // No mock and no local HTTP/API layer: PackagesViewModel resolves the
         // existing PackageDownloaderFactory and calls IPackageDownloader. The
@@ -316,6 +337,20 @@ public partial class App : Application
             await macroService.InitializeAsync();
             macroService.StartHook();
 
+            // Notifications. The toast manager is attached to the window here, and the
+            // relay is what applies the Notifications settings to the library's messages.
+            // Without these two calls nothing in the shell could ever display a toast:
+            // the manager was constructed on demand and always left null.
+            await Container.Resolve<INotificationService>().InitializeAsync();
+            Container.Resolve<INotificationRelay>().Start();
+
+            // Smart Key (Fn+F9). The shared listener deliberately leaves Fn+F9 alone and
+            // WPF handles it in its own SmartKeyHelper, so the shell has to own it here;
+            // an unconfigured press raises the window, as in WPF.
+            var smartKeyService = Container.Resolve<ISmartKeyService>();
+            smartKeyService.BringToForeground = () => Container.Resolve<ITrayService>().ShowMainWindow();
+            smartKeyService.Start();
+
             // First navigation happens only now: the shared container is up and every
             // adapter a page view model reads in its constructor has been hydrated.
             var navigation = Container.Resolve<INavigationService>();
@@ -347,6 +382,28 @@ public partial class App : Application
         // handlers. The tray icon would also be disposed by Avalonia's own UI-thread
         // shutdown hook, but doing it here is explicit and keeps the icon from
         // outliving the window it restores.
+        // Detach the shell's own listeners before the container goes away: the Smart Key
+        // subscription and the notification subscription both outlive the UI otherwise.
+        try
+        {
+            if (Container?.IsRegistered<ISmartKeyService>() == true)
+                Container.Resolve<ISmartKeyService>().Stop();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Smart key shutdown failed: {ex}");
+        }
+
+        try
+        {
+            if (Container?.IsRegistered<INotificationRelay>() == true)
+                Container.Resolve<INotificationRelay>().Stop();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Notification relay shutdown failed: {ex}");
+        }
+
         try
         {
             if (Container?.IsRegistered<ITrayService>() == true)
