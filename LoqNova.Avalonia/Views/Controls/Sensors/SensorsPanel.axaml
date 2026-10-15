@@ -87,7 +87,7 @@
                         <TextBlock Text="{Binding CpuTemperatureText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{StaticResource SensorTempBrush}" />
-                        <TextBlock Text="°C" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                        <TextBlock Text="{Binding TemperatureUnitLabel}" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
 
                     <ProgressBar Value="{Binding CpuTemperatureRatio}" Classes="TemperatureBar" Maximum="1" />
@@ -112,7 +112,7 @@
                         <TextBlock Text="{Binding GpuTemperatureText}"
                                    Classes="SensorCardValue" TextWrapping="NoWrap"
                                    Foreground="{StaticResource SensorTempBrush}" />
-                        <TextBlock Text="°C" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
+                        <TextBlock Text="{Binding TemperatureUnitLabel}" Classes="SensorCardUnit" VerticalAlignment="Bottom" Margin="0,0,0,4" />
                     </StackPanel>
 
                     <ProgressBar Value="{Binding GpuTemperatureRatio}" Classes="TemperatureBar" Maximum="1" />

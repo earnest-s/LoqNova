@@ -25,6 +25,7 @@ public partial class DashboardViewModel : ViewModelBase
     private readonly INavigationService _navigationService;
     private readonly IMainThreadDispatcher _dispatcher;
     private readonly INotificationService _notificationService;
+    private readonly ISettingsService _settingsService;
     private bool _suppressModeWrite;
     private bool _sensorsInitialized;
     
@@ -99,6 +100,13 @@ public partial class DashboardViewModel : ViewModelBase
     [ObservableProperty] private string _gpuUtilizationText = "-";
     [ObservableProperty] private string _cpuTemperatureText = "-";
     [ObservableProperty] private string _gpuTemperatureText = "-";
+
+    /// <summary>
+    /// Suffix rendered next to the CPU/GPU temperature readouts. WPF's
+    /// <c>SensorsControl.GetTemperatureText</c> appends the Celsius/Fahrenheit resource,
+    /// so this follows the unit chosen on the Settings page.
+    /// </summary>
+    [ObservableProperty] private string _temperatureUnitLabel = "°C";
     [ObservableProperty] private string _cpuFanSpeedText = "-";
     [ObservableProperty] private string? _cpuFanSpeedMaxText;
     [ObservableProperty] private string _cpuCoreClockText = "-";
@@ -145,10 +153,12 @@ public partial class DashboardViewModel : ViewModelBase
         IMainThreadDispatcher dispatcher,
      INotificationService notificationService,
      IDialogService dialogs,
+     ISettingsService settingsService,
      LoqNova.Avalonia.ViewModels.MainWindowViewModel mainWindowViewModel)
     {
      _dialogs = dialogs;
      _mainWindowViewModel = mainWindowViewModel;
+     _settingsService = settingsService;
      _performanceService = performanceService;
         _rgbService = rgbService;
         _thermalService = thermalService;
@@ -341,17 +351,30 @@ public partial class DashboardViewModel : ViewModelBase
     }
 
     /// <summary>Mirrors the readings into the metric cards the sensors panel renders.</summary>
+    /// <summary>Mirrors the readings into the metric cards the sensors panel renders.</summary>
     private void PublishMetrics()
     {
+        // WPF's GetTemperatureText converts Celsius to Fahrenheit when the user picked °F,
+        // so the dashboard temperature cards must follow the Settings selection rather than
+        // always showing Celsius. The bar ratio is a value/maximum ratio and is unchanged by
+        // the conversion; an unreported channel (-1) is never converted, so it still renders
+        // as "-" instead of a bogus Fahrenheit number.
+        var fahrenheit = _settingsService.TemperatureUnitFahrenheit;
+        TemperatureUnitLabel = fahrenheit ? "°F" : "°C";
+
         _cpuUtilizationMetric.Update(CpuUtilization, CpuMaxUtilization);
         _cpuCoreClockMetric.Update(CpuCoreClock, CpuMaxCoreClock);
-        _cpuTemperatureMetric.Update(CpuTemperature, CpuMaxTemperature);
+        _cpuTemperatureMetric.Update(
+            ToDisplayTemperature(CpuTemperature, fahrenheit),
+            ToDisplayTemperature(CpuMaxTemperature, fahrenheit));
         _cpuFanSpeedMetric.Update(CpuFanSpeed, CpuMaxFanSpeed);
 
         _gpuUtilizationMetric.Update(GpuUtilization, GpuMaxUtilization);
         _gpuCoreClockMetric.Update(GpuCoreClock, GpuMaxCoreClock);
         _gpuMemoryClockMetric.Update(GpuMemoryClock, GpuMaxMemoryClock);
-        _gpuTemperatureMetric.Update(GpuTemperature, GpuMaxTemperature);
+        _gpuTemperatureMetric.Update(
+            ToDisplayTemperature(GpuTemperature, fahrenheit),
+            ToDisplayTemperature(GpuMaxTemperature, fahrenheit));
         _gpuFanSpeedMetric.Update(GpuFanSpeed, GpuMaxFanSpeed);
 
         Raise();
@@ -393,6 +416,15 @@ public partial class DashboardViewModel : ViewModelBase
             OnPropertyChanged(nameof(SensorMetrics));
         }
     }
+
+    /// <summary>
+    /// Converts a sensor temperature for display, mirroring WPF's
+    /// <c>GetTemperatureText</c>: Celsius to Fahrenheit (whole degrees) when the user chose
+    /// Fahrenheit. An unreported channel (-1) is passed through untouched so it keeps
+    /// rendering as "-" instead of turning into a plausible-looking temperature.
+    /// </summary>
+    private static int ToDisplayTemperature(int celsius, bool fahrenheit)
+        => !fahrenheit || celsius < 0 ? celsius : (int)Math.Round(celsius * 9.0 / 5.0 + 32);
 
     /// <summary>WPF renders the CPU core clock in GHz, to one decimal place.</summary>
     private static string FormatCoreClock(int megahertz)
