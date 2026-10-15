@@ -343,6 +343,20 @@ public partial class App : Application
 
     private async void OnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
     {
+        // Remove the notification-area icon and detach the window's close/minimise
+        // handlers. The tray icon would also be disposed by Avalonia's own UI-thread
+        // shutdown hook, but doing it here is explicit and keeps the icon from
+        // outliving the window it restores.
+        try
+        {
+            if (Container?.IsRegistered<ITrayService>() == true)
+                await Container.Resolve<ITrayService>().ShutdownAsync();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Tray shutdown failed: {ex}");
+        }
+
         try
         {
             if (Container?.IsRegistered<IRgbService>() == true)
