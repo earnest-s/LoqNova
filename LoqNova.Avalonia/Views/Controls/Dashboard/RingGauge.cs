@@ -92,9 +92,9 @@ public class RingGauge : Control
     private double _ringRadius;
     private double _thickness;
     private double _contentRadius;
-    private Geometry? _ticksMinor;
-    private Geometry? _ticksMajor;
-    private Geometry? _trackArc;
+    private Geometry _ticksMinor = new StreamGeometry();
+    private Geometry _ticksMajor = new StreamGeometry();
+    private Geometry _trackArc = new StreamGeometry();
     private double _cachedDialSize = double.NaN;
 
     public RingGauge()
