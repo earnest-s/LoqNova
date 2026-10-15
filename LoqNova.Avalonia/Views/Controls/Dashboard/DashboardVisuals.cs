@@ -147,9 +147,7 @@ internal static class DashboardVisuals
 
         if (formatted.Width > maxWidth && formatted.Width > 0)
         {
-            var size = Math.Max(minimumSize, formatted.Width <= 0
-                ? preferredSize
-                : preferredSize * (maxWidth / formatted.Width));
+            var size = Math.Max(minimumSize, preferredSize * (maxWidth / formatted.Width));
             formatted = new FormattedText(text, CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight, typeface, size, brush);
         }
