@@ -250,7 +250,7 @@
                         CommandParameter="True">
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
-                            <TextBlock Classes="CardTitle" Text="Smart Key Action (double press)" />
+                            <TextBlock Classes="CardTitle" Text="Smart Key Secondary Action" />
                             <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Assign Quick Action to Fn+F9 double press." />
                         </StackPanel>
                         <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
@@ -263,7 +263,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Notifications" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Choose which notifications the app is allowed to show." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Configure which notifications are shown." />
                         </StackPanel>
                         <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
                     </Grid>
@@ -275,7 +275,7 @@
                     <Grid ColumnDefinitions="*,Auto">
                         <StackPanel Grid.Column="0" Classes="SettingHeader">
                             <TextBlock Classes="CardTitle" Text="Exclude Refresh Rates" />
-                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="Keep certain refresh rates out of the Fn+R cycle." />
+                            <TextBlock Classes="CardSubtitle" TextWrapping="Wrap" Text="You can exclude refresh rates, to make Fn+R shortcut more useful." />
                         </StackPanel>
                         <PathIcon Grid.Column="1" Classes="ActionChevron" Data="{x:Static icons:IconGeometries.ChevronRight}" />
                     </Grid>
