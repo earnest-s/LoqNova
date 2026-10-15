@@ -7,33 +7,33 @@
     <!-- GPU overclock settings, reproducing WPF's
          OverclockDiscreteGPUSettingsWindow: a core and a memory frequency offset.
          Both are ranged from zero because that is the range the WPF sliders use. -->
-    <Border Classes="ContentCard" Width="480" MaxHeight="560">
-        <DockPanel LastChildFill="True">
+    <Border Classes="DialogCard" Width="480" MaxHeight="560">
+        <DockPanel Classes="DialogRoot" LastChildFill="True">
 
-            <StackPanel DockPanel.Dock="Top" Margin="16,16,16,8">
-                <TextBlock Text="GPU Overclock Settings" Classes="SectionHeader" />
-                <TextBlock Classes="CardSubtitle"
+            <StackPanel DockPanel.Dock="Top" Classes="DialogHeader">
+                <TextBlock Classes="DialogTitle" Text="GPU Overclock Settings" />
+                <TextBlock Classes="DialogSubtitle"
                            Text="Increase performance by overclocking the discrete GPU." />
             </StackPanel>
 
-            <StackPanel DockPanel.Dock="Bottom" Margin="16,12,16,16">
+            <StackPanel DockPanel.Dock="Bottom" Classes="DialogFooterBlock">
                 <!-- One message, always the real one. A second hard-coded
                      "not supported" panel was shown alongside this one, and because
                      IsSupported starts false it appeared the instant the dialog
                      opened — before the backend had been asked anything — and it
                      stayed regardless of what the backend actually reported. -->
-                <Border Classes="InsetPanel" Padding="10" Margin="0,0,0,10"
+                <Border Classes="Callout Danger" Margin="0,0,0,8"
                         IsVisible="{Binding ErrorMessage, Converter={StaticResource StringNotEmptyConverter}}">
-                    <TextBlock Text="{Binding ErrorMessage}" TextWrapping="Wrap" Classes="WidgetError" />
+                    <TextBlock Classes="CalloutText" Text="{Binding ErrorMessage}" />
                 </Border>
 
-                <Border Classes="InsetPanel" Padding="10" Margin="0,0,0,10"
+                <Border Classes="Callout Warning" Margin="0,0,0,8"
                         IsVisible="{Binding IsLoading}">
-                    <TextBlock Text="Reading the current overclock state from the machine..."
-                               TextWrapping="Wrap" Classes="WidgetWarning" />
+                    <TextBlock Classes="CalloutText"
+                               Text="Reading the current overclock state from the machine..." />
                 </Border>
 
-                <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Right">
+                <StackPanel Classes="DialogActions">
                     <Button Classes="GhostButton" Content="Reset"
                             IsEnabled="{Binding IsSupported}"
                             Command="{Binding ResetDefaultsCommand}" />
@@ -47,10 +47,10 @@
             </StackPanel>
 
             <ScrollViewer VerticalScrollBarVisibility="Auto">
-                <StackPanel Margin="16,0,16,0" Spacing="14">
+                <StackPanel Spacing="{StaticResource SpaceLg}">
 
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Core Frequency Offset" FontSize="12" Opacity="0.8" />
+                    <StackPanel Spacing="{StaticResource SpaceXs}">
+                        <TextBlock Classes="FieldLabel" Text="Core Frequency Offset" />
                         <Grid ColumnDefinitions="*,Auto">
                             <Slider Grid.Column="0"
                                     Minimum="0"
@@ -59,16 +59,13 @@
                                     IsSnapToTickEnabled="True"
                                     IsEnabled="{Binding IsSupported}"
                                     Value="{Binding CoreClockOffset, Mode=TwoWay}" />
-                            <TextBlock Grid.Column="1" MinWidth="80" Margin="10,0,0,0"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Right"
-                                       FontSize="12"
+                            <TextBlock Grid.Column="1" Classes="FieldValue"
                                        Text="{Binding CoreClockOffset, StringFormat='{}{0:+0;-0;0} MHz'}" />
                         </Grid>
                     </StackPanel>
 
-                    <StackPanel Spacing="4">
-                        <TextBlock Text="Memory Frequency Offset" FontSize="12" Opacity="0.8" />
+                    <StackPanel Spacing="{StaticResource SpaceXs}">
+                        <TextBlock Classes="FieldLabel" Text="Memory Frequency Offset" />
                         <Grid ColumnDefinitions="*,Auto">
                             <Slider Grid.Column="0"
                                     Minimum="0"
@@ -77,10 +74,7 @@
                                     IsSnapToTickEnabled="True"
                                     IsEnabled="{Binding IsSupported}"
                                     Value="{Binding MemoryClockOffset, Mode=TwoWay}" />
-                            <TextBlock Grid.Column="1" MinWidth="80" Margin="10,0,0,0"
-                                       VerticalAlignment="Center"
-                                       HorizontalAlignment="Right"
-                                       FontSize="12"
+                            <TextBlock Grid.Column="1" Classes="FieldValue"
                                        Text="{Binding MemoryClockOffset, StringFormat='{}{0:+0;-0;0} MHz'}" />
                         </Grid>
                     </StackPanel>

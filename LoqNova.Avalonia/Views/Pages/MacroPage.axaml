@@ -74,7 +74,7 @@
                         <Border Classes="ContentCard" IsEnabled="{Binding HasEvents}">
                             <StackPanel Spacing="8">
                                 <TextBlock Classes="Heading4" Text="Repeat" />
-                                <ComboBox MinWidth="150"
+                                <ComboBox Classes="Control" MinWidth="150"
                                           HorizontalAlignment="Left"
                                           ItemsSource="{Binding RepeatOptions}"
                                           SelectedValue="{Binding RepeatCount, Mode=TwoWay}"
@@ -92,7 +92,7 @@
                         <Border Classes="ContentCard" IsEnabled="{Binding HasEvents}">
                             <StackPanel Spacing="8">
                                 <TextBlock Classes="Heading4" Text="Ignore delays" />
-                                <ToggleSwitch IsChecked="{Binding IgnoreDelays, Mode=TwoWay}"
+                                <ToggleSwitch Classes="Control" IsChecked="{Binding IgnoreDelays, Mode=TwoWay}"
                                               OnContent="On" OffContent="Off"
                                               AutomationProperties.Name="Ignore delays" />
                             </StackPanel>
@@ -101,7 +101,7 @@
                         <Border Classes="ContentCard" IsEnabled="{Binding HasEvents}">
                             <StackPanel Spacing="8">
                                 <TextBlock Classes="Heading4" Text="Interrupt if another key was pressed" />
-                                <ToggleSwitch IsChecked="{Binding InterruptOnOtherKey, Mode=TwoWay}"
+                                <ToggleSwitch Classes="Control" IsChecked="{Binding InterruptOnOtherKey, Mode=TwoWay}"
                                               OnContent="On" OffContent="Off"
                                               AutomationProperties.Name="Interrupt if another key was pressed" />
                             </StackPanel>
@@ -111,7 +111,7 @@
                         <Border Classes="ContentCard" Margin="0,0,0,8">
                             <StackPanel Spacing="8">
                                 <TextBlock Classes="Heading4" Text="Recording options" />
-                                <ComboBox MinWidth="150"
+                                <ComboBox Classes="Control" MinWidth="150"
                                           HorizontalAlignment="Left"
                                           ItemsSource="{Binding RecorderOptions}"
                                           SelectedValue="{Binding RecorderSettings, Mode=TwoWay}"

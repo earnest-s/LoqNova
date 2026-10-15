@@ -6,19 +6,14 @@
 
     <!-- Smart Key Quick Action selector, reproducing WPF's
          SelectSmartKeyPipelinesWindow: "Show this app" plus the checkable pipeline list. -->
-    <Border Classes="ContentCard" Width="400" MaxHeight="520">
-        <DockPanel LastChildFill="True">
+    <Border Classes="DialogCard" Width="400" MaxHeight="520">
+        <DockPanel Classes="DialogRoot" LastChildFill="True">
 
-            <TextBlock DockPanel.Dock="Top"
-                       Text="{Binding Title}"
-                       Classes="SectionHeader"
-                       Margin="0,0,0,12" />
+            <StackPanel DockPanel.Dock="Top" Classes="DialogHeader">
+                <TextBlock Classes="DialogTitle" Text="{Binding Title}" />
+            </StackPanel>
 
-            <StackPanel DockPanel.Dock="Bottom"
-                        Orientation="Horizontal"
-                        Spacing="8"
-                        HorizontalAlignment="Right"
-                        Margin="0,16,0,0">
+            <StackPanel Classes="DialogFooter" DockPanel.Dock="Bottom">
                 <Button Classes="GhostButton" Content="Cancel"
                         IsEnabled="{Binding !IsBusy}"
                         Command="{Binding CloseCommand}" />
@@ -27,12 +22,13 @@
                         Command="{Binding SaveCommand}" />
             </StackPanel>
 
-            <StackPanel DockPanel.Dock="Top" Spacing="12">
+            <StackPanel DockPanel.Dock="Top" Spacing="{StaticResource SpaceMd}" Margin="0,0,0,12">
 
                 <Grid ColumnDefinitions="*,Auto">
-                    <TextBlock Grid.Column="0" Classes="CardTitle"
-                               Text="{Binding ShowThisAppTitle}" VerticalAlignment="Center" />
-                    <ToggleSwitch Grid.Column="1" OnContent="On" OffContent="Off"
+                    <TextBlock Grid.Column="0" Classes="SettingLabel"
+                               Text="{Binding ShowThisAppTitle}" />
+                    <ToggleSwitch Grid.Column="1" Classes="Control SettingControl"
+                                  OnContent="On" OffContent="Off"
                                   IsChecked="{Binding ShowThisApp, Mode=TwoWay}" />
                 </Grid>
 
@@ -50,7 +46,7 @@
                         <ItemsControl ItemsSource="{Binding Pipelines}">
                             <ItemsControl.ItemTemplate>
                                 <DataTemplate DataType="dialogs:SmartKeyPipelineItem">
-                                    <CheckBox Margin="0,0,0,8"
+                                    <CheckBox Classes="Control" Margin="0,0,0,8"
                                               Content="{Binding Name}"
                                               IsChecked="{Binding IsChecked, Mode=TwoWay}" />
                                 </DataTemplate>
