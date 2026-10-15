@@ -589,13 +589,29 @@ public partial class DashboardViewModel : ViewModelBase
 
     // The analog dials label themselves from the machine-reported value/maximum
     // ratio, so each fan reading republishes the matching state label.
-    partial void OnCpuFanSpeedChanged(int value) => OnPropertyChanged(nameof(CpuFanStateText));
+    partial void OnCpuFanSpeedChanged(int value)
+    {
+        OnPropertyChanged(nameof(CpuFanStateText));
+        OnPropertyChanged(nameof(IsCpuFanReported));
+    }
 
-    partial void OnCpuMaxFanSpeedChanged(int value) => OnPropertyChanged(nameof(CpuFanStateText));
+    partial void OnCpuMaxFanSpeedChanged(int value)
+    {
+        OnPropertyChanged(nameof(CpuFanStateText));
+        OnPropertyChanged(nameof(IsCpuFanReported));
+    }
 
-    partial void OnGpuFanSpeedChanged(int value) => OnPropertyChanged(nameof(GpuFanStateText));
+    partial void OnGpuFanSpeedChanged(int value)
+    {
+        OnPropertyChanged(nameof(GpuFanStateText));
+        OnPropertyChanged(nameof(IsGpuFanReported));
+    }
 
-    partial void OnGpuMaxFanSpeedChanged(int value) => OnPropertyChanged(nameof(GpuFanStateText));
+    partial void OnGpuMaxFanSpeedChanged(int value)
+    {
+        OnPropertyChanged(nameof(GpuFanStateText));
+        OnPropertyChanged(nameof(IsGpuFanReported));
+    }
 
     [RelayCommand]
     private async Task RefreshAsync()
