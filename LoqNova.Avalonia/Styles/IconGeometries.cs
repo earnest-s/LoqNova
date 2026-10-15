@@ -47,6 +47,25 @@ public static class IconGeometries
     public static Geometry Maximize { get; } = P("M4.5 4.5h15v15h-15z");
     public static Geometry Close { get; } = P("M6.4 5 L12 10.6 L17.6 5 L19 6.4 L13.4 12 L19 17.6 L17.6 19 L12 13.4 L6.4 19 L5 17.6 L10.6 12 L5 6.4 Z");
 
+    // ---- Battery charge levels ----
+    // WPF's StatusWindow swaps between ten Fluent battery glyphs as the charge
+    // changes. The application has one Battery glyph, so the popup uses the same
+    // outline and moves only the fill band: the four bands below plus a charging
+    // bolt cover the same range without inventing a second visual language.
+    private const string BatteryBody =
+        "M15.5 4 L8.5 4 C7.4 4 6.5 4.9 6.5 6 L6.5 18 C6.5 19.1 7.4 20 8.5 20 " +
+        "L15.5 20 C16.6 20 17.5 19.1 17.5 18 L17.5 6 C17.5 4.9 16.6 4 15.5 4 Z " +
+        "M9 6 L15 6 L15 8 L9 8 Z ";
+
+    public static Geometry BatteryLow { get; } = P(BatteryBody + "M9 15 L15 15 L15 18 L9 18 Z");
+    public static Geometry BatteryMedium { get; } = P(BatteryBody + "M9 12 L15 12 L15 18 L9 18 Z");
+    public static Geometry BatteryHigh { get; } = P(BatteryBody + "M9 9.5 L15 9.5 L15 18 L9 18 Z");
+    public static Geometry BatteryFull { get; } = P(BatteryBody + "M9 9 L15 9 L15 18 L9 18 Z");
+    public static Geometry BatteryCharging { get; } = P(BatteryBody + "M12.6 8 L9 13.2 L11.2 13.2 L10.6 16.8 L14.4 11.6 L12.2 11.6 Z");
+
+    /// <summary>Application folders, used by the About page's folder links.</summary>
+    public static Geometry Folder { get; } = P("M3 5 L10 5 L12 7.4 L21 7.4 L21 19 L3 19 Z");
+
     // ---- Card actions ----
     // Trailing affordances for the clickable "CardAction" rows, mirroring WPF's
     // Wpf.Ui CardAction (a heading plus a chevron) and the Control Panel card's
@@ -73,6 +92,12 @@ public static class IconGeometries
             ["Home"] = Home,
             ["Keyboard"] = Keyboard,
             ["Battery"] = Battery,
+            ["BatteryLow"] = BatteryLow,
+            ["BatteryMedium"] = BatteryMedium,
+            ["BatteryHigh"] = BatteryHigh,
+            ["BatteryFull"] = BatteryFull,
+            ["BatteryCharging"] = BatteryCharging,
+            ["Folder"] = Folder,
             ["Automation"] = Automation,
             ["Rocket"] = Bolt,
             ["Receipt"] = Receipt,

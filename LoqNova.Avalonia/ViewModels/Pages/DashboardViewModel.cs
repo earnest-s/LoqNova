@@ -8,6 +8,7 @@ using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Microsoft.Extensions.DependencyInjection;
 using LoqNova.Avalonia.Services;
+using LoqNova.Avalonia.Styles;
 using LoqNova.Avalonia.ViewModels.Dialogs;
 using LoqNova.Lib;
 
@@ -547,26 +548,7 @@ public partial class DashboardViewModel : ViewModelBase
     /// Resolves the mode accent from the design system so the palette stays
     /// defined in one place. Unknown and unsupported states use the muted brush.
     /// </summary>
-    private static IBrush GetPowerModeColor(PowerModeState? mode)
-    {
-        var key = mode switch
-        {
-            PowerModeState.Quiet => "QuietModeBrush",
-            PowerModeState.Balance => "BalanceModeBrush",
-            PowerModeState.Performance => "PerformanceModeBrush",
-            PowerModeState.GodMode => "GodModeBrush",
-            _ => "TextSecondaryBrush"
-        };
-
-        if (global::Avalonia.Application.Current is { } app &&
-            app.TryGetResource(key, null, out var resource) &&
-            resource is IBrush brush)
-        {
-            return brush;
-        }
-
-        return Brushes.Gray;
-    }
+    private static IBrush GetPowerModeColor(PowerModeState? mode) => ThemeBrushes.PowerMode(mode);
 
     [RelayCommand]
     private async Task RefreshAsync()

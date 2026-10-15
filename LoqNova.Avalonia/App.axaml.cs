@@ -73,6 +73,9 @@ public partial class App : Application
         builder.RegisterType<TrayService>().As<ITrayService>().SingleInstance();
         builder.RegisterType<FileDialogService>().As<IFileDialogService>().SingleInstance();
         builder.RegisterType<MainThreadDispatcher>().As<IMainThreadDispatcher>().SingleInstance();
+        // Watches the pointer over the notification-area icon and shows the status
+        // popup, replacing the shell tooltip WPF does without (see TrayHoverService).
+        builder.RegisterType<TrayHoverService>().AsSelf().SingleInstance();
         
         // Register logging. The factory is owned by the container: the previous
         // registration created it inside a `using` and returned a logger for a
@@ -290,6 +293,11 @@ public partial class App : Application
             await Container.Resolve<IPerformanceService>().InitializeAsync();
             await Container.Resolve<IBatteryService>().InitializeAsync();
 
+            // The tray icon exists from the shell's construction, but its popup reads
+            // the power mode and battery adapters, which are only hydrated above; the
+            // hover watcher starts here so the first hover shows real state.
+            Container.Resolve<TrayHoverService>().Start();
+
             // The real automation engine, once and only once. It is resolved from the
             // shared container and initialized after the readiness gate, so the
             // IoCContainer lock is never held while awaiting UI-thread-dependent work.
@@ -402,6 +410,18 @@ public partial class App : Application
         catch (Exception ex)
         {
             System.Diagnostics.Debug.WriteLine($"Notification relay shutdown failed: {ex}");
+        }
+
+        // The hover popup is a window of its own; it is closed before the tray icon
+        // it belongs to is removed, so nothing is left on screen during shutdown.
+        try
+        {
+            if (Container?.IsRegistered<TrayHoverService>() == true)
+                Container.Resolve<TrayHoverService>().Dispose();
+        }
+        catch (Exception ex)
+        {
+            System.Diagnostics.Debug.WriteLine($"Tray hover shutdown failed: {ex}");
         }
 
         try

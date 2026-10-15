@@ -1,6 +1,7 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:vm="clr-namespace:LoqNova.Avalonia.ViewModels.Pages"
+             xmlns:icons="clr-namespace:LoqNova.Avalonia.Styles"
              x:Class="LoqNova.Avalonia.Views.Pages.AboutPage"
              x:DataType="vm:AboutViewModel">
 
@@ -8,70 +9,69 @@
         <vm:AboutViewModel />
     </Design.DataContext>
 
+    <UserControl.Resources>
+        <!-- External link: the WPF page uses its Link24 glyph for these. -->
+        <DataTemplate x:Key="ExternalLinkTemplate" x:DataType="vm:AboutLink">
+            <Button Classes="LinkButton" Command="{Binding Command}" Margin="0,3,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                    <PathIcon Data="{x:Static icons:IconGeometries.OpenExternal}"
+                              Width="{StaticResource IconSizeSm}"
+                              Height="{StaticResource IconSizeSm}" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+
+        <!-- Folder link: the WPF page uses its Folder24 glyph for these. -->
+        <DataTemplate x:Key="FolderLinkTemplate" x:DataType="vm:AboutLink">
+            <Button Classes="LinkButton" Command="{Binding Command}" Margin="0,3,0,0">
+                <StackPanel Orientation="Horizontal" Spacing="{StaticResource SpaceSm}">
+                    <PathIcon Data="{x:Static icons:IconGeometries.Folder}"
+                              Width="{StaticResource IconSizeSm}"
+                              Height="{StaticResource IconSizeSm}" />
+                    <TextBlock Text="{Binding Name}" VerticalAlignment="Center" />
+                </StackPanel>
+            </Button>
+        </DataTemplate>
+    </UserControl.Resources>
+
     <ScrollViewer Classes="PageContainer">
-        <StackPanel Spacing="24">
-            <!-- Page Header -->
-            <TextBlock Text="About" Classes="PageTitle" />
-            
-            <!-- App Info -->
-            <Border Classes="ContentCard" HorizontalAlignment="Center">
-                <StackPanel Spacing="16" HorizontalAlignment="Center">
-                    <Image Source="avares://LOQ Nova/Assets/icon.ico" Width="128" Height="128" />
-                    <TextBlock Text="{Binding AppName}" FontSize="28" FontWeight="Bold" Foreground="{StaticResource TextPrimaryBrush}" />
-                    <TextBlock Text="{Binding Version, StringFormat='Version {0}'}" Classes="Body" Foreground="{StaticResource TextSecondaryBrush}" />
-                    <TextBlock Text="{Binding BuildDate, StringFormat='Build Date: {0}'}" Classes="Caption" />
-                </StackPanel>
-            </Border>
-            
+        <StackPanel Margin="0,0,16,12">
+            <TextBlock Text="{Binding Title}" Classes="PageTitle" />
+
+            <!-- Application identity: the same lines WPF's AboutPage shows, in the
+                 same order, with the real version and build of the running binary. -->
+            <StackPanel Margin="0,24,0,0">
+                <TextBlock Text="{Binding AppName}" Classes="Heading4" />
+                <TextBlock Text="{Binding VersionText}" Classes="Body"
+                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+                <TextBlock Text="{Binding BuildText}" Classes="Body"
+                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,8,0,0" />
+                <TextBlock Text="{Binding Copyright}" Classes="Body"
+                           Foreground="{StaticResource TextSecondaryBrush}" Margin="0,16,0,0" />
+                <TextBlock Text="{Binding TranslationCredit}" Classes="BodySmall"
+                           Foreground="{StaticResource TextMutedBrush}"
+                           IsVisible="{Binding ShowTranslationCredit}" Margin="0,8,0,0" />
+            </StackPanel>
+
             <!-- Links -->
-            <Border Classes="ContentCard">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Links" Classes="SectionHeader" />
-                    
-                    <StackPanel Orientation="Horizontal" Spacing="16" Margin="0,16,0,0">
-                        <Button Classes="GhostButton" Content="GitHub Repository" Command="{Binding OpenGitHubCommand}" />
-                        <Button Classes="PrimaryButton" Content="Check for Updates" Command="{Binding CheckForUpdatesCommand}" />
-                        <Button Classes="GhostButton" Content="Donate" Command="{Binding OpenDonationCommand}" />
-                    </StackPanel>
-                </StackPanel>
-            </Border>
-            
-            <!-- Credits -->
-            <Border Classes="ContentCard">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Credits" Classes="SectionHeader" />
-                    
-                    <ItemsControl ItemsSource="{Binding Credits}" Margin="0,16,0,0">
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
-                                <Button Classes="GhostButton" Content="{Binding Name}" Command="{Binding $parent[Window].DataContext.OpenUrlCommand}" CommandParameter="{Binding Url}" HorizontalAlignment="Left" />
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </StackPanel>
-            </Border>
-            
-            <!-- License -->
-            <Border Classes="ContentCard">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="License" Classes="SectionHeader" />
-                    
-                    <ScrollViewer MaxHeight="300" Margin="0,16,0,0">
-                        <TextBlock Text="{Binding LicenseText}" Classes="BodySmall" TextWrapping="Wrap" FontFamily="Consolas" />
-                    </ScrollViewer>
-                </StackPanel>
-            </Border>
-            
-            <!-- Open Source Licenses -->
-            <Border Classes="ContentCard">
-                <StackPanel Spacing="12">
-                    <TextBlock Text="Open Source Licenses" Classes="SectionHeader" />
-                    
-                    <ScrollViewer MaxHeight="400" Margin="0,16,0,0">
-                        <TextBlock Text="{Binding OpenSourceLicenses}" Classes="BodySmall" TextWrapping="Wrap" FontFamily="Consolas" />
-                    </ScrollViewer>
-                </StackPanel>
-            </Border>
+            <TextBlock Text="{Binding LinksLabel}" Classes="SectionHeader" Margin="0,24,0,8" />
+            <ItemsControl ItemsSource="{Binding Links}" ItemTemplate="{StaticResource ExternalLinkTemplate}" />
+
+            <!-- Third-party libraries, in the same three columns as the WPF page. -->
+            <TextBlock Text="{Binding ThirdPartyLibrariesLabel}" Classes="SectionHeader" Margin="0,24,0,8" />
+            <Grid ColumnDefinitions="Auto,Auto,Auto">
+                <ItemsControl Grid.Column="0" Margin="0,0,32,0" ItemsSource="{Binding LibraryColumns[0]}"
+                              ItemTemplate="{StaticResource ExternalLinkTemplate}" />
+                <ItemsControl Grid.Column="1" Margin="0,0,32,0" ItemsSource="{Binding LibraryColumns[1]}"
+                              ItemTemplate="{StaticResource ExternalLinkTemplate}" />
+                <ItemsControl Grid.Column="2" ItemsSource="{Binding LibraryColumns[2]}"
+                              ItemTemplate="{StaticResource ExternalLinkTemplate}" />
+            </Grid>
+
+            <!-- Application folders -->
+            <TextBlock Text="{Binding ApplicationFoldersLabel}" Classes="SectionHeader" Margin="0,24,0,8" />
+            <ItemsControl ItemsSource="{Binding Folders}" ItemTemplate="{StaticResource FolderLinkTemplate}" />
         </StackPanel>
     </ScrollViewer>
 </UserControl>

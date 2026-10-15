@@ -116,6 +116,33 @@
         <Setter Property="Background" Value="{StaticResource PressedBrush}" />
     </Style>
 
+    <!-- Hyperlink-style button: a text affordance with an optional leading icon.
+         Used for the About page's links, library and folder entries. -->
+    <Style Selector="Button.LinkButton">
+        <Setter Property="Background" Value="Transparent" />
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+        <Setter Property="BorderThickness" Value="0" />
+        <Setter Property="Padding" Value="0" />
+        <Setter Property="MinHeight" Value="0" />
+        <Setter Property="MinWidth" Value="0" />
+        <Setter Property="CornerRadius" Value="0" />
+        <Setter Property="FontSize" Value="{StaticResource FontSizeMD}" />
+        <Setter Property="HorizontalAlignment" Value="Left" />
+        <Setter Property="Cursor" Value="Hand" />
+    </Style>
+
+    <Style Selector="Button.LinkButton PathIcon">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryBrush}" />
+    </Style>
+
+    <Style Selector="Button.LinkButton:pointerover /template/ ContentPresenter#PART_ContentPresenter">
+        <Setter Property="TextBlock.Foreground" Value="{StaticResource PrimaryHoverBrush}" />
+    </Style>
+
+    <Style Selector="Button.LinkButton:pointerover PathIcon">
+        <Setter Property="Foreground" Value="{StaticResource PrimaryHoverBrush}" />
+    </Style>
+
     <!-- Icon button inside content areas -->
     <Style Selector="Button.IconButton">
         <Setter Property="Background" Value="Transparent" />

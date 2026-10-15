@@ -82,7 +82,12 @@ public class TrayService : ITrayService
         _trayIcon = new TrayIcon
         {
             Icon = new WindowIcon(AssetLoader.Open(new Uri(IconUri))),
-            ToolTipText = LocalizationHelper.T("AppName"),
+
+            // WPF's NotifyIcon always writes a blank szTip and shows its own status
+            // window instead of the shell's tooltip. Avalonia's implementation always
+            // includes NIF_TIP, so the only way to keep the shell's tooltip away is to
+            // leave the text empty; the hover popup (TrayHoverService) takes its place.
+            ToolTipText = string.Empty,
             IsVisible = true,
             Menu = _menu
         };
