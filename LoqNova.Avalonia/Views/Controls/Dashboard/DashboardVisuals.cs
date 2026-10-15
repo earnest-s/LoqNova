@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -22,21 +23,13 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 /// </summary>
 internal static class DashboardVisuals
 {
-    private static readonly Point Origin = new(0, 0);
+    private static readonly Point Origin = default;
 
-    /// <summary>Resolves a design-token brush by key, falling back to a caller-supplied brush.</summary>
+    /// <summary>Resolves a design-token brush, falling back when the key is absent.</summary>
     public static IBrush Brush(IResourceHost host, string key, IBrush fallback)
         => host.TryFindResource(key, out var value) && value is IBrush brush ? brush : fallback;
 
-    /// <summary>Resolves a token brush by key, or <c>null</c> when the key is missing.</summary>
-    public static IBrush? BrushOrNull(IResourceHost host, string key)
-        => host.TryFindResource(key, out var value) && value is IBrush brush ? brush : null;
-
-    /// <summary>
-    /// The application typeface. The application declares it as a resource so
-    /// every surface shares one family; the system default is only a fallback
-    /// for the designer.
-    /// </summary>
+    /// <summary>The application typeface, so drawn text matches the rest of the UI.</summary>
     public static Typeface Typeface(IResourceHost host)
         => host.TryFindResource("DefaultFontFamily", out var value) && value is FontFamily family
             ? new Typeface(family)
@@ -60,41 +53,91 @@ internal static class DashboardVisuals
     public static Geometry Arc(Point center, double radius, double startDegrees, double sweepDegrees)
     {
         var geometry = new StreamGeometry();
-        using var context = geometry.Open();
+        var context = geometry.Open();
+        try
+        {
+            if (sweepDegrees >= 359.5)
+            {
+                var top = Polar(center, radius, 0);
+                context.BeginFigure(top, false);
+                context.ArcTo(top, new Size(radius, radius), 0, true, SweepDirection.Clockwise);
+            }
+            else if (sweepDegrees <= 0.01)
+            {
+                var start = Polar(center, radius, startDegrees);
+                context.BeginFigure(start, false);
+                context.LineTo(start);
+            }
+            else
+            {
+                context.BeginFigure(Polar(center, radius, startDegrees), false);
+                context.ArcTo(
+                    Polar(center, radius, startDegrees + sweepDegrees),
+                    new Size(radius, radius),
+                    0,
+                    sweepDegrees > 180,
+                    SweepDirection.Clockwise);
+            }
 
-        if (sweepDegrees >= 359.5)
-        {
-            var top = Polar(center, radius, 0);
-            context.BeginFigure(top, false);
-            context.ArcTo(top, new Size(radius, radius), 0, true, SweepDirection.Clockwise);
+            context.EndFigure(false);
         }
-        else if (sweepDegrees <= 0.01)
+        finally
         {
-            var start = Polar(center, radius, startDegrees);
-            context.BeginFigure(start, false);
-            context.LineTo(start);
-        }
-        else
-        {
-            context.BeginFigure(Polar(center, radius, startDegrees), false);
-            context.ArcTo(
-                Polar(center, radius, startDegrees + sweepDegrees),
-                new Size(radius, radius),
-                0,
-                sweepDegrees > 180,
-                SweepDirection.Clockwise);
+            context.Dispose();
         }
 
-        context.EndFigure(false);
         return geometry;
     }
 
     /// <summary>
-    /// Formats a number of the given size to fit <paramref name="maxWidth"/>,
-    /// shrinking the font until it does. Used for the readouts printed inside a
-    /// gauge so a long reading never spills out of the dial.
+    /// A run of radial tick marks between two radii, used for the analog scales.
+    /// Every <paramref name="majorEvery"/>-th tick is returned separately so the
+    /// caller can weight the major and minor marks differently.
     /// </summary>
-    public static FormattedText FitText(
+    public static (Geometry Minor, Geometry Major) Ticks(
+        Point center,
+        double innerRadius,
+        double outerRadius,
+        int count,
+        int majorEvery,
+        double startDegrees,
+        double sweepDegrees)
+    {
+        var minor = new StreamGeometry();
+        var major = new StreamGeometry();
+        var minorContext = minor.Open();
+        var majorContext = major.Open();
+        try
+        {
+            for (var i = 0; i <= count; i++)
+            {
+                var isMajor = i % majorEvery == 0;
+                var angle = startDegrees + sweepDegrees * i / count;
+                var from = Polar(center, Inner(isMajor, innerRadius, outerRadius), angle);
+                var to = Polar(center, outerRadius, angle);
+                var context = isMajor ? majorContext : minorContext;
+                context.BeginFigure(from, false);
+                context.LineTo(to);
+                context.EndFigure(false);
+            }
+        }
+        finally
+        {
+            minorContext.Dispose();
+            majorContext.Dispose();
+        }
+
+        return (minor, major);
+    }
+
+    private static double Inner(bool isMajor, double innerRadius, double outerRadius)
+        => isMajor ? innerRadius * 0.55 : innerRadius;
+
+    /// <summary>
+    /// Text scaled down until it fits the allowed width, so a long reading never
+    /// overflows the hub or dial it is drawn inside.
+    /// </summary>
+    public static FormattedText FittedText(
         string text,
         Typeface typeface,
         double preferredSize,
@@ -102,21 +145,22 @@ internal static class DashboardVisuals
         double maxWidth,
         IBrush brush)
     {
-        var size = Math.Max(minimumSize, preferredSize);
-        var formatted = new FormattedText(text, System.Globalization.CultureInfo.CurrentCulture,
-            FlowDirection.LeftToRight, typeface, size, brush);
+        var formatted = new FormattedText(text, CultureInfo.CurrentCulture,
+            FlowDirection.LeftToRight, typeface, Math.Max(minimumSize, preferredSize), brush);
 
         if (formatted.Width > maxWidth && formatted.Width > 0)
         {
-            size = Math.Max(minimumSize, size * (maxWidth / formatted.Width));
-            formatted = new FormattedText(text, System.Globalization.CultureInfo.CurrentCulture,
+            var size = Math.Max(minimumSize, formatted.Width <= 0
+                ? preferredSize
+                : preferredSize * (maxWidth / formatted.Width));
+            formatted = new FormattedText(text, CultureInfo.CurrentCulture,
                 FlowDirection.LeftToRight, typeface, size, brush);
         }
 
         return formatted;
     }
 
-    /// <summary>Draws text centred on a point.</summary>
+    /// <summary>Draws text centred on a point, with an optional vertical nudge.</summary>
     public static void DrawCentred(DrawingContext context, FormattedText text, Point center, double dy = 0)
         => context.DrawText(text, new Point(center.X - text.Width / 2.0, center.Y - text.Height / 2.0 + dy));
 }
