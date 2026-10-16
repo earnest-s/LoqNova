@@ -253,6 +253,12 @@ public class TemperatureGauge : AnimatedGauge
     /// <summary>True when the machine reported both a reading and a maximum.</summary>
     private bool HasReading => Value >= 0 && Maximum >= 0;
 
+    /// <summary>
+    /// The fill's current position, so a replayed self-test collapses from where
+    /// the bar actually is rather than snapping to the bottom of the scale.
+    /// </summary>
+    protected override double DisplayedSweepPosition => Math.Clamp(_displayRatio, 0.0, 1.0);
+
     private double ComputeRatio()
         => Value >= 0 && Maximum > 0 ? Math.Clamp((double)Value / Maximum, 0.0, 1.0) : 0.0;
 }
