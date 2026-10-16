@@ -267,12 +267,15 @@ public class ClusterGauge : AnimatedGauge
 
     protected override bool Advance(double seconds)
     {
+        var accentMoving = AdvanceAccent(seconds);
+
         if (!HasReading)
         {
             // This channel has no reported reading: hold the needle at the bottom
             // of the scale until the machine reports one, so no sweep and no
-            // movement are invented for a channel that carries no value.
-            return false;
+            // movement are invented for a channel that carries no value. Only a
+            // colour transition still needs frames.
+            return accentMoving;
         }
 
         if (IsStartupSweeping)
