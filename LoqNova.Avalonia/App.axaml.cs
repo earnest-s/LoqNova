@@ -152,7 +152,16 @@ public partial class App : Application
         
         // Register ViewModels
         builder.RegisterType<MainWindowViewModel>().SingleInstance();
-        builder.RegisterType<DashboardViewModel>().InstancePerDependency();
+        // SingleInstance, not InstancePerDependency: DashboardViewModel subscribes to
+        // PerformanceService.ModeChanged and SensorsService.Updated/SupportChanged in
+        // its constructor for the life of the page VM, and the navigation service
+        // builds a fresh page on every visit. A per-dependency instance was created on
+        // every navigation and never unsubscribed, so every sensor publish was
+        // delivered once per past visit - the telemetry loop grew by one handler per
+        // trip back to the Dashboard. Making it shared also means the sweep must come
+        // from the view lifecycle rather than from the constructor, so returning to the
+        // Dashboard still replays it. See the same decision above for MacroViewModel.
+        builder.RegisterType<DashboardViewModel>().SingleInstance();
         builder.RegisterType<KeyboardBacklightViewModel>().InstancePerDependency();
         builder.RegisterType<BatteryViewModel>().InstancePerDependency();
         builder.RegisterType<AutomationViewModel>().InstancePerDependency();
