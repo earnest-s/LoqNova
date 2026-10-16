@@ -202,7 +202,7 @@
                         <Grid ColumnDefinitions="Auto,*">
                             <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
                                 <dash:ClusterGauge Width="196" Height="196"
-                                                   ChannelKey="Dashboard.GpuUtilization"
+                                                   PowerMode="{Binding CurrentPowerMode}"
                                                    Value="{Binding GpuUtilization}"
                                                    Maximum="{Binding GpuMaxUtilization}"
                                                    ValueText="{Binding GpuUtilizationText}"
