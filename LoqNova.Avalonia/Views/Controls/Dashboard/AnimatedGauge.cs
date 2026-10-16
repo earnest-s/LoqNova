@@ -99,6 +99,13 @@ public abstract class AnimatedGauge : Control
     private double _startupElapsed;
     private bool _startupSweepComplete;
 
+    /// <summary>
+    /// The scale position the current self-test's collapse phase starts from,
+    /// captured at <see cref="ReplaySweep"/> so a replay picks up exactly where the
+    /// instrument is instead of snapping.
+    /// </summary>
+    private double _sweepStartRatio;
+
     private Color _accentCurrent;
     private Color _accentTarget;
     private bool _accentKnown;
@@ -107,31 +114,43 @@ public abstract class AnimatedGauge : Control
     {
         _timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = FrameInterval };
         _timer.Tick += OnTick;
+    }
 
-        AttachedToVisualTree += (_, _) =>
-        {
-            _attached = true;
-            RequestFrames();
-        };
-        DetachedFromVisualTree += (_, _) =>
-        {
-            _attached = false;
-            Stop();
-        };
+    protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnAttachedToVisualTree(e);
+
+        _attached = true;
+
+        // The self-test replays every time the instrument becomes active. The
+        // navigation service builds a fresh Dashboard page - and therefore fresh
+        // gauges - on every visit, so this is what makes navigating away and back
+        // sweep again; it also covers a gauge instance that is reused.
+        ReplaySweep();
+    }
+
+    protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
+    {
+        base.OnDetachedFromVisualTree(e);
+
+        _attached = false;
+        Stop();
     }
 
     /// <summary>
-    /// Identifies the telemetry channel this instrument draws, so its opening
-    /// sweep runs once per session. A gauge left without a key sweeps once per
-    /// instance instead.
+    /// Identity of the active power mode, handed in by the page. A change between
+    /// two known modes replays the opening self-test, so a performance-mode change
+    /// is signalled by the value the page already binds rather than by a
+    /// subscription the instrument would have to manage. The value is the mode
+    /// itself, so an unrelated property update cannot trigger a sweep.
     /// </summary>
-    public static readonly StyledProperty<string?> ChannelKeyProperty =
-        AvaloniaProperty.Register<AnimatedGauge, string?>(nameof(ChannelKey));
+    public static readonly StyledProperty<PowerModeState?> PowerModeProperty =
+        AvaloniaProperty.Register<AnimatedGauge, PowerModeState?>(nameof(PowerMode));
 
-    public string? ChannelKey
+    public PowerModeState? PowerMode
     {
-        get => GetValue(ChannelKeyProperty);
-        set => SetValue(ChannelKeyProperty, value);
+        get => GetValue(PowerModeProperty);
+        set => SetValue(PowerModeProperty, value);
     }
 
     /// <summary>
