@@ -217,7 +217,7 @@
                                         VerticalAlignment="Center">
                                 <TextBlock Classes="InstrumentCaption" Text="Temperature" />
                                 <dash:TemperatureGauge Height="34"
-                                                       ChannelKey="Dashboard.GpuTemperature"
+                                                       PowerMode="{Binding CurrentPowerMode}"
                                                        Value="{Binding GpuTemperature}"
                                                        Maximum="{Binding GpuMaxTemperature}"
                                                        ValueText="{Binding GpuTemperatureText}"
