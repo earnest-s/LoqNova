@@ -164,23 +164,45 @@ public abstract class AnimatedGauge : Control
     protected bool IsStartupSweeping => !_startupSweepComplete;
 
     /// <summary>
+    /// The scale position the instrument is showing right now, as a fraction of
+    /// the scale. A replay captures it so the collapse phase starts where the
+    /// needle or bar actually is.
+    /// </summary>
+    protected virtual double DisplayedSweepPosition => 0.0;
+
+    /// <summary>
     /// Progress of the opening sweep as a monotonic 0..1 ramp, eased in and out,
     /// used for the digital count-up so the digits travel with the needle and
-    /// land exactly on the reported reading when the sweep completes.
+    /// land exactly on the reported reading when the sweep completes. The ramp
+    /// starts once the collapse phase has parked the needle at the bottom of the
+    /// scale, so the readout shows zero while the needle is there and then climbs
+    /// with it.
     /// </summary>
     protected double StartupSweepPhase
-        => _startupSweepComplete ? 1.0 : SweepEase(PhaseOf(_startupElapsed));
+    {
+        get
+        {
+            if (_startupSweepComplete)
+            {
+                return 1.0;
+            }
+
+            var climbed = (_startupElapsed - StartupCollapseSeconds) /
+                          (StartupExpandSeconds + StartupSettleSeconds);
+            return SweepEase(Math.Clamp(climbed, 0.0, 1.0));
+        }
+    }
 
     /// <summary>
     /// The scale position the needle and value arc should show during the
     /// opening sweep, as a fraction of the scale toward <paramref name="target"/>
     /// (the reported reading as a fraction of its maximum).
     /// <para>
-    /// Out to full scale, hold, then back down to the reported reading. Rides the
-    /// live target, so a reading that arrives while the sweep is running is
-    /// settled on rather than overshot, and the return segment lands exactly on
-    /// it. When the sweep is skipped - or already finished - the position is just
-    /// the target.
+    /// Collapse from wherever the needle was to the bottom of the scale, out
+    /// across the full arc, then settle on the reported reading. Rides the live
+    /// target, so a reading that arrives while the sweep is running is settled on
+    /// rather than overshot, and the settle segment lands exactly on it. When the
+    /// sweep is skipped - or already finished - the position is just the target.
     /// </para>
     /// </summary>
     protected double StartupSweepPosition(double target)
@@ -191,25 +213,45 @@ public abstract class AnimatedGauge : Control
         }
 
         var elapsed = _startupElapsed;
-        if (elapsed < StartupForwardSeconds)
+        if (elapsed < StartupCollapseSeconds)
         {
-            return SweepEase(elapsed / StartupForwardSeconds);
+            // From the captured position down to the bottom of the scale. On a
+            // first show that position is already zero, so the phase is a no-op
+            // and the sweep starts from the beginning of the scale.
+            return _sweepStartRatio * (1.0 - QuinticInOut(elapsed / StartupCollapseSeconds));
         }
 
-        if (elapsed < StartupForwardSeconds + StartupHoldSeconds)
+        if (elapsed < StartupCollapseSeconds + StartupExpandSeconds)
         {
-            return 1.0;
+            return QuinticOut((elapsed - StartupCollapseSeconds) / StartupExpandSeconds);
         }
 
-        var returned = Math.Clamp(
-            (elapsed - StartupForwardSeconds - StartupHoldSeconds) / StartupReturnSeconds, 0.0, 1.0);
-        return 1.0 - SweepEase(returned) * (1.0 - Math.Clamp(target, 0.0, 1.0));
+        var settled = Math.Clamp(
+            (elapsed - StartupCollapseSeconds - StartupExpandSeconds) / StartupSettleSeconds, 0.0, 1.0);
+        return 1.0 - QuinticOut(settled) * (1.0 - Math.Clamp(target, 0.0, 1.0));
+    }
+
+    /// <summary>
+    /// Restarts the opening self-test from the beginning. Called when the
+    /// instrument becomes active and when the active power mode changes. A sweep
+    /// already in flight is restarted rather than stacked, and the collapse phase
+    /// starts from the position the instrument is showing, so a replay continues
+    /// smoothly from wherever the needle was instead of snapping.
+    /// </summary>
+    protected void ReplaySweep()
+    {
+        _sweepStartRatio = Math.Clamp(DisplayedSweepPosition, 0.0, 1.0);
+        _startupElapsed = 0.0;
+        _startupSweepComplete = false;
+        RequestFrames();
     }
 
     /// <summary>
     /// Advances the one-shot opening sweep and returns true while it still needs
-    /// frames. Callers only invoke this once the machine has reported a reading,
-    /// so a slow or absent channel never sweeps against an invented value.
+    /// frames. It is driven from the instrument's first frame rather than from its
+    /// first reading, so all four Dashboard gauges sweep together even though the
+    /// GPU counters report a tick later; that late reading is simply what the
+    /// sweep settles on.
     /// </summary>
     protected bool AdvanceStartupSweep(double seconds)
     {
@@ -222,14 +264,6 @@ public abstract class AnimatedGauge : Control
         {
             // The sweep is decorative: when the user has asked Windows to reduce
             // motion, skip it and settle straight onto the reading.
-            FinishStartupSweep();
-            return false;
-        }
-
-        if (HasSwept(ChannelKey))
-        {
-            // This channel was already swept earlier in the session: land
-            // straight on the reading and hand over to live telemetry.
             FinishStartupSweep();
             return false;
         }
