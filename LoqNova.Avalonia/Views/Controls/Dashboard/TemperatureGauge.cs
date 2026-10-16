@@ -179,14 +179,12 @@ public class TemperatureGauge : AnimatedGauge
 
         if (IsStartupSweeping)
         {
-            if (AdvanceStartupSweep(seconds, skip: _targetRatio <= 0.0))
-            {
-                _displayRatio = _targetRatio * StartupSweepPhase;
-                return true;
-            }
-
-            _displayRatio = _targetRatio;
-            return false;
+            // Same opening sweep as the utilisation dial: out to full scale, a
+            // short hold, then back to the reported reading, with the readout
+            // counting up on the same phase so the two never disagree.
+            var sweeping = AdvanceStartupSweep(seconds);
+            _displayRatio = StartupSweepPosition(_targetRatio);
+            return sweeping;
         }
 
         var delta = _targetRatio - _displayRatio;
