@@ -323,8 +323,11 @@ public class ClusterGauge : AnimatedGauge
 
         var tickOuter = _outerRadius * 0.855;
         var tickInner = _outerRadius * 0.80;
-        var needleLength = _outerRadius * 0.82;
-        var needleHalfWidth = Math.Max(1.8, _outerRadius * 0.05);
+        // The needle points outward from the exact centre and stops just short of
+        // the tick run's inner edge, so the tip approaches the scale without
+        // cutting across it. Its tail is the small part the hub cap covers.
+        var needleLength = _outerRadius * 0.79;
+        var needleHalfWidth = Math.Max(1.7, _outerRadius * 0.045);
 
         var ticks = DashboardVisuals.Ticks(
             center, tickInner, tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
@@ -350,6 +353,23 @@ public class ClusterGauge : AnimatedGauge
 
         _trackArc = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle);
         _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, _outerRadius * 0.14);
+    }
+
+    /// <summary>
+    /// The accent to draw, resolved from the brush the page binds (the active
+    /// power-mode colour). A brush that is absent or fully transparent falls back
+    /// to the application primary, so the gauge is never invisible while the
+    /// power-mode colour is still unknown.
+    /// </summary>
+    private Color ResolveAccentColor()
+    {
+        if (Accent is ISolidColorBrush { Color.A: > 0 } accent)
+        {
+            return accent.Color;
+        }
+
+        var fallback = DashboardVisuals.Brush(this, "PrimaryBrush", Brushes.DodgerBlue);
+        return fallback is ISolidColorBrush solid ? solid.Color : Colors.DodgerBlue;
     }
 
     /// <summary>True when the machine reported both a reading and a maximum.</summary>
