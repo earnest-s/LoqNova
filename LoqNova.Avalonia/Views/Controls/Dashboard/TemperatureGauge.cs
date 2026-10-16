@@ -172,12 +172,12 @@ public class TemperatureGauge : AnimatedGauge
     {
         if (IsStartupSweeping)
         {
-            // Same opening sweep as the utilisation dial: out to full scale, a
-            // short hold, then back to the reported reading, with the readout
-            // counting up on the same phase so the two never disagree. Run before
-            // the HasReading guard so the clock starts with the control, keeping
-            // this bar in step with the CPU dial rather than with its own first
-            // sample.
+            // Same opening sweep as the utilisation dial: collapse to the bottom of
+            // the scale, out to full scale, then settle on the reported reading,
+            // with the readout counting up on the same phase so the two never
+            // disagree. Run before the HasReading guard so the clock starts with
+            // the control, keeping this bar in step with the CPU dial rather than
+            // with its own first sample.
             var sweeping = AdvanceStartupSweep(seconds);
             _displayRatio = StartupSweepPosition(_targetRatio);
             return sweeping;
