@@ -170,21 +170,24 @@ public class TemperatureGauge : AnimatedGauge
 
     protected override bool Advance(double seconds)
     {
+        if (IsStartupSweeping)
+        {
+            // Same opening sweep as the utilisation dial: out to full scale, a
+            // short hold, then back to the reported reading, with the readout
+            // counting up on the same phase so the two never disagree. Run before
+            // the HasReading guard so the clock starts with the control, keeping
+            // this bar in step with the CPU dial rather than with its own first
+            // sample.
+            var sweeping = AdvanceStartupSweep(seconds);
+            _displayRatio = StartupSweepPosition(_targetRatio);
+            return sweeping;
+        }
+
         if (!HasReading)
         {
             // No reported reading: hold the fill empty until the machine reports
             // this channel, so no fill and no movement are invented for it.
             return false;
-        }
-
-        if (IsStartupSweeping)
-        {
-            // Same opening sweep as the utilisation dial: out to full scale, a
-            // short hold, then back to the reported reading, with the readout
-            // counting up on the same phase so the two never disagree.
-            var sweeping = AdvanceStartupSweep(seconds);
-            _displayRatio = StartupSweepPosition(_targetRatio);
-            return sweeping;
         }
 
         var delta = _targetRatio - _displayRatio;

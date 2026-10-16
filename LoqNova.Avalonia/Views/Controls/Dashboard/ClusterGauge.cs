@@ -117,6 +117,12 @@ public class ClusterGauge : AnimatedGauge
     private double _arcRadius;
     private double _arcThickness;
     private double _hubRadius;
+
+    /// <summary>
+    /// Annulus the needle is allowed to occupy: outside the hub cap, inside the
+    /// tick run. It is rebuilt with the geometry that depends on the dial size.
+    /// </summary>
+    private Geometry _needleClip = new StreamGeometry();
     private double _redlineRadius;
     private double _redlineThickness;
     private Geometry _ticksMinor = new StreamGeometry();
@@ -282,6 +288,21 @@ public class ClusterGauge : AnimatedGauge
     {
         var accentMoving = AdvanceAccent(seconds);
 
+        if (IsStartupSweeping)
+        {
+            // The opening sweep rides the reported target, so a reading that
+            // lands while it is still running is settled on rather than overshot:
+            // the needle travels to full scale, holds, then returns to whatever
+            // the machine is reporting. The value arc and the count-up follow the
+            // same phase. It is deliberately run before the HasReading guard so
+            // the clock starts with the control rather than with the first sample:
+            // CPU and GPU then sweep together even though GPU counters report a
+            // tick later, and a late reading is simply what the sweep settles on.
+            var sweeping = AdvanceStartupSweep(seconds);
+            _displayRatio = StartupSweepPosition(_targetRatio);
+            return sweeping || accentMoving;
+        }
+
         if (!HasReading)
         {
             // This channel has no reported reading: hold the needle at the bottom
@@ -289,18 +310,6 @@ public class ClusterGauge : AnimatedGauge
             // movement are invented for a channel that carries no value. Only a
             // colour transition still needs frames.
             return accentMoving;
-        }
-
-        if (IsStartupSweeping)
-        {
-            // The opening sweep rides the reported target, so a reading that
-            // lands while it is still running is settled on rather than overshot:
-            // the needle travels to full scale, holds, then returns to whatever
-            // the machine is reporting. The value arc and the count-up follow the
-            // same phase.
-            var sweeping = AdvanceStartupSweep(seconds);
-            _displayRatio = StartupSweepPosition(_targetRatio);
-            return sweeping || accentMoving;
         }
 
         var delta = _targetRatio - _displayRatio;
@@ -365,7 +374,19 @@ public class ClusterGauge : AnimatedGauge
         _redlineTicksMajor = redlineTicks.Major;
 
         _trackArc = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle);
-        _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, _outerRadius * 0.14);
+
+        // The tail runs a little way behind the centre so the hub cap reads as a
+        // pivot; the clip is what actually keeps the pointer out of the readout.
+        var needleTail = _outerRadius * 0.14;
+        _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, needleTail);
+
+        var hubClip = new EllipseGeometry(new Rect(
+            center.X - _hubRadius, center.Y - _hubRadius,
+            _hubRadius * 2.0, _hubRadius * 2.0));
+        var tickClip = new EllipseGeometry(new Rect(
+            center.X - tickInner, center.Y - tickInner,
+            tickInner * 2.0, tickInner * 2.0));
+        _needleClip = new CombinedGeometry(GeometryCombineMode.Exclude, tickClip, hubClip);
     }
 
     /// <summary>
