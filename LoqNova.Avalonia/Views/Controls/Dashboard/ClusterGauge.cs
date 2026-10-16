@@ -278,22 +278,20 @@ public class ClusterGauge : AnimatedGauge
         if (IsStartupSweeping)
         {
             // The opening sweep rides the reported target, so a reading that
-            // lands while it is still running is absorbed rather than overshot.
-            if (AdvanceStartupSweep(seconds, skip: _targetRatio <= 0.0))
-            {
-                _displayRatio = _targetRatio * StartupSweepPhase;
-                return true;
-            }
-
-            _displayRatio = _targetRatio;
-            return false;
+            // lands while it is still running is settled on rather than overshot:
+            // the needle travels to full scale, holds, then returns to whatever
+            // the machine is reporting. The value arc and the count-up follow the
+            // same phase.
+            var sweeping = AdvanceStartupSweep(seconds);
+            _displayRatio = StartupSweepPosition(_targetRatio);
+            return sweeping || accentMoving;
         }
 
         var delta = _targetRatio - _displayRatio;
         if (Math.Abs(delta) < 0.0015)
         {
             _displayRatio = _targetRatio;
-            return false;
+            return accentMoving;
         }
 
         // Exponential approach driven by the real elapsed time, so the needle
