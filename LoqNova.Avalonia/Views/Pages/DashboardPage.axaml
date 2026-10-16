@@ -129,7 +129,7 @@
                                                    Maximum="{Binding CpuMaxUtilization}"
                                                    ValueText="{Binding CpuUtilizationText}"
                                                    Unit="%"
-                                                   Accent="{DynamicResource SensorCpuBrush}" />
+                                                   Accent="{Binding PowerModeColor}" />
                                 <TextBlock Classes="InstrumentCaption" Text="Utilization"
                                            HorizontalAlignment="Center" />
                             </StackPanel>
@@ -205,9 +205,11 @@
                                                    ChannelKey="Dashboard.GpuUtilization"
                                                    Value="{Binding GpuUtilization}"
                                                    Maximum="{Binding GpuMaxUtilization}"
+                                                   Accent="{Binding PowerModeColor}"
+                                                   Value="{Binding GpuUtilization}"
+                                                   Maximum="{Binding GpuMaxUtilization}"
                                                    ValueText="{Binding GpuUtilizationText}"
-                                                   Unit="%"
-                                                   Accent="{DynamicResource SensorGpuBrush}" />
+                                                   Unit="%" />
                                 <TextBlock Classes="InstrumentCaption" Text="Utilization"
                                            HorizontalAlignment="Center" />
                             </StackPanel>

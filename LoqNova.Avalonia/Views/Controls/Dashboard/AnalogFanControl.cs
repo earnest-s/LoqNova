@@ -191,17 +191,13 @@ public class AnalogFanControl : AnimatedGauge
 
         DrawRotor(context, center, accentBrush, new Pen(lineBrush, 1));
 
-        // Hub cap. It is drawn after the rotor and is never rotated, so the
-        // blades turn under a stationary centre.
+        // Hub cap with the accent at its centre. It is drawn after the rotor and
+        // is never rotated, so the blades turn under a stationary hub.
         context.DrawEllipse(
             DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
             new Pen(strongBrush, 1),
             center, _hubRadius, _hubRadius);
-
-        context.DrawEllipse(accentBrush, null, center, _hubRadius / 2.0, _hubRadius / 2.0);
-        context.DrawEllipse(
-            DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
-            null, center, _hubDotRadius, _hubDotRadius);
+        context.DrawEllipse(accentBrush, null, center, _hubDotRadius, _hubDotRadius);
     }
 
     /// <summary>
