@@ -239,6 +239,12 @@ public class ClusterGauge : AnimatedGauge
         if (reported)
         {
             var angle = StartAngle + SweepAngle * ratio;
+            // The pointer is confined to the annulus between the hub cap and the
+            // tick run. Rotating about the exact dial centre keeps the pivot on
+            // the hub, while the clip guarantees the needle can never enter the
+            // readout or reach the scale whatever the paint order or the resolved
+            // brushes do.
+            using (context.PushGeometryClip(_needleClip))
             using (context.PushTransform(
                 Matrix.CreateRotation(angle * Math.PI / 180.0) * Matrix.CreateTranslation(center.X, center.Y)))
             {
