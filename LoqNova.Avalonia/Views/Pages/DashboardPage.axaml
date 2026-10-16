@@ -124,7 +124,7 @@
                         <Grid ColumnDefinitions="Auto,*">
                             <StackPanel Grid.Column="0" Spacing="{StaticResource SpaceSm}">
                                 <dash:ClusterGauge Width="196" Height="196"
-                                                   ChannelKey="Dashboard.CpuUtilization"
+                                                   PowerMode="{Binding CurrentPowerMode}"
                                                    Value="{Binding CpuUtilization}"
                                                    Maximum="{Binding CpuMaxUtilization}"
                                                    ValueText="{Binding CpuUtilizationText}"

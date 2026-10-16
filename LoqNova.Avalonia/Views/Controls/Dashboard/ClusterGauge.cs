@@ -13,12 +13,13 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 /// <para>
 /// The arc, the needle and the hub all describe the same reported channel. The
 /// first frames before the machine has reported anything hold the needle at the
-/// bottom of the scale; once a reading arrives the needle, the arc and the
-/// numerals run a one-shot opening sweep out to full scale, hold briefly, then
-/// settle on the reading, and from then on the needle and the arc ease toward
-/// each new reading with a time-based exponential approach. A channel the
-/// machine does not report is drawn muted with no needle and no arc, never as a
-/// zero.
+/// bottom of the scale; from the first frame the needle, the arc and the numerals
+/// run the instrument's opening self-test - down to the bottom of the scale, out
+/// across the full arc, then settled on the reading - and from then on the needle
+/// and the arc ease toward each new reading with a time-based exponential
+/// approach. The self-test replays whenever the instrument becomes active or the
+/// power mode changes. A channel the machine does not report is drawn muted with
+/// no needle and no arc, never as a zero.
 /// </para>
 /// <para>
 /// The accent is the active power mode's colour, handed in by the page, and is
