@@ -148,7 +148,8 @@ public abstract class AnimatedGauge : Control
             return 1.0;
         }
 
-        var returned = PhaseOf(elapsed - StartupForwardSeconds - StartupHoldSeconds);
+        var returned = Math.Clamp(
+            (elapsed - StartupForwardSeconds - StartupHoldSeconds) / StartupReturnSeconds, 0.0, 1.0);
         return 1.0 - SweepEase(returned) * (1.0 - Math.Clamp(target, 0.0, 1.0));
     }
 
