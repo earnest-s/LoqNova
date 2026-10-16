@@ -10,19 +10,26 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 /// driven by the speed the machine actually reports for one fan channel.
 /// <para>
 /// The rotor turns at the physical angular velocity of the reported speed,
-/// ω = 2π·r/60 rad/s, integrated against real elapsed time, so a higher reported
-/// RPM always turns faster and 1 RPM still produces a mathematically nonzero
-/// rotation. A real fan turns far faster than a screen can usefully show - at
-/// 3000 RPM it is 50 revolutions per second, which a 60 Hz display can only
-/// render as an aliased blur - so one fixed display time scale slows the whole
-/// pattern down. Because that scale is a constant, the rotation stays exactly
-/// proportional to the reported RPM; it is never bucketed into slow/medium/fast.
+/// <c>ω = rpm·360/60</c> degrees per second - the same mapping a real fan obeys.
+/// There is no arbitrary slowness factor and no slow/medium/fast bucketing: the
+/// angle is integrated against real elapsed time and reduced modulo one turn, so
+/// it stays correct at any frame rate and the accumulated angle cannot lose
+/// precision.
+/// </para>
+/// <para>
+/// A display cannot show every revolution: 4800 RPM is 80 revolutions per
+/// second. Rather than substitute an unrelated speed, each frame integrates the
+/// true angle and the rotor is drawn as a motion-blur average across the angle
+/// actually travelled in that frame - saturating at one full turn, which is the
+/// uniform blur a genuinely 80-rev/s fan produces. At low speeds the travelled
+/// angle is small and the rotor is drawn sharply, still strictly proportional to
+/// RPM, so 1 RPM and a 1 RPM difference remain real, non-zero changes.
 /// </para>
 /// <para>
 /// The numeric reading itself lives beside the dial and is bound straight to the
-/// reported value, so the displayed RPM is never the eased or scaled one. At
-/// zero RPM the rotor settles smoothly to a stop and the loop shuts down
-/// completely, so a resting fan costs nothing.
+/// reported value, so the displayed RPM is never the ghosted one. At zero RPM
+/// the rotor settles smoothly to a stop and the loop shuts down completely, so a
+/// resting fan costs nothing.
 /// </para>
 /// </summary>
 public class AnalogFanControl : AnimatedGauge
@@ -34,16 +41,21 @@ public class AnalogFanControl : AnimatedGauge
     private const int Divisions = 60;
     private const int MajorTickEvery = 5;
 
-    /// <summary>
-    /// Fixed display time scale applied to the physical angular velocity. One
-    /// revolution takes roughly 2.7 seconds at 3000 RPM: slow enough that the
-    /// blade pattern does not alias into a strobe, fast enough to read as a fan.
-    /// It is a constant, so angular velocity remains strictly proportional to RPM.
-    /// </summary>
-    private const double DisplayTimeScale = 0.0075;
-
     /// <summary>Time constant for the rotor's speed following a new reading.</summary>
-    private const double ResponseSeconds = 0.25;
+    private const double ResponseSeconds = 0.18;
+
+    /// <summary>
+    /// Angle travelled within one frame above which the rotor is drawn as a
+    /// motion blur instead of a single sharp position. Below it, a frame is
+    /// sharp.
+    /// </summary>
+    private const double BlurStartDegrees = 20.0;
+
+    /// <summary>Degrees of travel each blur sample spans. Smaller than this is sharp.</summary>
+    private const double BlurSampleDegrees = 25.0;
+
+    /// <summary>Most blur samples drawn in one frame, bounding UI-thread work.</summary>
+    private const int MaxBlurSamples = 14;
 
     /// <summary>Reported speed in RPM; -1 means the machine did not report the channel.</summary>
     public static readonly StyledProperty<int> RpmProperty =
@@ -53,7 +65,7 @@ public class AnalogFanControl : AnimatedGauge
     public static readonly StyledProperty<int> MaxRpmProperty =
         AvaloniaProperty.Register<AnalogFanControl, int>(nameof(MaxRpm), -1);
 
-    /// <summary>Channel accent. A design-token fallback is used when unset.</summary>
+    /// <summary>Channel accent, the active power mode's colour.</summary>
     public static readonly StyledProperty<IBrush?> AccentProperty =
         AvaloniaProperty.Register<AnalogFanControl, IBrush?>(nameof(Accent));
 
@@ -77,6 +89,7 @@ public class AnalogFanControl : AnimatedGauge
 
     private double _visualRpm;
     private double _angle;
+    private double _frameAdvanceDegrees;
 
     // Geometry cache, rebuilt only when the dial is resized.
     private double _outerRadius;
@@ -95,7 +108,7 @@ public class AnalogFanControl : AnimatedGauge
     /// <summary>
     /// The reported-speed arc, rebuilt only when the level actually moves. The
     /// rotor repaints every frame, so caching this keeps a steady reading from
-    /// allocating a new arc geometry sixty times a second.
+    /// allocating a new geometry each frame.
     /// </summary>
     private Geometry _progressArc = new StreamGeometry();
     private double _progressRatio = double.NaN;
@@ -109,7 +122,16 @@ public class AnalogFanControl : AnimatedGauge
             RequestFrames();
             InvalidateVisual();
         }
-        else if (change.Property == MaxRpmProperty || change.Property == AccentProperty)
+        else if (change.Property == AccentProperty)
+        {
+            // The accent brush is the active power-mode colour. Retargeting it
+            // starts an eased transition, so a mode change blends rather than
+            // flashes.
+            SetAccentTarget(ResolveAccentColor());
+            RequestFrames();
+            InvalidateVisual();
+        }
+        else if (change.Property == MaxRpmProperty)
         {
             InvalidateVisual();
         }
@@ -132,11 +154,13 @@ public class AnalogFanControl : AnimatedGauge
         var strongBrush = DashboardVisuals.Brush(this, "BorderStrongBrush", Brushes.Gray);
         var trackBrush = DashboardVisuals.Brush(this, "SurfaceRaisedBrush", Brushes.Gray);
         var mutedBrush = DashboardVisuals.Brush(this, "TextMutedBrush", Brushes.Gray);
+
+        SetAccentTarget(ResolveAccentColor());
         var accentBrush = reported
-            ? Accent ?? DashboardVisuals.Brush(this, "PrimaryBrush", Brushes.DodgerBlue)
+            ? (IBrush)new SolidColorBrush(CurrentAccent)
             : mutedBrush;
 
-        // Dial face, so the fan reads as part of the same instrument family.
+        // Dial face: a slightly raised panel inside the card.
         context.DrawEllipse(faceBrush, new Pen(lineBrush, 1), center, _outerRadius, _outerRadius);
 
         using (context.PushOpacity(0.5))
@@ -165,37 +189,87 @@ public class AnalogFanControl : AnimatedGauge
             context.DrawGeometry(null, new Pen(accentBrush, _arcThickness, null, PenLineCap.Round), _progressArc);
         }
 
-        // The rotor. Alternating blade weight keeps the rotation direction and
-        // speed readable instead of turning into a symmetric blur.
-        var rotation = Matrix.CreateRotation(_angle * Math.PI / 180.0)
-            * Matrix.CreateTranslation(center.X, center.Y);
-        var bladePen = new Pen(lineBrush, 1);
-        using (context.PushTransform(rotation))
-        {
-            context.DrawGeometry(accentBrush, bladePen, _bladesEven);
-            using (context.PushOpacity(0.6))
-            {
-                context.DrawGeometry(accentBrush, bladePen, _bladesOdd);
-            }
-        }
+        DrawRotor(context, center, accentBrush, new Pen(lineBrush, 1));
 
-        // Hub cap with the channel colour at its centre.
+        // Hub cap. It is drawn after the rotor and is never rotated, so the
+        // blades turn under a stationary centre.
         context.DrawEllipse(
             DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
             new Pen(strongBrush, 1),
             center, _hubRadius, _hubRadius);
-        context.DrawEllipse(accentBrush, null, center, _hubDotRadius, _hubDotRadius);
+
+        context.DrawEllipse(accentBrush, null, center, _hubRadius / 2.0, _hubRadius / 2.0);
+        context.DrawEllipse(
+            DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
+            null, center, _hubDotRadius, _hubDotRadius);
+    }
+
+    /// <summary>
+    /// Draws the rotor at its true angle, averaged across the angle travelled in
+    /// the frame so a fast fan reads as motion rather than a strobe. One pass is
+    /// used while the frame's travel is small.
+    /// </summary>
+    private void DrawRotor(DrawingContext context, Point center, IBrush accentBrush, Pen bladePen)
+    {
+        var travelled = _frameAdvanceDegrees;
+        if (travelled <= BlurStartDegrees)
+        {
+            DrawBlades(context, center, accentBrush, bladePen, 1.0, 0.0, 1);
+            return;
+        }
+
+        // The blur never needs to exceed one whole turn: once the rotor has
+        // passed every angle in a frame the result is a uniform ring.
+        var span = Math.Min(travelled, 360.0);
+        var samples = Math.Clamp((int)Math.Ceiling(span / BlurSampleDegrees) + 1, 2, MaxBlurSamples);
+        var step = span / (samples - 1);
+        var opacity = 1.0 / samples;
+
+        DrawBlades(context, center, accentBrush, bladePen, opacity, step, samples);
+    }
+
+    private void DrawBlades(
+        DrawingContext context, Point center, IBrush accentBrush, Pen bladePen,
+        double opacity, double step, int count)
+    {
+        for (var i = 0; i < count; i++)
+        {
+            // Samples trail the current angle, matching the clockwise rotation,
+            // and cover the angle integrated since the previous frame.
+            var angle = _angle - i * step;
+            using (context.PushOpacity(opacity))
+            using (context.PushTransform(
+                Matrix.CreateRotation(angle * Math.PI / 180.0)
+                * Matrix.CreateTranslation(center.X, center.Y)))
+            {
+                context.DrawGeometry(accentBrush, bladePen, _bladesEven);
+                using (context.PushOpacity(0.6))
+                {
+                    context.DrawGeometry(accentBrush, bladePen, _bladesOdd);
+                }
+            }
+        }
     }
 
     protected override bool Advance(double seconds)
     {
-        var target = Rpm > 0 ? Rpm : 0.0;
+        var accentMoving = AdvanceAccent(seconds);
 
-        // Exponential, time-based approach: the fraction covered depends on the
-        // real elapsed time rather than on how many frames happened to be drawn,
-        // so the deceleration is identical at any frame rate.
-        _visualRpm += (target - _visualRpm) * (1.0 - Math.Exp(-seconds / ResponseSeconds));
-        if (Math.Abs(target - _visualRpm) < 0.5)
+        // A negative reading means "not reported": the rotor is still and the
+        // numeric readout beside it prints the dash. Zero is a real speed and
+        // likewise parks the rotor.
+        var target = Math.Max(0, Rpm);
+
+        var delta = target - _visualRpm;
+        if (Math.Abs(delta) > 0.001)
+        {
+            _visualRpm += delta * (1.0 - Math.Exp(-seconds / ResponseSeconds));
+            if (Math.Abs(target - _visualRpm) < 0.5)
+            {
+                _visualRpm = target;
+            }
+        }
+        else
         {
             _visualRpm = target;
         }
@@ -205,13 +279,18 @@ public class AnalogFanControl : AnimatedGauge
             // Settled at rest: stop the loop entirely rather than repainting a
             // still dial sixty times a second.
             _visualRpm = 0.0;
-            return false;
+            _frameAdvanceDegrees = 0.0;
+            return accentMoving;
         }
 
-        // ω = 2π·r/60 rad/s, scaled by the one fixed display factor. Integrating
-        // against real elapsed time keeps the speed independent of frame rate.
-        var omegaDegreesPerSecond = _visualRpm / 60.0 * Math.Tau * DisplayTimeScale * (180.0 / Math.PI);
-        _angle = (_angle + omegaDegreesPerSecond * seconds) % 360.0;
+        // ω = rpm * 360 / 60 degrees per second - the physical mapping, with no
+        // arbitrary cap. Integrating against real elapsed time keeps the speed
+        // independent of frame rate; the traveller is remembered so the render
+        // pass can blur across exactly what was integrated.
+        var omegaDegreesPerSecond = _visualRpm * 360.0 / 60.0;
+        var advance = omegaDegreesPerSecond * seconds;
+        _frameAdvanceDegrees = advance;
+        _angle = Normalize(_angle + advance);
         return true;
     }
 
@@ -236,6 +315,30 @@ public class AnalogFanControl : AnimatedGauge
         }
 
         return Math.Clamp(_visualRpm / MaxRpm, 0.0, 1.0);
+    }
+
+    /// <summary>
+    /// The accent to draw, resolved from the brush the page binds (the active
+    /// power-mode colour). A brush that is absent or fully transparent falls back
+    /// to the application primary, so the fan is never invisible while the
+    /// power-mode colour is still unknown.
+    /// </summary>
+    private Color ResolveAccentColor()
+    {
+        if (Accent is ISolidColorBrush { Color.A: > 0 } accent)
+        {
+            return accent.Color;
+        }
+
+        var fallback = DashboardVisuals.Brush(this, "PrimaryBrush", Brushes.DodgerBlue);
+        return fallback is ISolidColorBrush solid ? solid.Color : Colors.DodgerBlue;
+    }
+
+    /// <summary>Keeps an accumulated angle inside [0, 360) without drift.</summary>
+    private static double Normalize(double degrees)
+    {
+        var normalized = degrees % 360.0;
+        return normalized < 0 ? normalized + 360.0 : normalized;
     }
 
     /// <summary>
@@ -271,6 +374,13 @@ public class AnalogFanControl : AnimatedGauge
         var bladeOuter = _outerRadius * 0.72;
         _bladesEven = BuildBlades(_hubRadius, bladeOuter, even: true);
         _bladesOdd = BuildBlades(_hubRadius, bladeOuter, even: false);
+    }
+
+    /// <summary>Wraps an angle into [0, 360).</summary>
+    private static double Normalize(double degrees)
+    {
+        var value = degrees % 360.0;
+        return value < 0 ? value + 360.0 : value;
     }
 
     private static Geometry BuildBlades(double innerRadius, double outerRadius, bool even)
