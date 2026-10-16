@@ -167,7 +167,7 @@
                             <dash:AnalogFanControl Grid.Column="0" Width="132" Height="132"
                                                    Rpm="{Binding CpuFanSpeed}"
                                                    MaxRpm="{Binding CpuMaxFanSpeed}"
-                                                   Accent="{DynamicResource SensorFanBrush}" />
+                                                   Accent="{Binding PowerModeColor}" />
 
                             <StackPanel Grid.Column="1" Margin="18,0,0,0"
                                         Spacing="{StaticResource SpaceSm}"
@@ -205,11 +205,9 @@
                                                    ChannelKey="Dashboard.GpuUtilization"
                                                    Value="{Binding GpuUtilization}"
                                                    Maximum="{Binding GpuMaxUtilization}"
-                                                   Accent="{Binding PowerModeColor}"
-                                                   Value="{Binding GpuUtilization}"
-                                                   Maximum="{Binding GpuMaxUtilization}"
                                                    ValueText="{Binding GpuUtilizationText}"
-                                                   Unit="%" />
+                                                   Unit="%"
+                                                   Accent="{Binding PowerModeColor}" />
                                 <TextBlock Classes="InstrumentCaption" Text="Utilization"
                                            HorizontalAlignment="Center" />
                             </StackPanel>
@@ -244,7 +242,7 @@
                             <dash:AnalogFanControl Grid.Column="0" Width="132" Height="132"
                                                    Rpm="{Binding GpuFanSpeed}"
                                                    MaxRpm="{Binding GpuMaxFanSpeed}"
-                                                   Accent="{DynamicResource SensorFanBrush}" />
+                                                   Accent="{Binding PowerModeColor}" />
 
                             <StackPanel Grid.Column="1" Margin="18,0,0,0"
                                         Spacing="{StaticResource SpaceSm}"
