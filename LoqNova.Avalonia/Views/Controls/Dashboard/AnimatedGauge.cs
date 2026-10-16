@@ -1,10 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.Threading;
+using LoqNova.Lib;
 
 namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
@@ -22,6 +22,14 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 /// receives the real elapsed time rather than a fixed frame step, so motion is
 /// frame-rate independent.
 /// </para>
+/// <para>
+/// The opening self-test is driven entirely from the instrument's own lifecycle
+/// and its bound <see cref="PowerMode"/>: it replays whenever the instrument is
+/// attached (i.e. whenever the Dashboard is navigated to) and whenever the active
+/// power mode changes. Nothing here subscribes to an event, holds a timer per
+/// visit or keys off the page's view model, so revisiting the Dashboard can
+/// neither duplicate nor miss a sweep.
+/// </para>
 /// </summary>
 public abstract class AnimatedGauge : Control
 {
@@ -35,29 +43,21 @@ public abstract class AnimatedGauge : Control
     private const double MaxStepSeconds = 0.1;
 
     /// <summary>
-    /// The opening sweep travels from the bottom of the scale out to full scale,
-    /// holds there, then returns to the reported reading. Three segments rather
-    /// than one so the motion reads as an instrument-cluster self test instead of
-    /// a needle that merely slides from zero to the current value.
+    /// The opening self-test, timed like the WPF dashboard's bar sweep: the
+    /// instrument collapses to the bottom of the scale, sweeps out across the full
+    /// arc, then settles on the reading the machine is reporting. Three phases
+    /// rather than one so a replayed self-test reads as an instrument check rather
+    /// than a needle that merely slides from wherever it was to the current value -
+    /// and so a replay never snaps.
     /// </summary>
-    private const double StartupForwardSeconds = 0.85;
-    private const double StartupHoldSeconds = 0.16;
-    private const double StartupReturnSeconds = 0.55;
+    private const double StartupCollapseSeconds = 0.26;
+    private const double StartupExpandSeconds = 0.32;
+    private const double StartupSettleSeconds = 0.32;
     private const double StartupSweepSeconds =
-        StartupForwardSeconds + StartupHoldSeconds + StartupReturnSeconds;
+        StartupCollapseSeconds + StartupExpandSeconds + StartupSettleSeconds;
 
     /// <summary>Time constant of the eased accent-colour transition.</summary>
     private const double AccentSeconds = 0.14;
-
-    /// <summary>
-    /// Channels whose opening sweep has already run in this session. The
-    /// navigation service builds a fresh Dashboard page - and therefore fresh
-    /// gauges - every time it is shown, so a per-instance flag alone would replay
-    /// the sweep on every visit. The sweep is an opening animation for the
-    /// session, not for every reconstruction of the page. Only ever touched from
-    /// the UI thread.
-    /// </summary>
-    private static readonly HashSet<string> SweptChannels = [];
 
     /// <summary>
     /// True when the user has switched Windows animations off. The opening
