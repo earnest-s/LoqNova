@@ -372,13 +372,6 @@ public class AnalogFanControl : AnimatedGauge
         _bladesOdd = BuildBlades(_hubRadius, bladeOuter, even: false);
     }
 
-    /// <summary>Wraps an angle into [0, 360).</summary>
-    private static double Normalize(double degrees)
-    {
-        var value = degrees % 360.0;
-        return value < 0 ? value + 360.0 : value;
-    }
-
     private static Geometry BuildBlades(double innerRadius, double outerRadius, bool even)
     {
         var geometry = new StreamGeometry();
