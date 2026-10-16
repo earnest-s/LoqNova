@@ -403,27 +403,33 @@ public class AnalogFanControl : AnimatedGauge
     private static void AppendBlade(StreamGeometryContext context, double innerRadius, double outerRadius, double angle)
     {
         var origin = default(Point);
-        var rootLeading = DashboardVisuals.Polar(origin, innerRadius, angle - 11);
-        var tipLeading = DashboardVisuals.Polar(origin, outerRadius * 0.93, angle - 19);
-        var tipTrailing = DashboardVisuals.Polar(origin, outerRadius * 0.93, angle + 15);
-        var rootTrailing = DashboardVisuals.Polar(origin, innerRadius, angle + 11);
+        // The blade is deliberately narrow against its pitch (7 blades = 51.4 deg).
+        // Every control point stays within +/-16 deg of the blade axis, so the
+        // silhouette can never swell into its neighbour: the swept shape keeps a
+        // gap of roughly 19 deg next to it, and the blade pitch stays legible at
+        // rest instead of the rotor closing up into a solid disc.
+        var tipRadius = outerRadius * 0.94;
+        var rootLeading = DashboardVisuals.Polar(origin, innerRadius, angle - 7);
+        var tipLeading = DashboardVisuals.Polar(origin, tipRadius, angle - 15);
+        var tipTrailing = DashboardVisuals.Polar(origin, tipRadius, angle + 11);
+        var rootTrailing = DashboardVisuals.Polar(origin, innerRadius, angle + 8);
 
         context.BeginFigure(rootLeading, true);
         context.CubicBezierTo(
-            DashboardVisuals.Polar(origin, outerRadius * 0.62, angle - 30),
-            DashboardVisuals.Polar(origin, outerRadius * 0.99, angle - 30),
+            DashboardVisuals.Polar(origin, outerRadius * 0.55, angle - 16),
+            DashboardVisuals.Polar(origin, outerRadius * 0.92, angle - 16),
             tipLeading);
         context.CubicBezierTo(
-            DashboardVisuals.Polar(origin, outerRadius, angle - 4),
-            DashboardVisuals.Polar(origin, outerRadius, angle + 10),
+            DashboardVisuals.Polar(origin, outerRadius, angle - 3),
+            DashboardVisuals.Polar(origin, outerRadius, angle + 7),
             tipTrailing);
         context.CubicBezierTo(
-            DashboardVisuals.Polar(origin, (innerRadius + outerRadius) * 0.55, angle + 26),
-            DashboardVisuals.Polar(origin, innerRadius * 1.08, angle + 22),
+            DashboardVisuals.Polar(origin, (innerRadius + outerRadius) * 0.55, angle + 16),
+            DashboardVisuals.Polar(origin, innerRadius * 1.06, angle + 13),
             rootTrailing);
         context.CubicBezierTo(
-            DashboardVisuals.Polar(origin, innerRadius * 0.94, angle + 5),
-            DashboardVisuals.Polar(origin, innerRadius * 0.94, angle - 5),
+            DashboardVisuals.Polar(origin, innerRadius * 0.96, angle + 4),
+            DashboardVisuals.Polar(origin, innerRadius * 0.96, angle - 4),
             rootLeading);
         context.EndFigure(true);
     }
