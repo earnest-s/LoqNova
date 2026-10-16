@@ -292,12 +292,13 @@ public class ClusterGauge : AnimatedGauge
         {
             // The opening sweep rides the reported target, so a reading that
             // lands while it is still running is settled on rather than overshot:
-            // the needle travels to full scale, holds, then returns to whatever
-            // the machine is reporting. The value arc and the count-up follow the
-            // same phase. It is deliberately run before the HasReading guard so
-            // the clock starts with the control rather than with the first sample:
-            // CPU and GPU then sweep together even though GPU counters report a
-            // tick later, and a late reading is simply what the sweep settles on.
+            // the needle collapses to the bottom of the scale, travels out to full
+            // scale, then settles on whatever the machine is reporting. The value
+            // arc and the count-up follow the same phase. It is deliberately run
+            // before the HasReading guard so the clock starts with the control
+            // rather than with the first sample: CPU and GPU then sweep together
+            // even though GPU counters report a tick later, and a late reading is
+            // simply what the sweep settles on.
             var sweeping = AdvanceStartupSweep(seconds);
             _displayRatio = StartupSweepPosition(_targetRatio);
             return sweeping || accentMoving;
@@ -408,6 +409,12 @@ public class ClusterGauge : AnimatedGauge
 
     /// <summary>True when the machine reported both a reading and a maximum.</summary>
     private bool HasReading => Value >= 0 && Maximum >= 0;
+
+    /// <summary>
+    /// The needle's current position, so a replayed self-test collapses from where
+    /// the needle actually is rather than snapping to the bottom of the scale.
+    /// </summary>
+    protected override double DisplayedSweepPosition => Math.Clamp(_displayRatio, 0.0, 1.0);
 
     private double ComputeRatio()
         => Value >= 0 && Maximum > 0 ? Math.Clamp((double)Value / Maximum, 0.0, 1.0) : 0.0;

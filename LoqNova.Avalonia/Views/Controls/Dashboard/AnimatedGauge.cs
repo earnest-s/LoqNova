@@ -322,13 +322,32 @@ public abstract class AnimatedGauge : Control
     }
 
     /// <summary>
-    /// Ease-in-out, so the sweep leaves the minimum and settles gently.
+    /// Ease-in-out, so the digital count-up leaves the minimum and settles gently.
     /// </summary>
     private static double SweepEase(double phase) => phase * phase * (3.0 - 2.0 * phase);
 
-    /// <summary>Clamps a fraction of the sweep to 0..1.</summary>
-    private static double PhaseOf(double seconds)
-        => Math.Clamp(seconds / StartupSweepSeconds, 0.0, 1.0);
+    /// <summary>
+    /// Quintic ease-in-out, matching the collapse phase of the WPF dashboard's bar
+    /// sweep.
+    /// </summary>
+    private static double QuinticInOut(double phase)
+    {
+        var t = Math.Clamp(phase, 0.0, 1.0);
+        return t < 0.5
+            ? 16.0 * t * t * t * t * t
+            : 1.0 - Math.Pow(-2.0 * t + 2.0, 5.0) / 2.0;
+    }
+
+    /// <summary>
+    /// Quintic ease-out, matching the expand and settle phases of the WPF
+    /// dashboard's bar sweep.
+    /// </summary>
+    private static double QuinticOut(double phase)
+    {
+        var t = Math.Clamp(phase, 0.0, 1.0);
+        var inverse = 1.0 - t;
+        return 1.0 - inverse * inverse * inverse * inverse * inverse;
+    }
 
     /// <summary>Linear blend of two colours, channel by channel.</summary>
     private static Color Blend(Color from, Color to, double amount)
@@ -348,17 +367,10 @@ public abstract class AnimatedGauge : Control
             && Math.Abs(a.G - b.G) <= 2
             && Math.Abs(a.B - b.B) <= 2;
 
-    private static bool HasSwept(string? channelKey)
-        => channelKey is { Length: > 0 } && SweptChannels.Contains(channelKey);
-
     private void FinishStartupSweep()
     {
         _startupElapsed = StartupSweepSeconds;
         _startupSweepComplete = true;
-        if (ChannelKey is { Length: > 0 } channel)
-        {
-            SweptChannels.Add(channel);
-        }
     }
 
     /// <summary>
@@ -384,6 +396,17 @@ public abstract class AnimatedGauge : Control
         if (change.Property == IsVisibleProperty)
         {
             RequestFrames();
+        }
+        else if (change.Property == PowerModeProperty
+            && change.OldValue is PowerModeState previous
+            && change.NewValue is PowerModeState current
+            && previous != current)
+        {
+            // The active mode changed while the instrument was on screen: replay
+            // the self-test. A null boundary is the backend reporting - or losing -
+            // the mode rather than a change, and the first report is already
+            // covered by the sweep that runs when the instrument becomes active.
+            ReplaySweep();
         }
     }
 
