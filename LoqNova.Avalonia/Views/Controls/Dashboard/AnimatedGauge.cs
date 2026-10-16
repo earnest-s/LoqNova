@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Media;
 using Avalonia.Threading;
 
 namespace LoqNova.Avalonia.Views.Controls.Dashboard;
@@ -33,10 +34,19 @@ public abstract class AnimatedGauge : Control
     private const double MaxStepSeconds = 0.1;
 
     /// <summary>
-    /// Duration of the one-shot opening sweep, measured in rendered time so a
-    /// stalled UI resumes the sweep instead of skipping past it.
+    /// The opening sweep travels from the bottom of the scale out to full scale,
+    /// holds there, then returns to the reported reading. Three segments rather
+    /// than one so the motion reads as an instrument-cluster self test instead of
+    /// a needle that merely slides from zero to the current value.
     /// </summary>
-    private const double StartupSweepSeconds = 0.9;
+    private const double StartupForwardSeconds = 0.85;
+    private const double StartupHoldSeconds = 0.16;
+    private const double StartupReturnSeconds = 0.55;
+    private const double StartupSweepSeconds =
+        StartupForwardSeconds + StartupHoldSeconds + StartupReturnSeconds;
+
+    /// <summary>Time constant of the eased accent-colour transition.</summary>
+    private const double AccentSeconds = 0.14;
 
     /// <summary>
     /// Channels whose opening sweep has already run in this session. The
@@ -52,8 +62,12 @@ public abstract class AnimatedGauge : Control
     private bool _attached;
     private bool _running;
     private long _lastTimestamp;
-    private double _startupPhase;
+    private double _startupElapsed;
     private bool _startupSweepComplete;
+
+    private Color _accentCurrent;
+    private Color _accentTarget;
+    private bool _accentKnown;
 
     protected AnimatedGauge()
     {
@@ -97,54 +111,153 @@ public abstract class AnimatedGauge : Control
     protected bool IsStartupSweeping => !_startupSweepComplete;
 
     /// <summary>
-    /// Progress of the opening sweep, from 0 at the bottom of the scale to 1 at
-    /// the reported reading, eased in and out so the needle leaves the minimum
-    /// and settles onto the reading instead of stopping abruptly.
+    /// Progress of the opening sweep as a monotonic 0..1 ramp, eased in and out,
+    /// used for the digital count-up so the digits travel with the needle and
+    /// land exactly on the reported reading when the sweep completes.
     /// </summary>
-    protected double StartupSweepPhase => _startupSweepComplete ? 1.0 : SweepEase(_startupPhase);
+    protected double StartupSweepPhase
+        => _startupSweepComplete ? 1.0 : SweepEase(PhaseOf(_startupElapsed));
+
+    /// <summary>
+    /// The scale position the needle and value arc should show during the
+    /// opening sweep, as a fraction of the scale toward <paramref name="target"/>
+    /// (the reported reading as a fraction of its maximum).
+    /// <para>
+    /// Out to full scale, hold, then back down to the reported reading. Rides the
+    /// live target, so a reading that arrives while the sweep is running is
+    /// settled on rather than overshot, and the return segment lands exactly on
+    /// it. When the sweep is skipped - or already finished - the position is just
+    /// the target.
+    /// </para>
+    /// </summary>
+    protected double StartupSweepPosition(double target)
+    {
+        if (_startupSweepComplete)
+        {
+            return target;
+        }
+
+        var elapsed = _startupElapsed;
+        if (elapsed < StartupForwardSeconds)
+        {
+            return SweepEase(elapsed / StartupForwardSeconds);
+        }
+
+        if (elapsed < StartupForwardSeconds + StartupHoldSeconds)
+        {
+            return 1.0;
+        }
+
+        var returned = PhaseOf(elapsed - StartupForwardSeconds - StartupHoldSeconds);
+        return 1.0 - SweepEase(returned) * (1.0 - Math.Clamp(target, 0.0, 1.0));
+    }
 
     /// <summary>
     /// Advances the one-shot opening sweep and returns true while it still needs
     /// frames. Callers only invoke this once the machine has reported a reading,
-    /// so a slow or absent channel never sweeps against an invented value; pass
-    /// <paramref name="skip"/> when that reading sits at the bottom of the scale
-    /// and there is nothing to sweep through.
+    /// so a slow or absent channel never sweeps against an invented value.
     /// </summary>
-    protected bool AdvanceStartupSweep(double seconds, bool skip = false)
+    protected bool AdvanceStartupSweep(double seconds)
     {
         if (_startupSweepComplete)
         {
             return false;
         }
 
-        if (skip || HasSwept(ChannelKey))
+        if (HasSwept(ChannelKey))
         {
-            // Nothing to sweep through, or this channel was already swept
-            // earlier in the session: land straight on the reading and hand over
-            // to live telemetry.
+            // This channel was already swept earlier in the session: land
+            // straight on the reading and hand over to live telemetry.
             FinishStartupSweep();
             return false;
         }
 
-        _startupPhase += seconds / StartupSweepSeconds;
-        if (_startupPhase < 1.0)
+        _startupElapsed += seconds;
+        if (_startupElapsed < StartupSweepSeconds)
         {
             return true;
         }
 
+        _startupElapsed = StartupSweepSeconds;
         FinishStartupSweep();
         return false;
     }
 
-    /// <summary>Ease-in-out, so the sweep leaves the minimum and settles gently.</summary>
+    /// <summary>
+    /// Sets the accent the instrument is drawing toward. The first call adopts
+    /// the colour outright; later calls start a brief interpolated transition, so
+    /// a change of power mode eases instead of flashing.
+    /// </summary>
+    protected void SetAccentTarget(Color target)
+    {
+        if (!_accentKnown)
+        {
+            _accentKnown = true;
+            _accentCurrent = target;
+            _accentTarget = target;
+            return;
+        }
+
+        _accentTarget = target;
+    }
+
+    /// <summary>The accent colour actually drawn; eased between values.</summary>
+    protected Color CurrentAccent => _accentCurrent;
+
+    /// <summary>
+    /// Eases the drawn accent toward its target and returns true while it is
+    /// still moving, so the instrument keeps requesting frames for the transition
+    /// without spinning once the colour has settled.
+    /// </summary>
+    protected bool AdvanceAccent(double seconds)
+    {
+        if (_accentCurrent == _accentTarget)
+        {
+            return false;
+        }
+
+        _accentCurrent = Blend(_accentCurrent, _accentTarget, 1.0 - Math.Exp(-seconds / AccentSeconds));
+        if (IsNear(_accentCurrent, _accentTarget))
+        {
+            _accentCurrent = _accentTarget;
+        }
+
+        return _accentCurrent != _accentTarget;
+    }
+
+    /// <summary>
+    /// Ease-in-out, so the sweep leaves the minimum and settles gently.
+    /// </summary>
     private static double SweepEase(double phase) => phase * phase * (3.0 - 2.0 * phase);
+
+    /// <summary>Clamps a fraction of the sweep to 0..1.</summary>
+    private static double PhaseOf(double seconds)
+        => Math.Clamp(seconds / StartupSweepSeconds, 0.0, 1.0);
+
+    /// <summary>Linear blend of two colours, channel by channel.</summary>
+    private static Color Blend(Color from, Color to, double amount)
+    {
+        var t = Math.Clamp(amount, 0.0, 1.0);
+        static byte Mix(byte a, byte b, double t) => (byte)Math.Round(a + (b - a) * t);
+        return Color.FromArgb(
+            Mix(from.A, to.A, t),
+            Mix(from.R, to.R, t),
+            Mix(from.G, to.G, t),
+            Mix(from.B, to.B, t));
+    }
+
+    private static bool IsNear(Color a, Color b)
+        => Math.Abs(a.A - b.A) <= 2
+            && Math.Abs(a.R - b.R) <= 2
+            && Math.Abs(a.G - b.G) <= 2
+            && Math.Abs(a.B - b.B) <= 2;
 
     private static bool HasSwept(string? channelKey)
         => channelKey is { Length: > 0 } && SweptChannels.Contains(channelKey);
 
     private void FinishStartupSweep()
     {
-        _startupPhase = 1.0;
+        _startupElapsed = StartupSweepSeconds;
         _startupSweepComplete = true;
         if (ChannelKey is { Length: > 0 } channel)
         {

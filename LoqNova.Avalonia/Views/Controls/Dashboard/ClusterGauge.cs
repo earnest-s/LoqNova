@@ -137,9 +137,16 @@ public class ClusterGauge : AnimatedGauge
             RequestFrames();
             InvalidateVisual();
         }
-        else if (change.Property == ValueTextProperty
-            || change.Property == UnitProperty
-            || change.Property == AccentProperty)
+        else if (change.Property == AccentProperty)
+        {
+            // The accent brush is the active power-mode colour. Retargeting it
+            // starts an eased transition, so the arc and needle change colour
+            // with a short blend instead of a flash.
+            SetAccentTarget(ResolveAccentColor());
+            RequestFrames();
+            InvalidateVisual();
+        }
+        else if (change.Property == ValueTextProperty || change.Property == UnitProperty)
         {
             InvalidateVisual();
         }
@@ -166,8 +173,13 @@ public class ClusterGauge : AnimatedGauge
         var valueBrush = reported
             ? DashboardVisuals.Brush(this, "TextPrimaryBrush", Brushes.White)
             : mutedBrush;
+        // The accent is the active power-mode colour, handed in by the page from
+        // the design system. It is eased between values, so a mode change is a
+        // short transition rather than a flash; an unreported channel is drawn
+        // muted and never given a status colour.
+        SetAccentTarget(ResolveAccentColor());
         var accentBrush = reported
-            ? Accent ?? DashboardVisuals.Brush(this, "PrimaryBrush", Brushes.DodgerBlue)
+            ? (IBrush)new SolidColorBrush(CurrentAccent)
             : mutedBrush;
 
         // Dial face: a slightly raised panel inside the card.
