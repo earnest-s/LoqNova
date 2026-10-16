@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -57,6 +58,39 @@ public abstract class AnimatedGauge : Control
     /// the UI thread.
     /// </summary>
     private static readonly HashSet<string> SweptChannels = [];
+
+    /// <summary>
+    /// True when the user has switched Windows animations off. The opening
+    /// self-test sweep is pure decoration, so under that setting the dial skips it
+    /// and settles straight onto the reported reading instead of flinging to full
+    /// scale first.
+    /// </summary>
+    private static readonly bool ReducedMotion = ReadReducedMotion();
+
+    private const uint SpiGetClientAreaAnimation = 0x1042;
+
+    [DllImport("user32.dll", SetLastError = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool SystemParametersInfo(uint uiAction, uint uiParam, ref int pvParam, uint fWinIni);
+
+    private static bool ReadReducedMotion()
+    {
+        if (!OperatingSystem.IsWindows())
+        {
+            return false;
+        }
+
+        try
+        {
+            var enabled = 1;
+            return SystemParametersInfo(SpiGetClientAreaAnimation, 0, ref enabled, 0) && enabled == 0;
+        }
+        catch
+        {
+            // An unavailable system call never disables the sweep.
+            return false;
+        }
+    }
 
     private readonly DispatcherTimer _timer;
     private bool _attached;
@@ -162,6 +196,14 @@ public abstract class AnimatedGauge : Control
     {
         if (_startupSweepComplete)
         {
+            return false;
+        }
+
+        if (ReducedMotion)
+        {
+            // The sweep is decorative: when the user has asked Windows to reduce
+            // motion, skip it and settle straight onto the reading.
+            FinishStartupSweep();
             return false;
         }
 
