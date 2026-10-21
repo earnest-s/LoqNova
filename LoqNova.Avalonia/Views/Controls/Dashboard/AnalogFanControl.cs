@@ -645,8 +645,8 @@ public class AnalogFanControl : AnimatedGauge
         {
             Center = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
             GradientOrigin = new RelativePoint(0.5, 0.5, RelativeUnit.Relative),
-            RadiusX = 0.5,
-            RadiusY = 0.5,
+            RadiusX = new RelativeScalar(0.5, RelativeUnit.Relative),
+            RadiusY = new RelativeScalar(0.5, RelativeUnit.Relative),
             GradientStops =
             {
                 new GradientStop(Tint(ink, 0.0, 0.13), 0.0),
