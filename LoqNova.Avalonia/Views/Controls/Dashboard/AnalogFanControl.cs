@@ -94,50 +94,13 @@ public class AnalogFanControl : AnimatedGauge
     /// </summary>
     private const double MaxBlurSpanDegrees = BladeGapDegrees / 2.0;
 
-    /// <summary>
-    /// The frame the speed mapping is normalised against. The mapping is a
-    /// continuous function of RPM, so it is correct at any real frame rate; this
-    /// only fixes the scale so the fastest setting lands where it should.
-    /// </summary>
+    /// <summary>The rotor turns at the physical angular velocity of the reported speed.</summary>
+    private const double MaxFrameAdvanceDegrees = 480.0;
     private const double NominalFrameSeconds = 1.0 / 60.0;
-
-    /// <summary>
-    /// Highest per-frame travel the mapping will ever produce. Held below half the
-    /// blade pitch (25.7 degrees) so the rotor's rotation is always unambiguous:
-    /// it never appears to stall, slow down or run backwards as speed climbs.
-    /// </summary>
-    private const double MaxFrameAdvanceDegrees = 22.0;
-
-    /// <summary>The ceiling of the mapping, in degrees of rotation per second.</summary>
-    private const double MaxAngularDegreesPerSecond =
-        MaxFrameAdvanceDegrees / NominalFrameSeconds;
-
-    /// <summary>
-    /// The speed at which the mapping reaches half its ceiling. The low end stays
-    /// close to linear - a fan barely turning is barely turning - while the top
-    /// end compresses smoothly instead of hitting a wall.
-    /// </summary>
-    private const double CharacteristicRpm = 2000.0;
-
-    /// <summary>
-    /// Per-sample opacity weights for each blur sample count, normalised so the
-    /// smear carries the same total ink as a single sharp rotor. Built once, so
-    /// animating the rotor never allocates.
-    /// </summary>
-    private static readonly double[][] BlurWeights = BuildBlurWeights();
 
     /// <summary>
     /// The angular velocity, in degrees per second, that a reported
     /// <paramref name="rpm"/> turns the rotor at.
-    /// <para>
-    /// One continuous, strictly increasing function over the whole range: zero at
-    /// rest, near-linear at the bottom, smoothly compressing toward
-    /// <see cref="MaxAngularDegreesPerSecond"/> at the top. Its derivative is
-    /// never zero, so no two speeds share a displayed rotation and the smallest
-    /// possible change in RPM is a change in rotation - while the per-frame travel
-    /// stays under half the blade pitch, where a seven-bladed rotor sampled at
-    /// 60 Hz is still unambiguous.
-    /// </para>
     /// </summary>
     public static double DegreesPerSecond(double rpm)
     {
@@ -146,7 +109,7 @@ public class AnalogFanControl : AnimatedGauge
             return 0.0;
         }
 
-        return MaxAngularDegreesPerSecond * rpm / (rpm + CharacteristicRpm);
+        return rpm * 360.0 / 60.0;
     }
 
     /// <summary>Reported speed in RPM; -1 means the machine did not report the channel.</summary>
