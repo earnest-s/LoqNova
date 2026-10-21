@@ -57,6 +57,20 @@ public class AnalogFanControl : AnimatedGauge
     /// <summary>Most blur samples drawn in one frame, bounding UI-thread work.</summary>
     private const int MaxBlurSamples = 14;
 
+    /// <summary>The angle between adjacent blades (7 blades = 51.4 degrees).</summary>
+    private const double BladePitchDegrees = 360.0 / BladeCount;
+
+    /// <summary>
+    /// The fastest the rotor may turn, in degrees per second. Half a blade pitch
+    /// per 60 Hz frame is the limit at which the blade pattern is still resolvable:
+    /// past it the blades step backwards and the dial appears to slow down as the
+    /// fan speeds up - which is exactly the bug that showed a maxed-out GPU fan
+    /// reading slower than a mid-speed one. Below the limit the speed is the exact
+    /// physical mapping <c>ω = rpm·360/60</c>, so every low and mid RPM stays
+    /// proportional to the reported speed.
+    /// </summary>
+    private const double MaxAngularDegreesPerSecond = BladePitchDegrees * 30.0;
+
     /// <summary>Reported speed in RPM; -1 means the machine did not report the channel.</summary>
     public static readonly StyledProperty<int> RpmProperty =
         AvaloniaProperty.Register<AnalogFanControl, int>(nameof(Rpm), -1);
@@ -214,9 +228,12 @@ public class AnalogFanControl : AnimatedGauge
             return;
         }
 
-        // The blur never needs to exceed one whole turn: once the rotor has
-        // passed every angle in a frame the result is a uniform ring.
-        var span = Math.Min(travelled, 360.0);
+        // The smear is capped at half a blade pitch. Smearing across a whole turn
+        // tiles every angle the blades can occupy and the rotor closes up into a
+        // flat disc - the "spinning disc" effect. Capping it leaves the blades
+        // legible as blades while they travel, so a fast fan reads as a blurred
+        // rotor rather than a solid fill.
+        var span = Math.Min(travelled, MaxAngularDegreesPerSecond / 60.0);
         var samples = Math.Clamp((int)Math.Ceiling(span / BlurSampleDegrees) + 1, 2, MaxBlurSamples);
         var step = span / (samples - 1);
         var opacity = 1.0 / samples;
@@ -279,11 +296,15 @@ public class AnalogFanControl : AnimatedGauge
             return accentMoving;
         }
 
-        // ω = rpm * 360 / 60 degrees per second - the physical mapping, with no
-        // arbitrary cap. Integrating against real elapsed time keeps the speed
-        // independent of frame rate; the traveller is remembered so the render
-        // pass can blur across exactly what was integrated.
-        var omegaDegreesPerSecond = _visualRpm * 360.0 / 60.0;
+        // ω = rpm * 360 / 60 degrees per second - the physical mapping, so the
+        // rotor turns in proportion to the reported speed at every low and mid
+        // RPM. It is then limited to the fastest rotation a display can resolve
+        // (half a blade pitch per frame): beyond that the true angle steps
+        // backwards through the blade pattern and the dial reads slower as the
+        // fan spins faster. The angle is integrated against real elapsed time, so
+        // the speed stays independent of frame rate and the accumulated angle
+        // cannot lose precision or reset when the RPM text updates.
+        var omegaDegreesPerSecond = Math.Min(_visualRpm * 360.0 / 60.0, MaxAngularDegreesPerSecond);
         var advance = omegaDegreesPerSecond * seconds;
         _frameAdvanceDegrees = advance;
         _angle = Normalize(_angle + advance);
