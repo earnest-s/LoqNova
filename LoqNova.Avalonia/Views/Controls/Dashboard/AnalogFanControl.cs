@@ -169,30 +169,6 @@ public class AnalogFanControl : AnimatedGauge
         {
             context.DrawGeometry(_bladeBrush, null, _blades);
         }
-
-        // Simple ring indicator
-        using (context.PushTransform(
-            Matrix.CreateRotation(_angle * Math.PI / 180.0)
-            * Matrix.CreateTranslation(center.X, center.Y)))
-        {
-            var ringPath = new StreamGeometry();
-            var gc = ringPath.Open();
-            try
-            {
-                var r1 = _hubRadius * 1.4;
-                var r2 = _hubRadius * 1.6;
-                gc.BeginFigure(DashboardVisuals.Polar(new Point(0,0), r1, -2), true);
-                gc.ArcTo(DashboardVisuals.Polar(new Point(0,0), r1, 2), new Size(r1, r1), 0, false, SweepDirection.Clockwise);
-                gc.LineTo(DashboardVisuals.Polar(new Point(0,0), r2, 2));
-                gc.ArcTo(DashboardVisuals.Polar(new Point(0,0), r2, -2), new Size(r2, r2), 0, true, SweepDirection.CounterClockwise);
-                gc.EndFigure(true);
-            }
-            finally
-            {
-                gc.Dispose();
-            }
-            context.DrawGeometry(_ringBrush, null, ringPath);
-        }
     }
 
     protected override bool Advance(double seconds)
