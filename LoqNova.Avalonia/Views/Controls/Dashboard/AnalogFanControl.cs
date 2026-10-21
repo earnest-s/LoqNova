@@ -215,7 +215,6 @@ public class AnalogFanControl : AnimatedGauge
     private IBrush? _minorPenSource;
     private IBrush? _strongPenSource;
     private IBrush? _trackPenSource;
-    private IBrush? _hubPenSource;
     private Pen? _facePen;
     private Pen? _minorPen;
     private Pen? _majorPen;
@@ -277,7 +276,7 @@ public class AnalogFanControl : AnimatedGauge
         var trackBrush = DashboardVisuals.Brush(this, "SurfaceRaisedBrush", Brushes.Gray);
         var mutedBrush = DashboardVisuals.Brush(this, "TextMutedBrush", Brushes.Gray);
 
-        EnsurePens(lineBrush, strongBrush, trackBrush, trackBrush);
+        EnsurePens(lineBrush, strongBrush, trackBrush);
 
         SetAccentTarget(ResolveAccentColor());
 
@@ -562,7 +561,7 @@ public class AnalogFanControl : AnimatedGauge
     /// swapped - a theme change replaces the resource rather than mutating it, so
     /// comparing the sources is what keeps a pen from holding a stale colour.
     /// </summary>
-    private void EnsurePens(IBrush line, IBrush strong, IBrush track, IBrush hub)
+    private void EnsurePens(IBrush line, IBrush strong, IBrush track)
     {
         if (!ReferenceEquals(_facePenSource, line))
         {
@@ -587,12 +586,6 @@ public class AnalogFanControl : AnimatedGauge
         {
             _trackPenSource = track;
             _trackPen = new Pen(track, _arcThickness, null, PenLineCap.Round);
-        }
-
-        if (!ReferenceEquals(_hubPenSource, hub))
-        {
-            _hubPenSource = hub;
-            _hubPen = new Pen(hub, 1);
         }
     }
 
