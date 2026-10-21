@@ -15,11 +15,12 @@
          the theme and accent without local colours.
          ============================================================ -->
 
-    <!-- ==================== Device instrument ====================
-         One device (CPU / GPU). Sized by the ResponsiveUniformGrid that
-         hosts them, so the card never reserves a fixed width. -->
+    <!-- ==================== Instrument cluster ====================
+         One continuous cluster holding both device instruments (CPU / GPU),
+         mirrored about a centre rule so the two halves read as parts of a
+         single instrument rather than as separate boxes. -->
 
-    <Style Selector="Border.InstrumentCard">
+    <Style Selector="Border.InstrumentCluster">
         <Setter Property="Background" Value="{DynamicResource CardBackgroundBrush}" />
         <Setter Property="BorderBrush" Value="{DynamicResource BorderBrush}" />
         <Setter Property="BorderThickness" Value="1" />
@@ -27,12 +28,20 @@
         <Setter Property="Padding" Value="{StaticResource InsetLg}" />
     </Style>
 
-    <!-- The channel identity dot in an instrument header. -->
-    <Style Selector="Border.DeviceAccent">
-        <Setter Property="Width" Value="8" />
-        <Setter Property="Height" Value="8" />
-        <Setter Property="CornerRadius" Value="{StaticResource RadiusPillBox}" />
+    <!-- The glyph naming each device. The channel colour is applied by the page
+         on Foreground, so the icon itself - not a decorative dot - carries the
+         device identity. -->
+    <Style Selector="PathIcon.ClusterDeviceIcon">
+        <Setter Property="Width" Value="20" />
+        <Setter Property="Height" Value="20" />
         <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+
+    <!-- The hairline rule that separates the two halves of the cluster and the
+         headings. Width only: the grid stretches it vertically. -->
+    <Style Selector="Border.ClusterDivider">
+        <Setter Property="Width" Value="1" />
+        <Setter Property="Background" Value="{DynamicResource DividerBrush}" />
     </Style>
 
     <Style Selector="TextBlock.DeviceTitle">
