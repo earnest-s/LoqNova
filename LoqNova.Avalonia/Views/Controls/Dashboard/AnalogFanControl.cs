@@ -233,6 +233,7 @@ public class AnalogFanControl : AnimatedGauge
     private Pen? _shroudPen;
     private Pen? _bladeEdgePen;
     private Pen? _hubRingPen;
+    private Pen? _progressPen;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
