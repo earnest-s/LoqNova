@@ -6,18 +6,17 @@ using Avalonia.Media;
 namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
 /// <summary>
-/// A clean, understated OEM-style fan indicator. The animation is decorative and
-/// driven by broad RPM ranges rather than a one-to-one physical mapping. The
-/// numeric RPM beside the dial remains the accurate telemetry value.
+/// Premium OEM-style fan indicator with smooth, natural animation.
+/// The animation is decorative - driven by RPM telemetry with blended speed ranges.
+/// Numeric RPM reading remains accurate and independent.
 /// </summary>
 public class AnalogFanControl : AnimatedGauge
 {
     private const int Divisions = 60;
     private const int MajorTickEvery = 5;
-    private const int BladeCount = 5;
+    private const int BladeCount = 7;
 
-    /// <summary>Time constant for smooth speed transitions between ranges.</summary>
-    private const double ResponseSeconds = 0.25;
+    private const double ResponseSeconds = 0.22;
 
     public static readonly StyledProperty<int> RpmProperty =
         AvaloniaProperty.Register<AnalogFanControl, int>(nameof(Rpm), -1);
@@ -46,15 +45,16 @@ public class AnalogFanControl : AnimatedGauge
         set => SetValue(AccentProperty, value);
     }
 
-    private double _visualSpeed; // 0.0 to 1.0 representing target rotation speed
+    private double _visualSpeed; // 0.0 to 1.0
+    private double _targetSpeed;
     private double _angle;
-    private double _frameAdvanceDegrees;
 
     // Geometry cache
     private double _outerRadius;
     private double _arcRadius;
     private double _arcThickness;
     private double _hubRadius;
+    private double _hubOuterRadius;
     private double _hubDotRadius;
     private Geometry _blades = new StreamGeometry();
     private Geometry _ticksMinor = new StreamGeometry();
@@ -79,7 +79,8 @@ public class AnalogFanControl : AnimatedGauge
     private bool _inkBuilt;
     private IBrush? _accentSolid;
     private IBrush? _bladeBrush;
-    private IBrush? _ringBrush;
+    private IBrush? _hubBrush;
+    private IBrush? _hubRingBrush;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -87,6 +88,7 @@ public class AnalogFanControl : AnimatedGauge
 
         if (change.Property == RpmProperty)
         {
+            UpdateTargetSpeed();
             RequestFrames();
             InvalidateVisual();
         }
@@ -98,6 +100,7 @@ public class AnalogFanControl : AnimatedGauge
         }
         else if (change.Property == MaxRpmProperty)
         {
+            UpdateTargetSpeed();
             InvalidateVisual();
         }
     }
@@ -127,7 +130,7 @@ public class AnalogFanControl : AnimatedGauge
 
         context.DrawEllipse(faceBrush, _facePen, center, _outerRadius, _outerRadius);
 
-        using (context.PushOpacity(0.5))
+        using (context.PushOpacity(0.4))
         {
             context.DrawGeometry(null, _minorPen, _ticksMinor);
         }
@@ -148,12 +151,16 @@ public class AnalogFanControl : AnimatedGauge
             context.DrawGeometry(null, new Pen(_accentSolid, _arcThickness, null, PenLineCap.Round), _progressArc);
         }
 
+        // Subtle housing ring
+        context.DrawEllipse(null, new Pen(new SolidColorBrush(Color.FromArgb(40, ink.R, ink.G, ink.B)), 1.0), 
+            center, _outerRadius * 0.76, _outerRadius * 0.76);
+
         DrawRotor(context, center);
 
-        context.DrawEllipse(
-            DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
-            _hubPen,
-            center, _hubRadius, _hubRadius);
+        // Hub assembly
+        context.DrawEllipse(_hubBrush, null, center, _hubOuterRadius, _hubOuterRadius);
+        context.DrawEllipse(null, _hubPen, center, _hubOuterRadius, _hubOuterRadius);
+        context.DrawEllipse(_hubRingBrush, null, center, _hubRadius * 0.7, _hubRadius * 0.7);
         context.DrawEllipse(_accentSolid, null, center, _hubDotRadius, _hubDotRadius);
     }
 
@@ -162,7 +169,7 @@ public class AnalogFanControl : AnimatedGauge
         if (_visualSpeed <= 0.001)
             return;
 
-        using (context.PushOpacity(0.9))
+        using (context.PushOpacity(0.95))
         using (context.PushTransform(
             Matrix.CreateRotation(_angle * Math.PI / 180.0)
             * Matrix.CreateTranslation(center.X, center.Y)))
@@ -174,56 +181,65 @@ public class AnalogFanControl : AnimatedGauge
     protected override bool Advance(double seconds)
     {
         var accentMoving = AdvanceAccent(seconds);
+        UpdateTargetSpeed();
 
-        var target = GetTargetSpeed(Rpm);
-        var delta = target - _visualSpeed;
-        if (Math.Abs(delta) > 0.001)
+        var delta = _targetSpeed - _visualSpeed;
+        if (Math.Abs(delta) > 0.0001)
         {
             _visualSpeed += delta * (1.0 - Math.Exp(-seconds / ResponseSeconds));
-            if (Math.Abs(target - _visualSpeed) < 0.01)
-                _visualSpeed = target;
+            if (Math.Abs(_targetSpeed - _visualSpeed) < 0.005)
+                _visualSpeed = _targetSpeed;
         }
         else
         {
-            _visualSpeed = target;
+            _visualSpeed = _targetSpeed;
         }
 
         if (_visualSpeed <= 0.001)
         {
             _visualSpeed = 0.0;
-            _frameAdvanceDegrees = 0.0;
             return accentMoving;
         }
 
-        // Broad speed ranges for clean, OEM-style animation
-        var degreesPerSecond = _visualSpeed * 480.0; // Max 480 deg/s for smooth look
-        var advance = degreesPerSecond * seconds;
-        _frameAdvanceDegrees = advance;
-        _angle = Normalize(_angle + advance);
+        // Natural speed curve - not linear with RPM
+        var degreesPerSecond = _visualSpeed * 540.0;
+        _angle = Normalize(_angle + degreesPerSecond * seconds);
         return true;
     }
 
-    /// <summary>
-    /// Map RPM to broad speed ranges with smooth transitions. Not one-to-one.
-    /// </summary>
-    private static double GetTargetSpeed(int rpm)
+    private void UpdateTargetSpeed()
     {
-        if (rpm <= 0)
-            return 0.0;
-        if (rpm < 800)
-            return 0.15; // Low
-        if (rpm < 2000)
-            return 0.35; // Medium-low
-        if (rpm < 3500)
-            return 0.65; // Medium
-        if (rpm < 4500)
-            return 0.85; // Medium-high
-        return 1.0; // High
+        // Missing telemetry (-1) should not be treated as confirmed zero RPM
+        // Keep previous animation state or slow spin, but per requirements handle gracefully
+        if (Rpm < 0)
+        {
+            // Don't force to zero - but we need to be conservative
+            // If we don't know, don't spin actively
+            _targetSpeed = 0.0;
+            return;
+        }
+        if (Rpm == 0)
+        {
+            _targetSpeed = 0.0;
+            return;
+        }
+
+        // Blended nonlinear mapping for natural feel
+        double rpmNorm;
+        if (MaxRpm > 0)
+            rpmNorm = Math.Clamp((double)Rpm / MaxRpm, 0.0, 1.0);
+        else
+            rpmNorm = Math.Clamp((double)Rpm / 5000.0, 0.0, 1.0);
+
+        // Smooth curve - low speeds more visible, high speeds not excessive
+        _targetSpeed = Math.Pow(rpmNorm, 0.7) * 0.9;
+        if (_targetSpeed < 0.08) _targetSpeed = 0.08;
+        if (_targetSpeed > 0.85) _targetSpeed = 0.85;
     }
 
     private double VisualRatio()
     {
-        if (MaxRpm <= 0)
+        if (MaxRpm <= 0 || Rpm < 0)
             return 0.0;
         return Math.Clamp((double)Rpm / MaxRpm, 0.0, 1.0);
     }
@@ -254,8 +270,9 @@ public class AnalogFanControl : AnimatedGauge
         _cachedWidth = Bounds.Width;
         _cachedHeight = Bounds.Height;
         _outerRadius = dial / 2.0 - 1.0;
-        _hubRadius = _outerRadius * 0.22;
-        _hubDotRadius = Math.Max(2.0, _hubRadius * 0.25);
+        _hubRadius = _outerRadius * 0.19;
+        _hubOuterRadius = _outerRadius * 0.26;
+        _hubDotRadius = Math.Max(2.2, _hubRadius * 0.28);
         _arcRadius = _outerRadius * 0.79;
         _arcThickness = Math.Clamp(_outerRadius * 0.05, 2.0, 5.0);
 
@@ -308,8 +325,10 @@ public class AnalogFanControl : AnimatedGauge
         _inkColor = ink;
 
         _accentSolid = new SolidColorBrush(ink);
+        // Subtle gradient-like effect with solid color but different shades
         _bladeBrush = new SolidColorBrush(ink);
-        _ringBrush = new SolidColorBrush(Color.FromArgb(180, ink.R, ink.G, ink.B));
+        _hubBrush = new SolidColorBrush(Color.FromArgb(220, (byte)Math.Min(255, ink.R + 20), (byte)Math.Min(255, ink.G + 20), (byte)Math.Min(255, ink.B + 20)));
+        _hubRingBrush = new SolidColorBrush(Color.FromArgb(120, ink.R, ink.G, ink.B));
     }
 
     private void BuildBlades()
@@ -319,23 +338,26 @@ public class AnalogFanControl : AnimatedGauge
         try
         {
             var origin = new Point(0, 0);
-            var innerR = _hubRadius * 1.1;
-            var outerR = _outerRadius * 0.68;
+            var innerR = _hubOuterRadius * 1.05;
+            var midR = _outerRadius * 0.52;
+            var outerR = _outerRadius * 0.74;
 
             for (var i = 0; i < BladeCount; i++)
             {
                 var angle = i * 360.0 / BladeCount;
-                // Clean, simple blade shape
-                var p1 = DashboardVisuals.Polar(origin, innerR, angle - 4);
-                var p2 = DashboardVisuals.Polar(origin, outerR * 0.7, angle - 6);
+                var sweep = 360.0 / BladeCount * 0.32;
+
+                // Curved blade shape like real impellers
+                var p1 = DashboardVisuals.Polar(origin, innerR, angle - sweep);
+                var p2 = DashboardVisuals.Polar(origin, midR, angle - sweep * 1.2);
                 var p3 = DashboardVisuals.Polar(origin, outerR, angle);
-                var p4 = DashboardVisuals.Polar(origin, outerR * 0.7, angle + 6);
-                var p5 = DashboardVisuals.Polar(origin, innerR, angle + 4);
+                var p4 = DashboardVisuals.Polar(origin, midR, angle + sweep * 1.2);
+                var p5 = DashboardVisuals.Polar(origin, innerR, angle + sweep);
 
                 context.BeginFigure(p1, true);
                 context.CubicBezierTo(p2, p3, p3);
                 context.CubicBezierTo(p3, p4, p5);
-                context.CubicBezierTo(p1, p1, p1);
+                context.QuadraticBezierTo(p1, p1);
                 context.EndFigure(true);
             }
         }
