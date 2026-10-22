@@ -321,18 +321,18 @@ public class AnalogFanControl : AnimatedGauge
         var geometry = new PathGeometry();
         var figures = new PathFigures();
         
-        var innerR = _hubRadius * 1.2;
-        var outerR = _outerRadius * 0.68;
+        var innerR = _hubRadius * 1.15;
+        var outerR = _outerRadius * 0.65;
         
         for (int i = 0; i < BladeCount; i++)
         {
             double angle = i * Math.PI * 2.0 / BladeCount;
-            double sweep = Math.PI * 2.0 / BladeCount * 0.25;
+            double sweep = Math.PI * 2.0 / BladeCount * 0.22;
             
             var p1 = Polar(new Point(0,0), innerR, angle - sweep);
-            var p2 = Polar(new Point(0,0), outerR * 0.6, angle - sweep * 0.6);
+            var p2 = Polar(new Point(0,0), outerR * 0.55, angle - sweep * 0.5);
             var p3 = Polar(new Point(0,0), outerR, angle);
-            var p4 = Polar(new Point(0,0), outerR * 0.6, angle + sweep * 0.6);
+            var p4 = Polar(new Point(0,0), outerR * 0.55, angle + sweep * 0.5);
             var p5 = Polar(new Point(0,0), innerR, angle + sweep);
             
             var figure = new PathFigure { StartPoint = p1, IsClosed = true };
