@@ -5,11 +5,6 @@ using Avalonia.Media;
 
 namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
-/// <summary>
-/// Premium OEM-style fan indicator with smooth, natural animation.
-/// The animation is decorative - driven by RPM telemetry with blended speed ranges.
-/// Numeric RPM reading remains accurate and independent.
-/// </summary>
 public class AnalogFanControl : AnimatedGauge
 {
     private const int Divisions = 60;
@@ -45,18 +40,17 @@ public class AnalogFanControl : AnimatedGauge
         set => SetValue(AccentProperty, value);
     }
 
-    private double _visualSpeed; // 0.0 to 1.0
+    private double _visualSpeed;
     private double _targetSpeed;
     private double _angle;
 
-    // Geometry cache
     private double _outerRadius;
     private double _arcRadius;
     private double _arcThickness;
     private double _hubRadius;
     private double _hubOuterRadius;
     private double _hubDotRadius;
-    private Geometry _blades = new StreamGeometry();
+    private PathGeometry? _bladesPath;
     private Geometry _ticksMinor = new StreamGeometry();
     private Geometry _ticksMajor = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
@@ -151,35 +145,23 @@ public class AnalogFanControl : AnimatedGauge
             context.DrawGeometry(null, new Pen(_accentSolid, _arcThickness, null, PenLineCap.Round), _progressArc);
         }
 
-        // Subtle housing ring
         context.DrawEllipse(null, new Pen(new SolidColorBrush(Color.FromArgb(40, ink.R, ink.G, ink.B)), 1.0), 
             center, _outerRadius * 0.76, _outerRadius * 0.76);
 
-        // Always draw blades even if speed is very low to ensure animation is visible
-        DrawRotor(context, center);
+        if (Rpm >= 0 && !(Rpm == 0 && _visualSpeed <= 0.001) && _bladesPath != null)
+        {
+            using (context.PushTransform(
+                Matrix.CreateTranslation(center.X, center.Y) * 
+                Matrix.CreateRotation(_angle * Math.PI / 180.0)))
+            {
+                context.DrawGeometry(_bladeBrush, null, _bladesPath);
+            }
+        }
 
-        // Hub assembly
         context.DrawEllipse(_hubBrush, null, center, _hubOuterRadius, _hubOuterRadius);
         context.DrawEllipse(null, _hubPen, center, _hubOuterRadius, _hubOuterRadius);
         context.DrawEllipse(_hubRingBrush, null, center, _hubRadius * 0.7, _hubRadius * 0.7);
         context.DrawEllipse(_accentSolid, null, center, _hubDotRadius, _hubDotRadius);
-    }
-
-    private void DrawRotor(DrawingContext context, Point center)
-    {
-        if (Rpm < 0)
-            return;
-
-        if (Rpm == 0 && _visualSpeed <= 0.001)
-            return;
-
-        using (context.PushOpacity(0.95))
-        using (context.PushTransform(
-            Matrix.CreateTranslation(center.X, center.Y)
-            * Matrix.CreateRotation(_angle * Math.PI / 180.0)))
-        {
-            context.DrawGeometry(_bladeBrush, null, _blades);
-        }
     }
 
     protected override bool Advance(double seconds)
@@ -329,7 +311,6 @@ public class AnalogFanControl : AnimatedGauge
         _inkColor = ink;
 
         _accentSolid = new SolidColorBrush(ink);
-        // Subtle gradient-like effect with solid color but different shades
         _bladeBrush = new SolidColorBrush(ink);
         _hubBrush = new SolidColorBrush(Color.FromArgb(220, (byte)Math.Min(255, ink.R + 20), (byte)Math.Min(255, ink.G + 20), (byte)Math.Min(255, ink.B + 20)));
         _hubRingBrush = new SolidColorBrush(Color.FromArgb(120, ink.R, ink.G, ink.B));
@@ -337,37 +318,39 @@ public class AnalogFanControl : AnimatedGauge
 
     private void BuildBlades()
     {
-        var geometry = new StreamGeometry();
-        var context = geometry.Open();
-        try
+        var geometry = new PathGeometry();
+        var figures = new PathFigures();
+        
+        var innerR = _hubRadius * 1.2;
+        var outerR = _outerRadius * 0.68;
+        
+        for (int i = 0; i < BladeCount; i++)
         {
-            var origin = new Point(0, 0);
-            var innerR = _hubRadius * 1.25;
-            var midR = _outerRadius * 0.52;
-            var outerR = _outerRadius * 0.72;
-
-            for (var i = 0; i < BladeCount; i++)
-            {
-                var angle = i * 360.0 / BladeCount;
-                var sweep = 360.0 / BladeCount * 0.22;
-
-                var p1 = DashboardVisuals.Polar(origin, innerR, angle - sweep);
-                var p2 = DashboardVisuals.Polar(origin, midR, angle - sweep * 0.8);
-                var p3 = DashboardVisuals.Polar(origin, outerR, angle);
-                var p4 = DashboardVisuals.Polar(origin, midR, angle + sweep * 0.8);
-                var p5 = DashboardVisuals.Polar(origin, innerR, angle + sweep);
-
-                context.BeginFigure(p1, true);
-                context.CubicBezierTo(p2, p3, p3);
-                context.CubicBezierTo(p3, p4, p5);
-                context.QuadraticBezierTo(p1, p1);
-                context.EndFigure(true);
-            }
+            double angle = i * Math.PI * 2.0 / BladeCount;
+            double sweep = Math.PI * 2.0 / BladeCount * 0.25;
+            
+            var p1 = Polar(new Point(0,0), innerR, angle - sweep);
+            var p2 = Polar(new Point(0,0), outerR * 0.6, angle - sweep * 0.6);
+            var p3 = Polar(new Point(0,0), outerR, angle);
+            var p4 = Polar(new Point(0,0), outerR * 0.6, angle + sweep * 0.6);
+            var p5 = Polar(new Point(0,0), innerR, angle + sweep);
+            
+            var figure = new PathFigure { StartPoint = p1, IsClosed = true };
+            figure.Segments.Add(new BezierSegment { Point1 = p2, Point2 = p3, Point3 = p3 });
+            figure.Segments.Add(new BezierSegment { Point1 = p3, Point2 = p4, Point3 = p5 });
+            figure.Segments.Add(new QuadraticBezierSegment { Point1 = p1, Point2 = p1 });
+            figures.Add(figure);
         }
-        finally
-        {
-            context.Dispose();
-        }
-        _blades = geometry;
+        
+        geometry.Figures = figures;
+        _bladesPath = geometry;
+    }
+    
+    private static Point Polar(Point center, double radius, double angle)
+    {
+        return new Point(
+            center.X + radius * Math.Cos(angle - Math.PI / 2.0),
+            center.Y + radius * Math.Sin(angle - Math.PI / 2.0)
+        );
     }
 }
