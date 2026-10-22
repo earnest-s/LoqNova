@@ -14,7 +14,7 @@ public class AnalogFanControl : AnimatedGauge
 {
     private const int Divisions = 60;
     private const int MajorTickEvery = 5;
-    private const int BladeCount = 7;
+    private const int BladeCount = 4;
 
     private const double ResponseSeconds = 0.22;
 
