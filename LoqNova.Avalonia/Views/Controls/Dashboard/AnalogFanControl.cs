@@ -155,6 +155,7 @@ public class AnalogFanControl : AnimatedGauge
         context.DrawEllipse(null, new Pen(new SolidColorBrush(Color.FromArgb(40, ink.R, ink.G, ink.B)), 1.0), 
             center, _outerRadius * 0.76, _outerRadius * 0.76);
 
+        // Always draw blades even if speed is very low to ensure animation is visible
         DrawRotor(context, center);
 
         // Hub assembly
@@ -166,12 +167,17 @@ public class AnalogFanControl : AnimatedGauge
 
     private void DrawRotor(DrawingContext context, Point center)
     {
-        if (_visualSpeed <= 0.001)
+        if (_visualSpeed <= 0.0001 && Rpm <= 0)
             return;
+
+        // Ensure minimum rotation for visibility when reported as spinning
+        var rotationAngle = _angle;
+        if (_visualSpeed > 0 && _visualSpeed < 0.001)
+            rotationAngle = _angle; // keep advancing
 
         using (context.PushOpacity(0.95))
         using (context.PushTransform(
-            Matrix.CreateRotation(_angle * Math.PI / 180.0)
+            Matrix.CreateRotation(rotationAngle * Math.PI / 180.0)
             * Matrix.CreateTranslation(center.X, center.Y)))
         {
             context.DrawGeometry(_bladeBrush, null, _blades);
@@ -195,26 +201,24 @@ public class AnalogFanControl : AnimatedGauge
             _visualSpeed = _targetSpeed;
         }
 
-        if (_visualSpeed <= 0.001)
+        if (_visualSpeed <= 0.001 && Rpm <= 0)
         {
             _visualSpeed = 0.0;
-            return accentMoving;
+            return accentMoving; // Keep checking accent but don't spin
         }
 
         // Natural speed curve - not linear with RPM
-        var degreesPerSecond = _visualSpeed * 540.0;
+        var speedFactor = _visualSpeed > 0 ? _visualSpeed : 0.12;
+        var degreesPerSecond = speedFactor * 600.0;
         _angle = Normalize(_angle + degreesPerSecond * seconds);
-        return true;
+        return true; // Always keep animating while control is active
     }
 
     private void UpdateTargetSpeed()
     {
         // Missing telemetry (-1) should not be treated as confirmed zero RPM
-        // Keep previous animation state or slow spin, but per requirements handle gracefully
         if (Rpm < 0)
         {
-            // Don't force to zero - but we need to be conservative
-            // If we don't know, don't spin actively
             _targetSpeed = 0.0;
             return;
         }
@@ -231,10 +235,10 @@ public class AnalogFanControl : AnimatedGauge
         else
             rpmNorm = Math.Clamp((double)Rpm / 5000.0, 0.0, 1.0);
 
-        // Smooth curve - low speeds more visible, high speeds not excessive
-        _targetSpeed = Math.Pow(rpmNorm, 0.7) * 0.9;
-        if (_targetSpeed < 0.08) _targetSpeed = 0.08;
-        if (_targetSpeed > 0.85) _targetSpeed = 0.85;
+        // Smooth curve - ensure visible rotation at all non-zero RPM
+        _targetSpeed = Math.Pow(rpmNorm, 0.7) * 0.95;
+        if (_targetSpeed < 0.12) _targetSpeed = 0.12; // Ensure visible rotation even at low RPM
+        if (_targetSpeed > 0.9) _targetSpeed = 0.9;
     }
 
     private double VisualRatio()
