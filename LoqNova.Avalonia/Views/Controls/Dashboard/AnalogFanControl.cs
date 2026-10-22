@@ -175,9 +175,8 @@ public class AnalogFanControl : AnimatedGauge
 
         using (context.PushOpacity(0.95))
         using (context.PushTransform(
-            Matrix.CreateTranslation(-center.X, -center.Y)
-            * Matrix.CreateRotation(_angle * Math.PI / 180.0)
-            * Matrix.CreateTranslation(center.X, center.Y)))
+            Matrix.CreateTranslation(center.X, center.Y)
+            * Matrix.CreateRotation(_angle * Math.PI / 180.0)))
         {
             context.DrawGeometry(_bladeBrush, null, _blades);
         }
