@@ -342,20 +342,19 @@ public class AnalogFanControl : AnimatedGauge
         try
         {
             var origin = new Point(0, 0);
-            var innerR = _hubOuterRadius * 1.08;
-            var midR = _outerRadius * 0.48;
-            var outerR = _outerRadius * 0.76;
+            var innerR = _hubRadius * 1.25;
+            var midR = _outerRadius * 0.52;
+            var outerR = _outerRadius * 0.72;
 
             for (var i = 0; i < BladeCount; i++)
             {
                 var angle = i * 360.0 / BladeCount;
-                var sweep = 360.0 / BladeCount * 0.28;
+                var sweep = 360.0 / BladeCount * 0.22;
 
-                // Aerodynamic curved 4-blade impeller
                 var p1 = DashboardVisuals.Polar(origin, innerR, angle - sweep);
-                var p2 = DashboardVisuals.Polar(origin, midR * 0.9, angle - sweep * 1.15);
+                var p2 = DashboardVisuals.Polar(origin, midR, angle - sweep * 0.8);
                 var p3 = DashboardVisuals.Polar(origin, outerR, angle);
-                var p4 = DashboardVisuals.Polar(origin, midR * 0.9, angle + sweep * 1.15);
+                var p4 = DashboardVisuals.Polar(origin, midR, angle + sweep * 0.8);
                 var p5 = DashboardVisuals.Polar(origin, innerR, angle + sweep);
 
                 context.BeginFigure(p1, true);
