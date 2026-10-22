@@ -170,7 +170,7 @@ public class AnalogFanControl : AnimatedGauge
         if (Rpm < 0)
             return;
 
-        if (Rpm == 0 && _visualSpeed <= 0.0001)
+        if (Rpm == 0 && _visualSpeed <= 0.001)
             return;
 
         using (context.PushOpacity(0.95))
