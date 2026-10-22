@@ -150,11 +150,12 @@ public class AnalogFanControl : AnimatedGauge
 
         if (Rpm >= 0 && !(Rpm == 0 && _visualSpeed <= 0.001) && _bladesPath != null)
         {
-            var t1 = context.PushTransform(Matrix.CreateTranslation(center.X, center.Y));
-            var t2 = context.PushTransform(Matrix.CreateRotation(_angle * Math.PI / 180.0));
-            context.DrawGeometry(_bladeBrush, null, _bladesPath);
-            t2.Dispose();
-            t1.Dispose();
+            using (context.PushTransform(
+                Matrix.CreateTranslation(center.X, center.Y) * 
+                Matrix.CreateRotation(_angle * Math.PI / 180.0)))
+            {
+                context.DrawGeometry(_bladeBrush, null, _bladesPath);
+            }
         }
 
         context.DrawEllipse(_hubBrush, null, center, _hubOuterRadius, _hubOuterRadius);
