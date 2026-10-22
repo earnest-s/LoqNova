@@ -321,19 +321,19 @@ public class AnalogFanControl : AnimatedGauge
         var geometry = new PathGeometry();
         var figures = new PathFigures();
         
-        var innerR = _hubRadius * 1.15;
-        var outerR = _outerRadius * 0.65;
+        var innerR = _hubRadius * 1.1;
+        var outerR = _outerRadius * 0.62;
         
         for (int i = 0; i < BladeCount; i++)
         {
             double angle = i * Math.PI * 2.0 / BladeCount;
-            double sweep = Math.PI * 2.0 / BladeCount * 0.22;
+            double sweep = Math.PI * 2.0 / BladeCount * 0.18;
             
-            var p1 = Polar(new Point(0,0), innerR, angle - sweep);
-            var p2 = Polar(new Point(0,0), outerR * 0.55, angle - sweep * 0.5);
-            var p3 = Polar(new Point(0,0), outerR, angle);
-            var p4 = Polar(new Point(0,0), outerR * 0.55, angle + sweep * 0.5);
-            var p5 = Polar(new Point(0,0), innerR, angle + sweep);
+            var p1 = new Point(innerR * Math.Cos(angle - sweep), innerR * Math.Sin(angle - sweep));
+            var p2 = new Point(outerR * 0.5 * Math.Cos(angle - sweep * 0.4), outerR * 0.5 * Math.Sin(angle - sweep * 0.4));
+            var p3 = new Point(outerR * Math.Cos(angle), outerR * Math.Sin(angle));
+            var p4 = new Point(outerR * 0.5 * Math.Cos(angle + sweep * 0.4), outerR * 0.5 * Math.Sin(angle + sweep * 0.4));
+            var p5 = new Point(innerR * Math.Cos(angle + sweep), innerR * Math.Sin(angle + sweep));
             
             var figure = new PathFigure { StartPoint = p1, IsClosed = true };
             figure.Segments.Add(new BezierSegment { Point1 = p2, Point2 = p3, Point3 = p3 });
