@@ -177,7 +177,8 @@ public class AnalogFanControl : AnimatedGauge
 
         using (context.PushOpacity(0.95))
         using (context.PushTransform(
-            Matrix.CreateRotation(rotationAngle * Math.PI / 180.0)
+            Matrix.CreateTranslation(-center.X, -center.Y)
+            * Matrix.CreateRotation(rotationAngle * Math.PI / 180.0)
             * Matrix.CreateTranslation(center.X, center.Y)))
         {
             context.DrawGeometry(_bladeBrush, null, _blades);
@@ -201,17 +202,19 @@ public class AnalogFanControl : AnimatedGauge
             _visualSpeed = _targetSpeed;
         }
 
-        if (_visualSpeed <= 0.001 && Rpm <= 0)
+        if (_visualSpeed <= 0.0001 && Rpm <= 0)
         {
             _visualSpeed = 0.0;
-            return accentMoving; // Keep checking accent but don't spin
+            _angle = Normalize(_angle); // keep angle stable
+            return true; // Keep timer alive for responsiveness
         }
 
         // Natural speed curve - not linear with RPM
-        var speedFactor = _visualSpeed > 0 ? _visualSpeed : 0.12;
+        var speedFactor = _visualSpeed > 0 ? _visualSpeed : (Rpm > 0 ? 0.12 : 0);
+        if (Rpm > 0 && speedFactor < 0.12) speedFactor = 0.12;
         var degreesPerSecond = speedFactor * 600.0;
         _angle = Normalize(_angle + degreesPerSecond * seconds);
-        return true; // Always keep animating while control is active
+        return true; // Always keep animating
     }
 
     private void UpdateTargetSpeed()
