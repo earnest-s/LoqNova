@@ -216,12 +216,12 @@ public class AnalogFanControl : AnimatedGauge
 
         double rpmNorm;
         if (MaxRpm > 0)
-            rpmNorm = Math.Clamp((double)Rpm / (double)MaxRpm, 0.0, 1.0);
+            rpmNorm = Math.Clamp((double)Rpm / (double)MaxRpm, 0.001, 1.0);
         else
-            rpmNorm = Math.Clamp((double)Rpm / 5000.0, 0.0, 1.0);
+            rpmNorm = Math.Clamp((double)Rpm / 5000.0, 0.001, 1.0);
 
-        _targetSpeed = Math.Pow(rpmNorm, 0.7);
-        _targetSpeed = Math.Clamp(_targetSpeed, 0.12, 0.9);
+        _targetSpeed = Math.Pow(rpmNorm, 0.68);
+        _targetSpeed = Math.Clamp(_targetSpeed, 0.08, 0.95);
     }
 
     private double VisualRatio()
