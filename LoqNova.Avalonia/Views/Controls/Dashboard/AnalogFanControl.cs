@@ -151,8 +151,8 @@ public class AnalogFanControl : AnimatedGauge
         if (Rpm >= 0 && !(Rpm == 0 && _visualSpeed <= 0.001) && _bladesPath != null)
         {
             using (context.PushTransform(
-                Matrix.CreateTranslation(center.X, center.Y) * 
-                Matrix.CreateRotation(_angle * Math.PI / 180.0)))
+                Matrix.CreateRotation(_angle * Math.PI / 180.0) *
+                Matrix.CreateTranslation(center.X, center.Y)))
             {
                 context.DrawGeometry(_bladeBrush, null, _bladesPath);
             }
