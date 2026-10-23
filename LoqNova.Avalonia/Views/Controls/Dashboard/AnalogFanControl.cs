@@ -171,11 +171,11 @@ public class AnalogFanControl : AnimatedGauge
 
         if (_targetSpeed > _visualSpeed)
         {
-            _visualSpeed = Math.Min(_targetSpeed, _visualSpeed + seconds / ResponseSeconds * 1.2);
+            _visualSpeed = Math.Min(_targetSpeed, _visualSpeed + seconds / (ResponseSeconds * 0.8));
         }
         else if (_targetSpeed < _visualSpeed)
         {
-            _visualSpeed = Math.Max(_targetSpeed, _visualSpeed - seconds / ResponseSeconds * 1.2);
+            _visualSpeed = Math.Max(_targetSpeed, _visualSpeed - seconds / (ResponseSeconds * 0.9));
         }
 
         if (Rpm < 0)
@@ -185,10 +185,9 @@ public class AnalogFanControl : AnimatedGauge
 
         if (Rpm == 0)
         {
-            if (_visualSpeed <= 0.0005)
+            if (_visualSpeed <= 0.0001)
             {
                 _visualSpeed = 0.0;
-                _angle = Normalize(_angle);
                 return accentMoving;
             }
             var degreesPerSecond = _visualSpeed * 720.0;
@@ -196,9 +195,9 @@ public class AnalogFanControl : AnimatedGauge
             return true;
         }
 
-        if (_visualSpeed < 0.001) _visualSpeed = 0.001;
-        var rpmDegreesPerSecond = _visualSpeed * 720.0;
-        _angle = Normalize(_angle + rpmDegreesPerSecond * seconds);
+        if (_visualSpeed < 0.0005) _visualSpeed = 0.0005;
+        var fanDegreesPerSecond = _visualSpeed * 720.0;
+        _angle = Normalize(_angle + fanDegreesPerSecond * seconds);
         return true;
     }
 
