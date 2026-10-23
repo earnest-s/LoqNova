@@ -169,16 +169,13 @@ public class AnalogFanControl : AnimatedGauge
         var accentMoving = AdvanceAccent(seconds);
         UpdateTargetSpeed();
 
-        var delta = _targetSpeed - _visualSpeed;
-        if (Math.Abs(delta) > 0.0001)
+        if (_targetSpeed > _visualSpeed)
         {
-            _visualSpeed += delta * (1.0 - Math.Exp(-seconds / ResponseSeconds));
-            if (Math.Abs(_targetSpeed - _visualSpeed) < 0.005)
-                _visualSpeed = _targetSpeed;
+            _visualSpeed = Math.Min(_targetSpeed, _visualSpeed + seconds / ResponseSeconds * 1.2);
         }
-        else
+        else if (_targetSpeed < _visualSpeed)
         {
-            _visualSpeed = _targetSpeed;
+            _visualSpeed = Math.Max(_targetSpeed, _visualSpeed - seconds / ResponseSeconds * 1.2);
         }
 
         if (Rpm < 0)
@@ -186,16 +183,22 @@ public class AnalogFanControl : AnimatedGauge
             return accentMoving;
         }
 
-        if (Rpm == 0 && _visualSpeed <= 0.0001)
+        if (Rpm == 0)
         {
-            _visualSpeed = 0.0;
-            return accentMoving;
+            if (_visualSpeed <= 0.0005)
+            {
+                _visualSpeed = 0.0;
+                _angle = Normalize(_angle);
+                return accentMoving;
+            }
+            var degreesPerSecond = _visualSpeed * 720.0;
+            _angle = Normalize(_angle + degreesPerSecond * seconds);
+            return true;
         }
 
-        var speedFactor = _visualSpeed > 0 ? _visualSpeed : 0.15;
-        if (Rpm > 0 && speedFactor < 0.15) speedFactor = 0.15;
-        var degreesPerSecond = speedFactor * 720.0;
-        _angle = Normalize(_angle + degreesPerSecond * seconds);
+        if (_visualSpeed < 0.001) _visualSpeed = 0.001;
+        var rpmDegreesPerSecond = _visualSpeed * 720.0;
+        _angle = Normalize(_angle + rpmDegreesPerSecond * seconds);
         return true;
     }
 
@@ -214,13 +217,12 @@ public class AnalogFanControl : AnimatedGauge
 
         double rpmNorm;
         if (MaxRpm > 0)
-            rpmNorm = Math.Clamp((double)Rpm / MaxRpm, 0.0, 1.0);
+            rpmNorm = Math.Clamp((double)Rpm / (double)MaxRpm, 0.0, 1.0);
         else
             rpmNorm = Math.Clamp((double)Rpm / 5000.0, 0.0, 1.0);
 
-        _targetSpeed = Math.Pow(rpmNorm, 0.65) * 1.0;
-        if (_targetSpeed < 0.15) _targetSpeed = 0.15;
-        if (_targetSpeed > 0.95) _targetSpeed = 0.95;
+        _targetSpeed = Math.Pow(rpmNorm, 0.7);
+        _targetSpeed = Math.Clamp(_targetSpeed, 0.12, 0.9);
     }
 
     private double VisualRatio()
