@@ -9,7 +9,7 @@ public class AnalogFanControl : AnimatedGauge
 {
     private const int Divisions = 60;
     private const int MajorTickEvery = 5;
-    private const int BladeCount = 4;
+    private const int BladeCount = 11;
 
     private const double ResponseSeconds = 0.22;
 
@@ -322,24 +322,34 @@ public class AnalogFanControl : AnimatedGauge
         var geometry = new PathGeometry();
         var figures = new PathFigures();
         
-        var innerR = _hubRadius * 1.1;
-        var outerR = _outerRadius * 0.62;
+        var innerR = _hubRadius * 1.28;
+        var outerR = _outerRadius * 0.72;
+        var sweep = Math.PI * 2.0 / BladeCount * 0.38;
         
         for (int i = 0; i < BladeCount; i++)
         {
             double angle = i * Math.PI * 2.0 / BladeCount;
-            double sweep = Math.PI * 2.0 / BladeCount * 0.18;
             
-            var p1 = new Point(innerR * Math.Cos(angle - sweep), innerR * Math.Sin(angle - sweep));
-            var p2 = new Point(outerR * 0.5 * Math.Cos(angle - sweep * 0.4), outerR * 0.5 * Math.Sin(angle - sweep * 0.4));
-            var p3 = new Point(outerR * Math.Cos(angle), outerR * Math.Sin(angle));
-            var p4 = new Point(outerR * 0.5 * Math.Cos(angle + sweep * 0.4), outerR * 0.5 * Math.Sin(angle + sweep * 0.4));
-            var p5 = new Point(innerR * Math.Cos(angle + sweep), innerR * Math.Sin(angle + sweep));
+            // Squirrel cage / laptop blower style blade: short, broad, curved
+            // Originates near hub, sweeps backward as it extends outward
+            var backAngle = angle - sweep * 0.55;
+            var frontAngle = angle + sweep * 0.25;
+            
+            var p1 = new Point(innerR * 0.92 * Math.Cos(backAngle), innerR * 0.92 * Math.Sin(backAngle));
+            var p2 = new Point(innerR * 1.08 * Math.Cos(backAngle * 0.98), innerR * 1.08 * Math.Sin(backAngle * 0.98));
+            var p3 = new Point(outerR * 0.72 * Math.Cos(backAngle * 0.6), outerR * 0.72 * Math.Sin(backAngle * 0.6));
+            var p4 = new Point(outerR * 0.95 * Math.Cos(angle * 0.4), outerR * 0.95 * Math.Sin(angle * 0.4));
+            var p5 = new Point(outerR * Math.Cos(frontAngle * 0.35), outerR * Math.Sin(frontAngle * 0.35));
+            var p6 = new Point(outerR * 0.68 * Math.Cos(frontAngle * 0.5), outerR * 0.68 * Math.Sin(frontAngle * 0.5));
+            var p7 = new Point(innerR * 0.95 * Math.Cos(frontAngle * 0.9), innerR * 0.95 * Math.Sin(frontAngle * 0.9));
             
             var figure = new PathFigure { StartPoint = p1, IsClosed = true };
-            figure.Segments.Add(new BezierSegment { Point1 = p2, Point2 = p3, Point3 = p3 });
-            figure.Segments.Add(new BezierSegment { Point1 = p3, Point2 = p4, Point3 = p5 });
-            figure.Segments.Add(new QuadraticBezierSegment { Point1 = p1, Point2 = p1 });
+            // Leading edge - curved from hub
+            figure.Segments.Add(new BezierSegment { Point1 = p2, Point2 = p3, Point3 = p4 });
+            // Tip - broad, rounded
+            figure.Segments.Add(new BezierSegment { Point1 = p4, Point2 = p5, Point3 = p6 });
+            // Trailing edge - curves back to hub
+            figure.Segments.Add(new BezierSegment { Point1 = p6, Point2 = p7, Point3 = p1 });
             figures.Add(figure);
         }
         
