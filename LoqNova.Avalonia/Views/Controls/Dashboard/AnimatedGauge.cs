@@ -428,7 +428,7 @@ public abstract class AnimatedGauge : Control
         }
 
         _running = true;
-        _lastTimestamp = Environment.TickCount64;
+        _frameClock.Restart();
         _timer.Start();
     }
 
@@ -440,14 +440,16 @@ public abstract class AnimatedGauge : Control
         }
 
         _running = false;
+        _frameClock.Stop();
         _timer.Stop();
     }
 
     private void OnTick(object? sender, EventArgs e)
     {
-        var now = Environment.TickCount64;
-        var elapsed = now - _lastTimestamp;
-        _lastTimestamp = now;
+        // The clock is restarted before any early return, so time spent hidden
+        // is not handed to the next visible frame.
+        var elapsed = _frameClock.Elapsed.TotalSeconds;
+        _frameClock.Restart();
         if (elapsed <= 0)
         {
             return;
@@ -455,13 +457,13 @@ public abstract class AnimatedGauge : Control
 
         // A minimised window or a hidden ancestor stops the motion without tearing
         // the timer down; the next visible frame picks it up with a normal step
-        // because the timestamp above has already been advanced.
+        // because the clock above has already been restarted.
         if (!IsEffectivelyVisible)
         {
             return;
         }
 
-        var seconds = Math.Min(elapsed / 1000.0, MaxStepSeconds);
+        var seconds = Math.Min(elapsed, MaxStepSeconds);
         var needsMoreFrames = Advance(seconds);
         InvalidateVisual();
 
