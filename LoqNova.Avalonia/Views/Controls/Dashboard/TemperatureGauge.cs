@@ -1,5 +1,4 @@
 using System;
-using System.Globalization;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Media;
@@ -7,39 +6,47 @@ using Avalonia.Media;
 namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
 /// <summary>
-/// The temperature instrument for one device, drawn as a compact circular dial
-/// from the same instrument family as <see cref="ClusterGauge"/>: the same
-/// 210°-450° scale, the same tick rhythm, the same hub readout and the same
-/// clipped pointer. Temperature is a first-class reading here, so it gets a real
-/// analog gauge rather than a bar tucked beside the utilisation dial.
+/// The temperature instrument for one device, drawn as a compact semicircular
+/// dial from the same family as <see cref="ClusterGauge"/>: the same 9-to-3
+/// scale, the same tick rhythm, the same pivot and clipped pointer, and the same
+/// digital readout below the pivot.
 /// <para>
 /// The two dials stay distinguishable rather than merely duplicated. The
-/// utilisation dial's arc and needle carry the active power mode's accent; the
-/// temperature dial's arc and pointer carry a display severity derived from the
-/// reported reading against the maximum the machine reports for that channel
-/// (comfortable / warm / hot), while the mode accent still drives the dial's
-/// needle, hub and ticks. That keeps a thermal warning meaningful without letting
-/// the warning colour take over the whole cluster, and keeps the mode colour
-/// present on every instrument.
+/// utilisation dial's arc and needle carry the active power mode's accent; this
+/// dial's thin inner band marks the thermal zones and its active arc carries a
+/// severity derived from the reported reading, so a thermal warning is
+/// meaningful and stays independent of the performance-mode colour. The needle
+/// and pivot still carry the mode accent, so a mode change is visible here too.
 /// </para>
 /// <para>
-/// An unreported channel draws an empty scale and no severity at all, and a
-/// channel with no reported maximum is drawn in the temperature channel colour
-/// rather than being given a fabricated severity. The needle never leaves the
-/// annulus between the hub and the tick run, so it can never cross the readout or
-/// the scale whatever the paint order or the resolved brushes do.
+/// An unreported channel draws an empty scale and no severity at all. The needle
+/// never leaves the annulus between the pivot and the tick run, so it can never
+/// cross the readout or the scale whatever the paint order or the resolved
+/// brushes do.
 /// </para>
 /// </summary>
 public class TemperatureGauge : AnimatedGauge
 {
-    private const double StartAngle = 210.0;
-    private const double SweepAngle = 240.0;
+    private const double StartAngle = 270.0;
+    private const double SweepAngle = 180.0;
 
+    /// <summary>Twelve steps with a major every three: quarter-scale marks.</summary>
     private const int Divisions = 12;
-    private const int MajorTickEvery = 4;
+    private const int MajorTickEvery = 3;
 
     /// <summary>Time constant of the needle's and arc's approach to a new reading.</summary>
     private const double EaseSeconds = 0.18;
+
+    /// <summary>
+    /// Absolute thermal thresholds, in the unit the machine reports. The band
+    /// between them is the warm zone; above the second is the hot zone. They are
+    /// converted to scale fractions against the reported maximum, so the band
+    /// always lands on the calibrated tick run.
+    /// </summary>
+    private const double WarmCelsius = 70.0;
+    private const double HotCelsius = 85.0;
+    private const double WarmFahrenheit = 158.0;
+    private const double HotFahrenheit = 185.0;
 
     public static readonly StyledProperty<int> ValueProperty =
         AvaloniaProperty.Register<TemperatureGauge, int>(nameof(Value), -1);
@@ -55,7 +62,7 @@ public class TemperatureGauge : AnimatedGauge
 
     /// <summary>
     /// The active power mode's colour, handed in by the page. It drives the
-    /// pointer and the hub, so a mode change is visible on this dial too.
+    /// pointer and the pivot, so a mode change is visible on this dial too.
     /// </summary>
     public static readonly StyledProperty<IBrush?> AccentProperty =
         AvaloniaProperty.Register<TemperatureGauge, IBrush?>(nameof(Accent));
@@ -102,13 +109,30 @@ public class TemperatureGauge : AnimatedGauge
     private double _outerRadius;
     private double _arcRadius;
     private double _arcThickness;
-    private double _hubRadius;
+    private double _pivotRadius;
+    private double _tickInner;
+    private double _tickOuter;
 
     private Geometry _ticksMinor = new StreamGeometry();
     private Geometry _ticksMajor = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
     private Geometry _needle = new StreamGeometry();
     private Geometry _needleClip = new StreamGeometry();
+
+    /// <summary>
+    /// Thermal zone bands, rebuilt only when the reported scale or its unit
+    /// changes. They are drawn inside the reading arc rather than over it.
+    /// </summary>
+    private Geometry _warmZone = new StreamGeometry();
+    private Geometry _hotZone = new StreamGeometry();
+    private (int Maximum, string Unit) _zoneKey = (int.MinValue, string.Empty);
+
+    /// <summary>
+    /// The progress arc for the currently displayed ratio. Rebuilt only when the
+    /// displayed value moves, so an unchanged frame allocates no geometry.
+    /// </summary>
+    private Geometry? _arcGeometry;
+    private double _arcRatio = double.NaN;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -141,54 +165,72 @@ public class TemperatureGauge : AnimatedGauge
 
         var center = new Point(Bounds.Width / 2.0, Bounds.Height / 2.0);
         EnsureGeometry(dial, center);
+        EnsureZones(center);
 
         var reported = HasReading;
-        var faceBrush = DashboardVisuals.Brush(this, "CardElevatedBrush", Brushes.Transparent);
         var lineBrush = DashboardVisuals.Brush(this, "BorderBrush", Brushes.Gray);
         var strongBrush = DashboardVisuals.Brush(this, "BorderStrongBrush", Brushes.Gray);
         var trackBrush = DashboardVisuals.Brush(this, "SurfaceRaisedBrush", Brushes.Gray);
         var mutedBrush = DashboardVisuals.Brush(this, "TextMutedBrush", Brushes.Gray);
+        var warningBrush = DashboardVisuals.Brush(this, "WarningBrush", Brushes.Orange);
+        var dangerBrush = DashboardVisuals.Brush(this, "DangerBrush", Brushes.Red);
+        var cardBrush = DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent);
         var valueBrush = reported
             ? DashboardVisuals.Brush(this, "TextPrimaryBrush", Brushes.White)
             : mutedBrush;
 
-        // The mode accent drives the pointer and the hub; the severity band
-        // drives the arc. An unreported channel is muted and gets neither.
+        // The mode accent drives the pointer and the pivot; the severity band
+        // drives the reading arc. An unreported channel is muted and gets neither.
         SetAccentTarget(ResolveAccentColor());
         var accentBrush = reported
             ? (IBrush)new SolidColorBrush(CurrentAccent)
             : mutedBrush;
-        var severityBrush = Severity(reported, _displayRatio, mutedBrush);
-
-        // Dial face, so the temperature dial reads as a sibling of the
-        // utilisation dial rather than a stray ring.
-        context.DrawEllipse(faceBrush, new Pen(lineBrush, 1), center, _outerRadius, _outerRadius);
+        var accentColor = reported
+            ? CurrentAccent
+            : mutedBrush is ISolidColorBrush mutedSolid ? mutedSolid.Color : Colors.Gray;
+        var severityBrush = Severity(reported, Math.Clamp(_displayRatio, 0.0, 1.0), mutedBrush);
 
         // Precise tick marks: fine minors, weighted majors.
-        using (context.PushOpacity(0.5))
+        using (context.PushOpacity(0.55))
         {
             context.DrawGeometry(null, new Pen(lineBrush, 1), _ticksMinor);
         }
 
-        context.DrawGeometry(null, new Pen(accentBrush, 1.4), _ticksMajor);
+        context.DrawGeometry(null, new Pen(strongBrush, 1.4), _ticksMajor);
 
-        // Scale track, then the reported portion in the severity colour.
+        // Scale track, then the thermal zones inside it, then the reported
+        // portion on the track in the severity colour.
         context.DrawGeometry(null, new Pen(trackBrush, _arcThickness, null, PenLineCap.Round), _trackArc);
 
-        var ratio = Math.Clamp(_displayRatio, 0.0, 1.0);
-        if (reported && ratio > 0.004)
-        {
-            var progress = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle * ratio);
-            context.DrawGeometry(null, new Pen(severityBrush, _arcThickness, null, PenLineCap.Round), progress);
-        }
-
-        // The pointer only appears for a channel the machine reported: an
-        // unreported channel must never be shown resting on a scale value.
         if (reported)
         {
-            // Confined to the annulus between the hub cap and the tick run, and
-            // rotated about the exact dial centre, so the pivot stays on the hub
-            // and the tip can never reach the readout or the scale.
+            context.DrawGeometry(
+                null,
+                new Pen(warningBrush, Math.Max(1.5, _arcThickness * 0.38), null, PenLineCap.Flat),
+                _warmZone);
+            context.DrawGeometry(
+                null,
+                new Pen(dangerBrush, Math.Max(1.5, _arcThickness * 0.38), null, PenLineCap.Flat),
+                _hotZone);
+        }
+
+        var ratio = Math.Clamp(_displayRatio, 0.0, 1.0);
+        if (reported && ratio > 0.002)
+        {
+            if (Math.Abs(ratio - _arcRatio) > 0.0005 || _arcGeometry is null)
+            {
+                _arcGeometry = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle * ratio);
+                _arcRatio = ratio;
+            }
+
+            context.DrawGeometry(null, new Pen(severityBrush, _arcThickness, null, PenLineCap.Round), _arcGeometry);
+        }
+
+        // The pointer only appears for a channel the machine reported, confined
+        // to the annulus between the pivot cap and the tick run and rotated about
+        // the exact dial centre.
+        if (reported)
+        {
             using (context.PushGeometryClip(_needleClip))
             using (context.PushTransform(
                 Matrix.CreateRotation((StartAngle + SweepAngle * ratio) * Math.PI / 180.0)
@@ -198,29 +240,30 @@ public class TemperatureGauge : AnimatedGauge
             }
         }
 
-        // Digital hub: the reported reading, or the eased count-up while the
-        // opening sweep is still running, drawn at the size the finished reading
-        // resolves to so the digits do not change size as the sweep lands.
-        context.DrawEllipse(
-            DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
-            new Pen(strongBrush, 1),
-            center, _hubRadius, _hubRadius);
+        // Mechanical pivot.
+        context.DrawEllipse(cardBrush, new Pen(strongBrush, 1.2), center, _pivotRadius, _pivotRadius);
+        context.DrawEllipse(new SolidColorBrush(accentColor), null, center, _pivotRadius * 0.36, _pivotRadius * 0.36);
 
+        // Digital readout below the pivot, matching the utilisation dial.
         var typeface = DashboardVisuals.Typeface(this);
+        var labelTypeface = DashboardVisuals.Weighted(typeface, FontWeight.Medium);
+        var valueTypeface = DashboardVisuals.Weighted(typeface, FontWeight.SemiBold);
         var reading = ValueText ?? "-";
-        var value = DashboardVisuals.Text(
+        var value = DashboardVisuals.FittedText(
             IsStartupSweeping ? DashboardVisuals.CountUp(reading, StartupSweepPhase) : reading,
-            typeface,
-            DashboardVisuals.FittedSize(reading, typeface, _hubRadius * 0.92, 9.0, _hubRadius * 1.5),
+            valueTypeface,
+            _outerRadius * 0.34,
+            9.0,
+            _outerRadius * 1.30,
             valueBrush);
-        DashboardVisuals.DrawCentred(context, value, center, -_hubRadius * 0.22);
+        DashboardVisuals.DrawCentred(context, value, center, _outerRadius * 0.34);
 
         // The unit only means something next to a reading the machine reported.
         if (reported && !string.IsNullOrEmpty(Unit))
         {
             var unit = DashboardVisuals.FittedText(
-                Unit!, typeface, _hubRadius * 0.34, 7.0, _hubRadius * 1.4, mutedBrush);
-            DashboardVisuals.DrawCentred(context, unit, center, _hubRadius * 0.46);
+                Unit!, labelTypeface, _outerRadius * 0.13, 7.0, _outerRadius * 0.6, mutedBrush);
+            DashboardVisuals.DrawCentred(context, unit, center, _outerRadius * 0.63);
         }
     }
 
@@ -232,10 +275,10 @@ public class TemperatureGauge : AnimatedGauge
         {
             // The same opening self-test as the utilisation dial: collapse to the
             // bottom of the scale, out to full scale, then settle on the reported
-            // reading, with the readout counting up on the same phase so the two
-            // never disagree. Run before the HasReading guard so the clock starts
-            // with the control, keeping this dial in step with the CPU dial
-            // rather than with its own first sample.
+            // reading, with the readout counting up on the same phase. Run before
+            // the HasReading guard so the clock starts with the control, keeping
+            // this dial in step with the utilisation dial rather than with its own
+            // first sample.
             var sweeping = AdvanceStartupSweep(seconds);
             _displayRatio = StartupSweepPosition(_targetRatio);
             return sweeping || accentMoving;
@@ -244,8 +287,7 @@ public class TemperatureGauge : AnimatedGauge
         if (!HasReading)
         {
             // No reported reading: hold the needle at the bottom of the scale
-            // until the machine reports this channel, so no movement is invented
-            // for it.
+            // until the machine reports this channel, so no movement is invented.
             return accentMoving;
         }
 
@@ -261,9 +303,8 @@ public class TemperatureGauge : AnimatedGauge
     }
 
     /// <summary>
-    /// Display severity for the arc. It is derived only from the reported value
-    /// and the maximum the machine reports for the channel, and is not applied at
-    /// all when the channel is unreported.
+    /// Display severity for the reading arc. Derived only from the reported value
+    /// and the maximum the machine reports for the channel.
     /// </summary>
     private IBrush Severity(bool reported, double ratio, IBrush mutedBrush)
     {
@@ -278,12 +319,66 @@ public class TemperatureGauge : AnimatedGauge
             return DashboardVisuals.Brush(this, "SensorTempBrush", Brushes.Orange);
         }
 
-        return ratio switch
+        var (warm, hot) = ZoneFractions();
+        if (ratio >= hot)
         {
-            < 0.60 => DashboardVisuals.Brush(this, "SuccessBrush", Brushes.Green),
-            < 0.85 => DashboardVisuals.Brush(this, "WarningBrush", Brushes.Orange),
-            _ => DashboardVisuals.Brush(this, "DangerBrush", Brushes.Red)
-        };
+            return DashboardVisuals.Brush(this, "DangerBrush", Brushes.Red);
+        }
+
+        if (ratio >= warm)
+        {
+            return DashboardVisuals.Brush(this, "WarningBrush", Brushes.Orange);
+        }
+
+        // Below the thermal zones the dial stays in the neutral reading colour
+        // rather than inventing a "safe" green indicator.
+        return DashboardVisuals.Brush(this, "TextSecondaryBrush", Brushes.LightGray);
+    }
+
+    /// <summary>
+    /// The thermal thresholds as fractions of the reported scale, in the unit the
+    /// machine reports. A channel with no reported maximum has no honest scale,
+    /// so the zones are not drawn.
+    /// </summary>
+    private (double Warm, double Hot) ZoneFractions()
+    {
+        if (Maximum <= 0)
+        {
+            return (1.0, 1.0);
+        }
+
+        var fahrenheit = Unit is not null && Unit.Contains('F');
+        var warmTemperature = fahrenheit ? WarmFahrenheit : WarmCelsius;
+        var hotTemperature = fahrenheit ? HotFahrenheit : HotCelsius;
+        var warm = Math.Clamp(warmTemperature / Maximum, 0.05, 0.98);
+        var hot = Math.Clamp(hotTemperature / Maximum, warm, 1.0);
+        return (warm, hot);
+    }
+
+    /// <summary>Rebuilds the thermal zone bands when the scale or unit changes.</summary>
+    private void EnsureZones(Point center)
+    {
+        var key = (Maximum, Unit ?? string.Empty);
+        if (_zoneKey == key)
+        {
+            return;
+        }
+
+        _zoneKey = key;
+
+        if (Maximum <= 0)
+        {
+            _warmZone = new StreamGeometry();
+            _hotZone = new StreamGeometry();
+            return;
+        }
+
+        var (warm, hot) = ZoneFractions();
+        var radius = _arcRadius - _arcThickness * 0.75;
+        _warmZone = DashboardVisuals.Arc(
+            center, radius, StartAngle + SweepAngle * warm, SweepAngle * (hot - warm));
+        _hotZone = DashboardVisuals.Arc(
+            center, radius, StartAngle + SweepAngle * hot, SweepAngle * (1.0 - hot));
     }
 
     /// <summary>
@@ -303,31 +398,36 @@ public class TemperatureGauge : AnimatedGauge
         _cachedWidth = Bounds.Width;
         _cachedHeight = Bounds.Height;
         _outerRadius = dial / 2.0 - 1.0;
-        _arcRadius = _outerRadius * 0.62;
-        _arcThickness = Math.Clamp(_outerRadius * 0.075, 2.0, 7.0);
-        _hubRadius = _outerRadius * 0.34;
+        _arcRadius = _outerRadius * 0.665;
+        _arcThickness = Math.Clamp(_outerRadius * 0.088, 2.5, 6.0);
+        _pivotRadius = Math.Max(2.5, _outerRadius * 0.085);
 
-        var tickOuter = _outerRadius * 0.855;
-        var tickInner = _outerRadius * 0.80;
+        _tickInner = _outerRadius * 0.735;
+        _tickOuter = _outerRadius * 0.815;
+
         var ticks = DashboardVisuals.Ticks(
-            center, tickInner, tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
+            center, _tickInner, _tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
         _ticksMinor = ticks.Minor;
         _ticksMajor = ticks.Major;
 
         _trackArc = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle);
 
-        var needleLength = _outerRadius * 0.79;
-        var needleHalfWidth = Math.Max(1.4, _outerRadius * 0.040);
-        var needleTail = _outerRadius * 0.14;
+        var needleLength = _arcRadius - _arcThickness * 0.25;
+        var needleHalfWidth = Math.Max(1.0, _outerRadius * 0.026);
+        var needleTail = _outerRadius * 0.10;
         _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, needleTail);
 
-        var hubClip = new EllipseGeometry(new Rect(
-            center.X - _hubRadius, center.Y - _hubRadius,
-            _hubRadius * 2.0, _hubRadius * 2.0));
+        var pivotClip = new EllipseGeometry(new Rect(
+            center.X - _pivotRadius * 0.55, center.Y - _pivotRadius * 0.55,
+            _pivotRadius * 1.1, _pivotRadius * 1.1));
         var tickClip = new EllipseGeometry(new Rect(
-            center.X - tickInner, center.Y - tickInner,
-            tickInner * 2.0, tickInner * 2.0));
-        _needleClip = new CombinedGeometry(GeometryCombineMode.Exclude, tickClip, hubClip);
+            center.X - _tickInner, center.Y - _tickInner,
+            _tickInner * 2.0, _tickInner * 2.0));
+        _needleClip = new CombinedGeometry(GeometryCombineMode.Exclude, tickClip, pivotClip);
+
+        _arcGeometry = null;
+        _arcRatio = double.NaN;
+        _zoneKey = (int.MinValue, string.Empty);
     }
 
     /// <summary>

@@ -35,6 +35,13 @@ internal static class DashboardVisuals
             : new Typeface(FontFamily.Default);
 
     /// <summary>
+    /// The same typeface at a different weight, so an instrument can give its
+    /// numerals emphasis without introducing a second font family.
+    /// </summary>
+    public static Typeface Weighted(Typeface typeface, FontWeight weight)
+        => new(typeface.FontFamily, typeface.Style, weight, typeface.Stretch);
+
+    /// <summary>
     /// Point on a circle. Zero degrees is 12 o'clock and angles increase
     /// clockwise, which is the natural reading order for a gauge.
     /// </summary>

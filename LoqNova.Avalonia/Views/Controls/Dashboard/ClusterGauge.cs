@@ -8,56 +8,52 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
 /// <summary>
 /// The utilisation instrument of one device (CPU or GPU), drawn as an
-/// automotive-style dial: a bevel of readable numerals, a calibrated tick band,
-/// a graduated arc, an analog needle and a large digital readout in the hub.
+/// automotive-style semicircular dial: a calibrated tick band with the scale
+/// numerals outside it, a thin needle on a defined centre pivot, and the live
+/// percentage below the pivot.
 /// <para>
-/// The arc, the needle and the hub all describe the same reported channel. The
-/// first frames before the machine has reported anything hold the needle at the
-/// bottom of the scale; from the first frame the needle, the arc and the numerals
-/// run the instrument's opening self-test - down to the bottom of the scale, out
-/// across the full arc, then settled on the reading - and from then on the needle
-/// and the arc ease toward each new reading with a time-based exponential
-/// approach. The self-test replays whenever the instrument becomes active or the
-/// power mode changes. A channel the machine does not report is drawn muted with
-/// no needle and no arc, never as a zero.
+/// The instrument is one painted control rather than a tree of shapes, so a
+/// frame is a repaint and never a layout pass. The arc, needle and readout all
+/// describe the same reported channel. The first frames before the machine has
+/// reported anything hold the needle at the bottom of the scale; from the first
+/// frame the needle and arc run the instrument's opening self-test - down to the
+/// bottom of the scale, out across the full arc, then settled on the reading -
+/// and from then on they ease toward each new reading with a time-based
+/// exponential approach. The self-test replays whenever the instrument becomes
+/// active or the power mode changes. A channel the machine does not report is
+/// drawn muted with no needle and no arc, never as a zero.
 /// </para>
 /// <para>
-/// The accent is the active power mode's colour, handed in by the page, and is
-/// eased between values so a mode change blends rather than flashes. The redline
-/// stays semantically red in every mode.
-/// </para>
-/// <para>
-/// The top fifth of the scale is a redline. It is drawn on the scale - a band
-/// flush under the tick run plus the ticks of that range redrawn over the
-/// identical angles - so it stays aligned with the tick marks and leaves the
-/// channel-coloured arc and needle untouched and still readable.
+/// The active arc and the needle carry the active power mode's colour, handed in
+/// by the page, and are eased between values so a mode change blends rather than
+/// flashes. The top fifth of the scale is a redline drawn on the tick run only,
+/// so the red zone stays aligned to the scale without tinting the whole dial.
 /// </para>
 /// </summary>
 public class ClusterGauge : AnimatedGauge
 {
     /// <summary>
-    /// The arc sweeps 240 degrees and leaves a gap at the bottom, which is where
-    /// an instrument cluster leaves room for the standstill readouts.
+    /// A true semicircle: 9 o'clock (270°) around the top to 3 o'clock (90°).
+    /// The open lower half carries the digital readout, the way a modern cluster
+    /// keeps the needle sweep clear of the numbers.
     /// </summary>
-    private const double StartAngle = 210.0;
-    private const double SweepAngle = 240.0;
+    private const double StartAngle = 270.0;
+    private const double SweepAngle = 180.0;
 
     /// <summary>20 steps of 5% with a major mark every five: 0/25/50/75/100.</summary>
     private const int Divisions = 20;
     private const int MajorTickEvery = 5;
 
     /// <summary>
-    /// Where the redline starts, as a fraction of the scale. The top fifth - 80%
-    /// utilisation and above - is where a machine is working hard enough for it
-    /// to matter at a glance. It lands on tick sixteen of twenty, so the red zone
-    /// sits exactly on the tick run instead of near it.
+    /// Where the redline starts, as a fraction of the scale. It lands on tick
+    /// sixteen of twenty, so the red zone sits exactly on the tick run.
     /// </summary>
     private const double RedlineStartFraction = 0.80;
 
     /// <summary>Time constant for the needle's approach to a new reading.</summary>
     private const double EaseSeconds = 0.18;
 
-    /// <summary>Major scale values, drawn on the bezel outside the tick run.</summary>
+    /// <summary>Major scale values, drawn outside the tick run.</summary>
     private static readonly double[] LabelFractions = [0.0, 0.25, 0.5, 0.75, 1.0];
 
     /// <summary>Reported reading; -1 means the machine did not report the channel.</summary>
@@ -117,25 +113,32 @@ public class ClusterGauge : AnimatedGauge
     private double _labelRadius;
     private double _arcRadius;
     private double _arcThickness;
-    private double _hubRadius;
+    private double _pivotRadius;
+    private double _tickInner;
+    private double _tickOuter;
 
     /// <summary>
-    /// Annulus the needle is allowed to occupy: outside the hub cap, inside the
-    /// tick run. It is rebuilt with the geometry that depends on the dial size.
+    /// Annulus the needle is allowed to occupy: outside the pivot cap, inside the
+    /// tick run, so the tip can mark the arc but can never cross the scale.
     /// </summary>
     private Geometry _needleClip = new StreamGeometry();
-    private double _redlineRadius;
-    private double _redlineThickness;
+
     private Geometry _ticksMinor = new StreamGeometry();
     private Geometry _ticksMajor = new StreamGeometry();
     private Geometry _redlineTicksMinor = new StreamGeometry();
     private Geometry _redlineTicksMajor = new StreamGeometry();
-    private Geometry _redlineArc = new StreamGeometry();
     private Geometry _trackArc = new StreamGeometry();
     private Geometry _needle = new StreamGeometry();
 
     private double _displayRatio;
     private double _targetRatio;
+
+    /// <summary>
+    /// The progress arc for the currently displayed ratio. Rebuilt only when the
+    /// displayed value moves, so an unchanged frame allocates no geometry.
+    /// </summary>
+    private Geometry? _arcGeometry;
+    private double _arcRatio = double.NaN;
 
     protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
     {
@@ -177,15 +180,16 @@ public class ClusterGauge : AnimatedGauge
         EnsureGeometry(dial, center);
 
         var reported = Value >= 0 && Maximum >= 0;
-        var faceBrush = DashboardVisuals.Brush(this, "CardElevatedBrush", Brushes.Transparent);
         var lineBrush = DashboardVisuals.Brush(this, "BorderBrush", Brushes.Gray);
         var strongBrush = DashboardVisuals.Brush(this, "BorderStrongBrush", Brushes.Gray);
         var trackBrush = DashboardVisuals.Brush(this, "SurfaceRaisedBrush", Brushes.Gray);
         var mutedBrush = DashboardVisuals.Brush(this, "TextMutedBrush", Brushes.Gray);
         var dangerBrush = DashboardVisuals.Brush(this, "DangerBrush", Brushes.Red);
+        var cardBrush = DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent);
         var valueBrush = reported
             ? DashboardVisuals.Brush(this, "TextPrimaryBrush", Brushes.White)
             : mutedBrush;
+
         // The accent is the active power-mode colour, handed in by the page from
         // the design system. It is eased between values, so a mode change is a
         // short transition rather than a flash; an unreported channel is drawn
@@ -194,63 +198,64 @@ public class ClusterGauge : AnimatedGauge
         var accentBrush = reported
             ? (IBrush)new SolidColorBrush(CurrentAccent)
             : mutedBrush;
-
-        // Dial face: a slightly raised panel inside the card.
-        context.DrawEllipse(faceBrush, new Pen(lineBrush, 1), center, _outerRadius, _outerRadius);
+        var accentColor = reported
+            ? CurrentAccent
+            : mutedBrush is ISolidColorBrush mutedSolid ? mutedSolid.Color : Colors.Gray;
 
         var typeface = DashboardVisuals.Typeface(this);
+        var labelTypeface = DashboardVisuals.Weighted(typeface, FontWeight.Medium);
+        var valueTypeface = DashboardVisuals.Weighted(typeface, FontWeight.SemiBold);
 
-        // Bezel numerals, outside the tick run so the needle never crosses them.
-        var labelSize = Math.Max(6.0, _outerRadius * 0.105);
+        // Scale numerals sit outside the tick band, so the needle never crosses
+        // them and the tick run stays readable at a glance.
+        var labelSize = Math.Max(7.0, _outerRadius * 0.115);
         foreach (var fraction in LabelFractions)
         {
             var label = DashboardVisuals.FittedText(
                 (fraction * 100.0).ToString("F0", CultureInfo.CurrentCulture),
-                typeface, labelSize, 5.0, _outerRadius * 0.32, mutedBrush);
+                labelTypeface, labelSize, 6.0, _outerRadius * 0.34, mutedBrush);
             DashboardVisuals.DrawCentred(
                 context,
                 label,
                 DashboardVisuals.Polar(center, _labelRadius, StartAngle + SweepAngle * fraction));
         }
 
-        // Precise tick marks: fine minors, weighted majors.
-        using (context.PushOpacity(0.5))
+        // Precise tick marks: fine minors, weighted majors. The redline is the
+        // same geometry recoloured, so the red zone lands on exactly the same
+        // angles as the scale underneath it.
+        using (context.PushOpacity(0.55))
         {
             context.DrawGeometry(null, new Pen(lineBrush, 1), _ticksMinor);
         }
 
-        context.DrawGeometry(null, new Pen(strongBrush, 1.4), _ticksMajor);
-
-        // Redline: the top of the scale, drawn on the scale itself rather than
-        // over the accent arc, so the needle and the reported-reading arc keep
-        // the mode colour while the red zone stays semantically red in every
-        // mode. The band sits flush under the tick run and the red ticks are the
-        // same geometry as the grey ones, so the zone stays aligned to the scale
-        // and its tick marks.
-        context.DrawGeometry(null, new Pen(dangerBrush, _redlineThickness), _redlineArc);
+        context.DrawGeometry(null, new Pen(strongBrush, 1.5), _ticksMajor);
         context.DrawGeometry(null, new Pen(dangerBrush, 1), _redlineTicksMinor);
-        context.DrawGeometry(null, new Pen(dangerBrush, 1.4), _redlineTicksMajor);
+        context.DrawGeometry(null, new Pen(dangerBrush, 1.5), _redlineTicksMajor);
 
-        // Graduated arc: a muted scale track carrying the reported reading.
+        // Graduated arc: a restrained neutral track carrying the reported
+        // reading, drawn with a consistent stroke and rounded ends.
         context.DrawGeometry(null, new Pen(trackBrush, _arcThickness, null, PenLineCap.Round), _trackArc);
 
         var ratio = Math.Clamp(_displayRatio, 0.0, 1.0);
-        if (reported && ratio > 0.004)
+        if (reported && ratio > 0.002)
         {
-            var progress = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle * ratio);
-            context.DrawGeometry(null, new Pen(accentBrush, _arcThickness, null, PenLineCap.Round), progress);
+            // The progress geometry is only rebuilt when the displayed value
+            // actually moves, so a frame with an unchanged reading allocates
+            // nothing beyond the cached pen.
+            if (Math.Abs(ratio - _arcRatio) > 0.0005 || _arcGeometry is null)
+            {
+                _arcGeometry = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle * ratio);
+                _arcRatio = ratio;
+            }
+
+            context.DrawGeometry(null, new Pen(accentBrush, _arcThickness, null, PenLineCap.Round), _arcGeometry);
         }
 
-        // The needle is only drawn for a channel the machine reported: an
-        // unreported channel must never be shown resting on a scale value.
+        // Needle: a thin pointer from the cap to the arc, confined to the
+        // annulus and rotated about the exact dial centre.
         if (reported)
         {
             var angle = StartAngle + SweepAngle * ratio;
-            // The pointer is confined to the annulus between the hub cap and the
-            // tick run. Rotating about the exact dial centre keeps the pivot on
-            // the hub, while the clip guarantees the needle can never enter the
-            // readout or reach the scale whatever the paint order or the resolved
-            // brushes do.
             using (context.PushGeometryClip(_needleClip))
             using (context.PushTransform(
                 Matrix.CreateRotation(angle * Math.PI / 180.0) * Matrix.CreateTranslation(center.X, center.Y)))
@@ -259,29 +264,31 @@ public class ClusterGauge : AnimatedGauge
             }
         }
 
-        // Digital hub. The text is the reported reading, or the eased count-up
-        // while the opening sweep is still running. The count-up is drawn at the
-        // size the finished reading resolves to, so the digits do not change size
-        // as the sweep lands.
-        context.DrawEllipse(
-            DashboardVisuals.Brush(this, "CardBackgroundBrush", Brushes.Transparent),
-            new Pen(strongBrush, 1),
-            center, _hubRadius, _hubRadius);
+        // Mechanical pivot: a small cap with the mode-coloured centre, drawn over
+        // the needle tail so the pointer reads as rotating on it.
+        context.DrawEllipse(cardBrush, new Pen(strongBrush, 1.2), center, _pivotRadius, _pivotRadius);
+        context.DrawEllipse(new SolidColorBrush(accentColor), null, center, _pivotRadius * 0.34, _pivotRadius * 0.34);
 
+        // Digital readout in the open lower half: the reported reading, or the
+        // eased count-up while the opening sweep is still running, drawn at the
+        // size the finished reading resolves to so the digits do not resize as
+        // the sweep lands.
         var reading = ValueText ?? "-";
-        var value = DashboardVisuals.Text(
+        var value = DashboardVisuals.FittedText(
             IsStartupSweeping ? DashboardVisuals.CountUp(reading, StartupSweepPhase) : reading,
-            typeface,
-            DashboardVisuals.FittedSize(reading, typeface, _hubRadius * 0.95, 10.0, _hubRadius * 1.5),
+            valueTypeface,
+            _outerRadius * 0.30,
+            10.0,
+            _outerRadius * 1.30,
             valueBrush);
-        DashboardVisuals.DrawCentred(context, value, center, -_hubRadius * 0.24);
+        DashboardVisuals.DrawCentred(context, value, center, _outerRadius * 0.34);
 
         // The unit only means something next to a reading the machine reported.
         if (reported && !string.IsNullOrEmpty(Unit))
         {
             var unit = DashboardVisuals.FittedText(
-                Unit!, typeface, _hubRadius * 0.38, 7.0, _hubRadius * 1.35, mutedBrush);
-            DashboardVisuals.DrawCentred(context, unit, center, _hubRadius * 0.5);
+                Unit!, labelTypeface, _outerRadius * 0.105, 7.0, _outerRadius * 0.5, mutedBrush);
+            DashboardVisuals.DrawCentred(context, unit, center, _outerRadius * 0.62);
         }
     }
 
@@ -294,12 +301,9 @@ public class ClusterGauge : AnimatedGauge
             // The opening sweep rides the reported target, so a reading that
             // lands while it is still running is settled on rather than overshot:
             // the needle collapses to the bottom of the scale, travels out to full
-            // scale, then settles on whatever the machine is reporting. The value
-            // arc and the count-up follow the same phase. It is deliberately run
+            // scale, then settles on whatever the machine is reporting. It runs
             // before the HasReading guard so the clock starts with the control
-            // rather than with the first sample: CPU and GPU then sweep together
-            // even though GPU counters report a tick later, and a late reading is
-            // simply what the sweep settles on.
+            // rather than with the first sample, keeping CPU and GPU in step.
             var sweeping = AdvanceStartupSweep(seconds);
             _displayRatio = StartupSweepPosition(_targetRatio);
             return sweeping || accentMoving;
@@ -309,8 +313,7 @@ public class ClusterGauge : AnimatedGauge
         {
             // This channel has no reported reading: hold the needle at the bottom
             // of the scale until the machine reports one, so no sweep and no
-            // movement are invented for a channel that carries no value. Only a
-            // colour transition still needs frames.
+            // movement are invented for a channel that carries no value.
             return accentMoving;
         }
 
@@ -340,55 +343,47 @@ public class ClusterGauge : AnimatedGauge
         _cachedWidth = Bounds.Width;
         _cachedHeight = Bounds.Height;
         _outerRadius = dial / 2.0 - 1.0;
-        _labelRadius = _outerRadius * 0.925;
-        _arcRadius = _outerRadius * 0.62;
-        _arcThickness = Math.Clamp(_outerRadius * 0.075, 3.0, 9.0);
-        _hubRadius = _outerRadius * 0.36;
+        _labelRadius = _outerRadius * 0.905;
+        _arcRadius = _outerRadius * 0.665;
+        _arcThickness = Math.Clamp(_outerRadius * 0.055, 3.0, 7.0);
+        _pivotRadius = Math.Max(3.0, _outerRadius * 0.075);
 
-        var tickOuter = _outerRadius * 0.855;
-        var tickInner = _outerRadius * 0.80;
-        // The needle points outward from the exact centre and stops just short of
-        // the tick run's inner edge, so the tip approaches the scale without
-        // cutting across it. Its tail is the small part the hub cap covers.
-        var needleLength = _outerRadius * 0.79;
-        var needleHalfWidth = Math.Max(1.7, _outerRadius * 0.045);
+        _tickInner = _outerRadius * 0.735;
+        _tickOuter = _outerRadius * 0.815;
 
         var ticks = DashboardVisuals.Ticks(
-            center, tickInner, tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
+            center, _tickInner, _tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle);
         _ticksMinor = ticks.Minor;
         _ticksMajor = ticks.Major;
 
-        // Redline geometry, built from the same scale: a band flush under the
-        // tick run, plus the ticks of the top fifth of the scale redrawn over
-        // the identical angles.
+        // The redline is the same scale restricted to its top fifth, so its
+        // marks land on exactly the same angles as the grey run.
         var redlineFirst = (int)Math.Round(Divisions * RedlineStartFraction);
-        _redlineThickness = Math.Clamp(_outerRadius * 0.045, 2.5, 6.0);
-        _redlineRadius = tickInner - _redlineThickness / 2.0;
-        _redlineArc = DashboardVisuals.Arc(
-            center,
-            _redlineRadius,
-            StartAngle + SweepAngle * RedlineStartFraction,
-            SweepAngle * (1.0 - RedlineStartFraction));
         var redlineTicks = DashboardVisuals.Ticks(
-            center, tickInner, tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle,
+            center, _tickInner, _tickOuter, Divisions, MajorTickEvery, StartAngle, SweepAngle,
             redlineFirst, Divisions);
         _redlineTicksMinor = redlineTicks.Minor;
         _redlineTicksMajor = redlineTicks.Major;
 
         _trackArc = DashboardVisuals.Arc(center, _arcRadius, StartAngle, SweepAngle);
 
-        // The tail runs a little way behind the centre so the hub cap reads as a
-        // pivot; the clip is what actually keeps the pointer out of the readout.
-        var needleTail = _outerRadius * 0.14;
+        // Thin, tapered pointer. It reaches the arc so the tip marks the value;
+        // the tail sits under the pivot cap.
+        var needleLength = _arcRadius - _arcThickness * 0.25;
+        var needleHalfWidth = Math.Max(1.1, _outerRadius * 0.022);
+        var needleTail = _outerRadius * 0.10;
         _needle = DashboardVisuals.Needle(needleLength, needleHalfWidth, needleTail);
 
-        var hubClip = new EllipseGeometry(new Rect(
-            center.X - _hubRadius, center.Y - _hubRadius,
-            _hubRadius * 2.0, _hubRadius * 2.0));
+        var pivotClip = new EllipseGeometry(new Rect(
+            center.X - _pivotRadius * 0.55, center.Y - _pivotRadius * 0.55,
+            _pivotRadius * 1.1, _pivotRadius * 1.1));
         var tickClip = new EllipseGeometry(new Rect(
-            center.X - tickInner, center.Y - tickInner,
-            tickInner * 2.0, tickInner * 2.0));
-        _needleClip = new CombinedGeometry(GeometryCombineMode.Exclude, tickClip, hubClip);
+            center.X - _tickInner, center.Y - _tickInner,
+            _tickInner * 2.0, _tickInner * 2.0));
+        _needleClip = new CombinedGeometry(GeometryCombineMode.Exclude, tickClip, pivotClip);
+
+        _arcGeometry = null;
+        _arcRatio = double.NaN;
     }
 
     /// <summary>
