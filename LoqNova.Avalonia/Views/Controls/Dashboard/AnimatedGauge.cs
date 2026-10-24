@@ -11,61 +11,21 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 
 /// <summary>
 /// Shared rendering loop for the Dashboard's custom-drawn instruments.
-/// <para>
-/// One <see cref="DispatcherTimer"/> per instrument owns exactly one
-/// <see cref="Visual.InvalidateVisual"/> call per frame. The instrument paints
-/// itself from cached geometry, so a frame is a repaint and never a layout pass.
-/// </para>
-/// <para>
-/// The loop only runs while the control is attached, visible and has work to do:
-/// it is torn down when the control leaves the tree or is hidden, and stopped by
-/// the derived instrument the moment its movement settles. <see cref="Advance"/>
-/// receives the real elapsed time rather than a fixed frame step, so motion is
-/// frame-rate independent.
-/// </para>
-/// <para>
-/// The opening self-test is driven entirely from the instrument's own lifecycle
-/// and its bound <see cref="PowerMode"/>: it replays whenever the instrument is
-/// attached (i.e. whenever the Dashboard is navigated to) and whenever the active
-/// power mode changes. Nothing here subscribes to an event, holds a timer per
-/// visit or keys off the page's view model, so revisiting the Dashboard can
-/// neither duplicate nor miss a sweep.
-/// </para>
 /// </summary>
 public abstract class AnimatedGauge : Control
 {
-    /// <summary>Frame interval. One tick owns one repaint.</summary>
     private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(16);
 
-    /// <summary>
-    /// Longest step integrated in one frame. A stalled or hidden UI resumes with
-    /// a normal step instead of jumping, which keeps the instruments continuous.
-    /// </summary>
     private const double MaxStepSeconds = 0.1;
 
-    /// <summary>
-    /// The opening self-test, timed like the WPF dashboard's bar sweep: the
-    /// instrument collapses to the bottom of the scale, sweeps out across the full
-    /// arc, then settles on the reading the machine is reporting. Three phases
-    /// rather than one so a replayed self-test reads as an instrument check rather
-    /// than a needle that merely slides from wherever it was to the current value -
-    /// and so a replay never snaps.
-    /// </summary>
     private const double StartupCollapseSeconds = 0.26;
     private const double StartupExpandSeconds = 0.32;
     private const double StartupSettleSeconds = 0.32;
     private const double StartupSweepSeconds =
         StartupCollapseSeconds + StartupExpandSeconds + StartupSettleSeconds;
 
-    /// <summary>Time constant of the eased accent-colour transition.</summary>
     private const double AccentSeconds = 0.14;
 
-    /// <summary>
-    /// True when the user has switched Windows animations off. The opening
-    /// self-test sweep is pure decoration, so under that setting the dial skips it
-    /// and settles straight onto the reported reading instead of flinging to full
-    /// scale first.
-    /// </summary>
     private static readonly bool ReducedMotion = ReadReducedMotion();
 
     private const uint SpiGetClientAreaAnimation = 0x1042;
@@ -88,7 +48,6 @@ public abstract class AnimatedGauge : Control
         }
         catch
         {
-            // An unavailable system call never disables the sweep.
             return false;
         }
     }
@@ -97,23 +56,11 @@ public abstract class AnimatedGauge : Control
     private bool _attached;
     private bool _running;
 
-    /// <summary>
-    /// High-resolution frame clock. <see cref="Environment.TickCount64"/> only
-    /// advances in ~15.6 ms steps on Windows, which is the same order as a frame:
-    /// the deltas it produced alternated between one and two steps, so identical
-    /// RPM visibly sped up and slowed down. A <see cref="Stopwatch"/> reports the
-    /// real elapsed interval, so the integrated angle follows wall-clock time.
-    /// </summary>
     private readonly Stopwatch _frameClock = new();
 
     private double _startupElapsed;
     private bool _startupSweepComplete;
 
-    /// <summary>
-    /// The scale position the current self-test's collapse phase starts from,
-    /// captured at <see cref="ReplaySweep"/> so a replay picks up exactly where the
-    /// instrument is instead of snapping.
-    /// </summary>
     private double _sweepStartRatio;
 
     private Color _accentCurrent;
@@ -131,11 +78,6 @@ public abstract class AnimatedGauge : Control
         base.OnAttachedToVisualTree(e);
 
         _attached = true;
-
-        // The self-test replays every time the instrument becomes active. The
-        // navigation service builds a fresh Dashboard page - and therefore fresh
-        // gauges - on every visit, so this is what makes navigating away and back
-        // sweep again; it also covers a gauge instance that is reused.
         ReplaySweep();
     }
 
@@ -446,8 +388,6 @@ public abstract class AnimatedGauge : Control
 
     private void OnTick(object? sender, EventArgs e)
     {
-        // The clock is restarted before any early return, so time spent hidden
-        // is not handed to the next visible frame.
         var elapsed = _frameClock.Elapsed.TotalSeconds;
         _frameClock.Restart();
         if (elapsed <= 0)
@@ -455,9 +395,6 @@ public abstract class AnimatedGauge : Control
             return;
         }
 
-        // A minimised window or a hidden ancestor stops the motion without tearing
-        // the timer down; the next visible frame picks it up with a normal step
-        // because the clock above has already been restarted.
         if (!IsEffectivelyVisible)
         {
             return;
