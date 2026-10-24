@@ -96,7 +96,16 @@ public abstract class AnimatedGauge : Control
     private readonly DispatcherTimer _timer;
     private bool _attached;
     private bool _running;
-    private long _lastTimestamp;
+
+    /// <summary>
+    /// High-resolution frame clock. <see cref="Environment.TickCount64"/> only
+    /// advances in ~15.6 ms steps on Windows, which is the same order as a frame:
+    /// the deltas it produced alternated between one and two steps, so identical
+    /// RPM visibly sped up and slowed down. A <see cref="Stopwatch"/> reports the
+    /// real elapsed interval, so the integrated angle follows wall-clock time.
+    /// </summary>
+    private readonly Stopwatch _frameClock = new();
+
     private double _startupElapsed;
     private bool _startupSweepComplete;
 
