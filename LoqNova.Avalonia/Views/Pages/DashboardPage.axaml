@@ -223,8 +223,7 @@
                                 </StackPanel>
                                 <TextBlock Classes="InstrumentMeta" Text="{Binding CpuFanSpeedMaxText}"
                                            IsVisible="{Binding CpuFanSpeedMaxText, Converter={StaticResource StringNotEmptyConverter}}" />
-                                <Border Classes="Chip" HorizontalAlignment="Left"
-                                        IsVisible="{Binding CpuFanStateText, Converter={StaticResource StringNotEmptyConverter}}">
+                                <Border Classes="Chip" HorizontalAlignment="Left" IsVisible="False">
                                     <TextBlock Classes="ChipText" Text="{Binding CpuFanStateText}" />
                                 </Border>
                             </StackPanel>
@@ -300,8 +299,7 @@
                                 </StackPanel>
                                 <TextBlock Classes="InstrumentMeta" Text="{Binding GpuFanSpeedMaxText}"
                                            IsVisible="{Binding GpuFanSpeedMaxText, Converter={StaticResource StringNotEmptyConverter}}" />
-                                <Border Classes="Chip" HorizontalAlignment="Left"
-                                        IsVisible="{Binding GpuFanStateText, Converter={StaticResource StringNotEmptyConverter}}">
+                                <Border Classes="Chip" HorizontalAlignment="Left" IsVisible="False">
                                     <TextBlock Classes="ChipText" Text="{Binding GpuFanStateText}" />
                                 </Border>
                             </StackPanel>
