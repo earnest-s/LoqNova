@@ -386,30 +386,6 @@ public abstract class AnimatedGauge : Control
         _timer.Stop();
     }
 
-    private void Start()
-    {
-        if (_running)
-        {
-            return;
-        }
-
-        _running = true;
-        _frameClock.Restart();
-        _timer.Start();
-    }
-
-    private void Stop()
-    {
-        if (!_running)
-        {
-            return;
-        }
-
-        _running = false;
-        _frameClock.Stop();
-        _timer.Stop();
-    }
-
     private void OnTick(object? sender, EventArgs e)
     {
         var elapsed = _frameClock.Elapsed.TotalSeconds;
