@@ -69,7 +69,7 @@ public abstract class AnimatedGauge : Control
 
     protected AnimatedGauge()
     {
-        _timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = FrameInterval };
+        _timer = new DispatcherTimer(DispatcherPriority.SystemIdle) { Interval = FrameInterval };
         _timer.Tick += OnTick;
     }
 
