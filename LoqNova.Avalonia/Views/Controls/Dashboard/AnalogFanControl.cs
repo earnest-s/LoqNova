@@ -121,17 +121,18 @@ public class AnalogFanControl : AnimatedGauge
 
         context.DrawEllipse(faceBrush, _facePen, center, _outerRadius, _outerRadius);
 
-        using (context.PushOpacity(0.4))
+        if (_majorPen != null)
         {
-            context.DrawGeometry(null, _minorPen, _ticksMinor);
+            context.DrawGeometry(null, _majorPen, _ticksMajor);
         }
 
-        context.DrawGeometry(null, _majorPen, _ticksMajor);
-
-        context.DrawGeometry(null, _trackPen, _trackArc);
+        if (_trackPen != null)
+        {
+            context.DrawGeometry(null, _trackPen, _trackArc);
+        }
 
         var ratio = VisualRatio();
-        if (ratio > 0.004)
+        if (ratio > 0.004 && _accentSolid != null)
         {
             if (double.IsNaN(_progressRatio) || Math.Abs(ratio - _progressRatio) > 0.0005)
             {
@@ -142,10 +143,7 @@ public class AnalogFanControl : AnimatedGauge
             context.DrawGeometry(null, new Pen(_accentSolid, _arcThickness, null, PenLineCap.Round), _progressArc);
         }
 
-        context.DrawEllipse(null, new Pen(new SolidColorBrush(Color.FromArgb(40, ink.R, ink.G, ink.B)), 1.0), 
-            center, _outerRadius * 0.76, _outerRadius * 0.76);
-
-        if (Rpm >= 0 && !(Rpm == 0 && _visualSpeed <= 0.001) && _bladesPath != null)
+        if (Rpm >= 0 && !(Rpm == 0 && _visualSpeed <= 0.001) && _bladesPath != null && _bladeBrush != null)
         {
             using (context.PushTransform(
                 Matrix.CreateRotation(_angle * Math.PI / 180.0) *
@@ -155,10 +153,14 @@ public class AnalogFanControl : AnimatedGauge
             }
         }
 
-        context.DrawEllipse(_hubBrush, null, center, _hubOuterRadius, _hubOuterRadius);
-        context.DrawEllipse(null, _hubPen, center, _hubOuterRadius, _hubOuterRadius);
-        context.DrawEllipse(_hubRingBrush, null, center, _hubRadius * 0.7, _hubRadius * 0.7);
-        context.DrawEllipse(_accentSolid, null, center, _hubDotRadius, _hubDotRadius);
+        if (_hubBrush != null)
+            context.DrawEllipse(_hubBrush, null, center, _hubOuterRadius, _hubOuterRadius);
+        if (_hubPen != null)
+            context.DrawEllipse(null, _hubPen, center, _hubOuterRadius, _hubOuterRadius);
+        if (_hubRingBrush != null)
+            context.DrawEllipse(_hubRingBrush, null, center, _hubRadius * 0.7, _hubRadius * 0.7);
+        if (_accentSolid != null)
+            context.DrawEllipse(_accentSolid, null, center, _hubDotRadius, _hubDotRadius);
     }
 
     protected override bool Advance(double seconds)
@@ -185,6 +187,7 @@ public class AnalogFanControl : AnimatedGauge
             if (_visualSpeed <= 0.0001)
             {
                 _visualSpeed = 0.0;
+                _angle = Normalize(_angle);
                 return accentMoving;
             }
             var degreesPerSecond = _visualSpeed * 720.0;
