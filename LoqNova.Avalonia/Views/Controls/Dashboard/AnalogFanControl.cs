@@ -84,18 +84,15 @@ public class AnalogFanControl : AnimatedGauge
         {
             UpdateTargetSpeed();
             RequestFrames();
-            InvalidateVisual();
         }
         else if (change.Property == AccentProperty)
         {
             SetAccentTarget(ResolveAccentColor());
             RequestFrames();
-            InvalidateVisual();
         }
         else if (change.Property == MaxRpmProperty)
         {
             UpdateTargetSpeed();
-            InvalidateVisual();
         }
     }
 
