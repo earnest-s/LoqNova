@@ -397,12 +397,16 @@ public abstract class AnimatedGauge : Control
 
         if (!IsEffectivelyVisible)
         {
+            Stop();
             return;
         }
 
         var seconds = Math.Min(elapsed, MaxStepSeconds);
         var needsMoreFrames = Advance(seconds);
-        InvalidateVisual();
+        if (needsMoreFrames)
+        {
+            InvalidateVisual();
+        }
 
         if (!needsMoreFrames)
         {
