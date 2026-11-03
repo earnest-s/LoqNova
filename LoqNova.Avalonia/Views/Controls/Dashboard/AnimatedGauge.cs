@@ -14,7 +14,7 @@ namespace LoqNova.Avalonia.Views.Controls.Dashboard;
 /// </summary>
 public abstract class AnimatedGauge : Control
 {
-    private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(16);
+    private static readonly TimeSpan FrameInterval = TimeSpan.FromMilliseconds(33);
 
     private const double MaxStepSeconds = 0.1;
 
@@ -69,7 +69,7 @@ public abstract class AnimatedGauge : Control
 
     protected AnimatedGauge()
     {
-        _timer = new DispatcherTimer(DispatcherPriority.Render) { Interval = FrameInterval };
+        _timer = new DispatcherTimer(DispatcherPriority.Background) { Interval = FrameInterval };
         _timer.Tick += OnTick;
     }
 
